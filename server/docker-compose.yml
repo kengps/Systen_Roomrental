@@ -1,0 +1,28 @@
+version: "3"
+
+services:
+  node-app:
+    build:
+      .
+      # context: ./server
+    ports:
+      - '6000:7000'
+    environment:
+      - PORT=4040
+    volumes:
+      - /node_modules
+      - mongo-db:/data/db
+      - .:/app
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=keng
+      - MONGO_INITDB_ROOT_PASSWORD=mypassword
+  redis:
+    image: redis
+
+volumes:
+  mongo-db:

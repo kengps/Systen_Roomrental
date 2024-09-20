@@ -1,0 +1,52 @@
+version: '3'
+
+services:
+  node_server_app:
+    build:
+      context: ./server
+    command: sh -c "npm install && npm run start.dev"
+    ports:
+      - '6000:7000'
+    volumes:
+      - mongo-db:/data/db
+      - ./server:/app
+      - /app/node_modules
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - mynetwork
+
+  node_client_app:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - '8001:8001'
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm run dev"
+    depends_on:
+      - node_server_app
+    networks:
+      - mynetwork
+
+  mongo:
+    image: mongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=keng
+      - MONGO_INITDB_ROOT_PASSWORD=mypassword
+    networks:
+      - mynetwork
+
+  redis:
+    image: redis
+    networks:
+      - mynetwork
+
+volumes:
+  mongo-db:
+
+networks:
+  mynetwork:
