@@ -1,4 +1,4 @@
-#root {
+/* #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
@@ -39,4 +39,55 @@
 
 .read-the-docs {
   color: #888;
+}
+
+
+
+
+
+
+.cascading-right {
+  margin-right: -50px;
+}
+
+@media (max-width: 900px) {
+  .cascading-right {
+    margin-right: 0;
+  }
+} */
+
+.cascading-right {
+  margin-right: -50px;
+}
+
+@media (max-width: 900px) {
+  .cascading-right {
+    margin-right: 0;
+  }
+}
+
+.divider:after,
+.divider:before {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #eee;
+}
+.h-custom {
+  height: calc(100% - 73px);
+}
+@media (max-width: 450px) {
+  .h-custom {
+  height: 100%;
+  }
+}
+
+/* .boxx {
+  box-shadow: 10px 5px 5px red;
+} */
+
+.boxx {
+  display: grid;
+  grid-template-columns: 250px 250px 250px;
+  grid-column-gap: 20px;
 }
