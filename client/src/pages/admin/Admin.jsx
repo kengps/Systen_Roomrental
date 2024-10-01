@@ -1,13 +1,17 @@
 import React from 'react'
 import { Outlet } from 'react-router-dom'
+import FormAdmin from '../../components/form/dashboard/FormAdmin'
+
 
 const AdminPages = () => {
 
 
   return (
     <>
-      <div>Welcome to AdminPages</div>
-      <Outlet/>
+      <div>
+        <FormAdmin />
+      </div>
+      <Outlet />
     </>
   )
 }
