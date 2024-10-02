@@ -6,7 +6,7 @@ const PageNotFound = () => {
     const redirect = useNavigate()
     const navigate = () => {
      
-        redirect('/');
+        redirect('/admin/db');
 
     }
     return (

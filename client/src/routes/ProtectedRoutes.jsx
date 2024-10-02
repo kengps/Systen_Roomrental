@@ -1,18 +1,12 @@
-import React from 'react'
-import { storeAuth } from '../service/zustand/store/loginStore'
-import { Navigate, Outlet, useNavigate } from 'react-router-dom'
-import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner'
-import persistMiddleware from '../service/zustand/middleware/persistMiddleware'
+// src/routes/ProtectedRoutes.js
+import React from 'react';
+import { Navigate, Outlet } from 'react-router-dom';
+import persistMiddleware from '../service/zustand/middleware/persistMiddleware';
 
+const ProtectedRoutes = () => {
+    const { isAuthenticated } = persistMiddleware();
 
+    return isAuthenticated ? <Outlet /> : <Navigate to='/login' />;
+};
 
-
-const ProtectedRoutes = ({isAuthenticated}) => {
-    const navigate = useNavigate();
-    const isLogged = persistMiddleware((state) => state.isAuthenticated)
-
-
-    return isAuthenticated ? <Outlet /> : <LoadingSpinner />
-}
-
-export default ProtectedRoutes
+export default ProtectedRoutes;

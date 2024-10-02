@@ -8,10 +8,9 @@ const AdminPages = () => {
 
   return (
     <>
-      <div>
-        <FormAdmin />
-      </div>
-      <Outlet />
+
+      <FormAdmin />
+      {/* <Outlet /> */}
     </>
   )
 }

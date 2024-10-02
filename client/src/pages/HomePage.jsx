@@ -7,10 +7,9 @@ const HomePage = () => {
     const handleLogout = () => {
         Logout();
     }
-
+    console.log("Rendering HomePage");
     return (
         <div>
-
             <div>HomePage</div>
             <Button onClick={Logout}>Logout</Button>
         </div>

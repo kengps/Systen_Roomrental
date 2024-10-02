@@ -1,49 +1,50 @@
 import React, { useState } from "react";
-import { AppBar, Toolbar, Typography } from "@mui/material";
-
-const drawerWidth = 240;
-
-import { Button, Layout, Menu, theme } from 'antd';
-const { Header, Sider, Content } = Layout;
+import { Button, Layout, Typography } from 'antd';
+const { Header, } = Layout;
 
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  UploadOutlined,
-  UserOutlined,
-  VideoCameraOutlined,
 } from '@ant-design/icons';
+
+
 function AppHeader({
   setCollapsed,
-  collapsed
+  collapsed,
+  colorBg
 }) {
 
-
- 
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
-  
   return (
-    <>
-      <Header
+    <Header
+      style={{
+        padding: 0,
+        background: colorBg,
+      }}
+    >
+      <Typography
+        className="Typography1"
+        // variant="h4"
         style={{
-          padding: 0,
-          background: colorBgContainer,
+          position: "absolute",
+          left: "50%",
+          // transform: "translateX(-50%)",
+          justifyContent: 'center'
         }}
       >
-        <Button
-          type="text"
-          icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-          onClick={() => setCollapsed(!collapsed)}
-          style={{
-            fontSize: '16px',
-            width: 64,
-            height: 64,
-          }}
-        />
-      </Header>
-    </>
+        AdminPages
+      </Typography>
+      <Button
+        type="text"
+        icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+        onClick={() => setCollapsed(!collapsed)}
+        style={{
+          fontSize: '16px',
+          width: 64,
+          height: 64,
+        }}
+      />
+
+    </Header>
   );
 }
 

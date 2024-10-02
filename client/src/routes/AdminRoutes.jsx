@@ -1,51 +1,45 @@
-import React, { useEffect, useState } from 'react'
-import { currentAdmin } from '../service/api/login_register'
-import { storeAuth } from '../service/zustand/store/loginStore'
+import React, { useEffect, useState } from 'react';
+import { currentAdmin } from '../service/api/login_register';
+import { useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner';
-import { Outlet, useNavigate } from 'react-router-dom';
 import persistMiddleware from '../service/zustand/middleware/persistMiddleware';
+import { Outlet } from 'react-router-dom';
 
-
-
-const AdminRoutes = ({ children }) => {
-
-  const { user, isAuthenticated } = persistMiddleware();
-  console.log(`⩇⩇:⩇⩇🚨  file: AdminRoutes.jsx:13  user :`, user);
+const AdminRoutes = () => {
+  const { user } = persistMiddleware();
   const navigate = useNavigate();
 
   const [ok, setOk] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const checkAdmin = async () => {
+      if (user && user.token) {
+        try {
+          await currentAdmin(user.token);
+          setOk(true);
+        } catch (err) {
+          console.error("Authentication failed:", err); // Log error for debugging
+          setOk(false);
+          navigate('/login');
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setOk(false);
+        setLoading(false);
+        navigate('/login');
+      }
+    };
 
-    if (user && user.token) {
-      currentAdmin(user.token)
-        .then(res => {
-          //res
-          console.log(res)
-          setOk(true)
-        }).catch(err => {
-          //err
-          console.log(err)
-          console.log(`${err.response.data} getOut`);
-          // if (err) {
-          //   if (isAuthenticated) {
-          //     setOk(true)
-         
-          //     navigate('/member/homepage')
+    checkAdmin();
+  }, [user, navigate]);
 
-          //   }
-          
-          // }
-          setOk(false)
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
-        })
-    }
+  return ok ? <Outlet /> : <LoadingSpinner />; // Consider a different UI for unauthorized users
+};
 
-  }, [user])
-
-  return ok
-    ? <Outlet />
-    : <LoadingSpinner />
-}
-
-export default AdminRoutes
+export default AdminRoutes;

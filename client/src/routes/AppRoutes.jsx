@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { Suspense, useEffect } from 'react'
 import { Navigate, Route, Routes } from "react-router-dom";
 import HomePage from '../pages/HomePage';
 import IndexLogin from '../pages/login/Index';
@@ -14,13 +14,15 @@ import AdminRoutes from './AdminRoutes';
 import MemberRoutes from './MemberRoutes';
 
 import persistMiddleware from '../service/zustand/middleware/persistMiddleware';
+import TableAdmin from '../pages/admin/Table';
+import routes from '../routes';
 
 
 
 const AppRoutes = () => {
 
     //ทำการตรวจสอบการ login ถ้า login แล้ว รีเฟรชหน้าจะไม่หาย
-    const fetchUserInfo = storeAuth((state) => state.FetchUserInfo)
+
     // persist store
     // const userAuth = persistMiddleware((state) => state.user);
 
@@ -44,27 +46,79 @@ const AppRoutes = () => {
     // }, [])
 
     return (
-        <Routes>
+        // <Routes>
 
-            <Route path='/login' element={<IndexLogin />} />
+        //     <Route path='/login' element={<IndexLogin />} />
 
-            <Route element={<ProtectedRoutes isAuthenticated={isAuthenticated} />}>
-                <Route path='/' element={<HomePage />} />
-                <Route path='404' element={<PageNotFound />} />
-            </Route>
+        //     <Route element={<ProtectedRoutes isAuthenticated={isAuthenticated} />}>
+        //         {/* <Route path='/' element={<HomePage />} /> */}
+        //         <Route path='404' element={<PageNotFound />} />
+        //     </Route>
 
 
-            <Route path='/admin' element={<AdminRoutes />}>
-                <Route path='homepage' element={<AdminPages />} />
-            </Route>
+        //     <Route path="/admin" element={<AdminRoutes />}> {/* ใช้ AdminRoutes เป็น wrapper */}
+        //         <Route path="db" element={<AdminPages />}>
+        //             <Route path="table" element={<TableAdmin />} />
+        //             <Route path="home" element={<HomePage />} />
+        //         </Route>
+        //     </Route>
 
-            {/* <Route path='/admin/homepage' element={<AdminPages />} /> */}
-            <Route path='/member' element={<MemberRoutes />}>
-                <Route path='homepage' element={<MemberPage />} />
-            </Route>
+        //     {/* <Route path='/admin/homepage' element={<AdminPages />} /> */}
+        //     <Route path='/member' element={<MemberRoutes />}>
+        //         <Route path='homepage' element={<MemberPage />} />
+        //     </Route>
 
-            <Route path='*' element={<Navigate to='/404' replace/>}/>
-        </Routes>
+        //     <Route path='*' element={<Navigate to='/404' replace />} />
+        // </Routes>
+
+        <Suspense fallback={<div>Loading</div>}>
+            <Routes>
+                {routes.map((route, index) => {
+                    // //! ตรวจสอบว่า route มี children หรือไม่
+                    if (route.children) {
+                        // //* ถ้ามี children ให้สร้าง Route หลัก
+                        return (
+                            <Route key={index} path={route.path} element={<route.element />}>
+                                {/* //TODO: ตรวจสอบ children และสร้าง Route สำหรับ children */}
+                                {route.children.map((childRoute, childIndex) => {
+                                    // //! ตรวจสอบว่า childRoute มี children หรือไม่
+                                    if (childRoute.children) {
+                                        // //* ถ้ามี children ให้สร้าง Route สำหรับ childRoute
+                                        return (
+                                            <Route key={childIndex} path={childRoute.path} element={<childRoute.element />}>
+                                                {/* //TODO: ตรวจสอบ grandChildRoute และสร้าง Route สำหรับ grandChildRoute */}
+                                                {childRoute.children.map((grandChildRoute, grandChildIndex) => (
+                                                    <Route
+                                                        key={grandChildIndex}
+                                                        path={grandChildRoute.path}
+                                                        element={<grandChildRoute.element />}
+                                                    />
+                                                ))}
+                                            </Route>
+                                        );
+                                    }
+                                    // //* ถ้าไม่มี children ให้สร้าง Route ปกติ
+                                    return (
+                                        <Route
+                                            key={childIndex}
+                                            path={childRoute.path}
+                                            element={<childRoute.element />}
+                                        />
+                                    );
+                                })}
+                            </Route>
+                        );
+                    }
+                    // //* ถ้าไม่มี children ให้สร้าง Route ปกติ
+                    return (
+                        <Route key={index} path={route.path} element={<route.element />} />
+                    );
+                })}
+            </Routes>
+
+
+
+        </Suspense>
     )
 }
 

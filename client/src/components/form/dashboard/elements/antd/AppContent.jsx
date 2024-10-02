@@ -1,48 +1,51 @@
 import React from "react";
-import { Box, Typography, Toolbar } from "@mui/material";
 import AppRoutes from "../../../../../routes/AppRoutes";
 
-import {
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  UploadOutlined,
-  UserOutlined,
-  VideoCameraOutlined,
-} from '@ant-design/icons';
-import { Button, Layout, Menu, theme } from 'antd';
-const { Header, Sider, Content } = Layout;
+
+import { Layout, Breadcrumb } from 'antd';
+import { Outlet } from "react-router-dom";
+const { Content } = Layout;
 
 
-function AppContent() {
+function AppContent({
+  colorBg,
+  borderLG,
+  children
+}) {
+  console.log(`⩇⩇:⩇⩇🚨  file: AppContent.jsx:14  children :`, children);
 
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
-  
+
   return (
-    // <Box
-    //   // component="main"
-    //   // sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}
-    // >
-    //   {/* <Toolbar /> */}
-
-    //   <Box sx={{ height: "500px" }}>
-    //     {/* Content goes here */}
-    //     <AppRoutes />
-    //   </Box>
-    // </Box>
     <Content
       style={{
-        margin: '24px 16px',
-        padding: 24,
-        minHeight: 280,
-        background: colorBgContainer,
-        borderRadius: borderRadiusLG,
+        padding: '0 28px',
       }}
     >
-      <AppRoutes />
+      <Breadcrumb
+        style={{
+          margin: '10px 0',
+        }}
+      >
+        <Breadcrumb.Item>Home</Breadcrumb.Item>
+        <Breadcrumb.Item>List</Breadcrumb.Item>
+        <Breadcrumb.Item>App</Breadcrumb.Item>
+      </Breadcrumb>
+      <div
+        style={{
+          padding: 24,
+          minHeight: "90%",
+          background: colorBg,
+          borderRadius: borderLG,
+        }}
+      >
+        {/* {children} */}
+        <Outlet />
+      </div>
     </Content>
   );
 }
 
+
+
 export default AppContent;
+
