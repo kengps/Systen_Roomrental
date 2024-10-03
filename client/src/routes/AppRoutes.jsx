@@ -73,7 +73,7 @@ const AppRoutes = () => {
 
         <Suspense fallback={<div>Loading</div>}>
             <Routes>
-
+                {routes.map(() => ({}))}
             </Routes>
 
         </Suspense>
