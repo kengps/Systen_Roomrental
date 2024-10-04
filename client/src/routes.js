@@ -15,7 +15,7 @@ const MemberRoutes = React.lazy(() => import("./routes/MemberRoutes"));
 
 const routes = [
     // Protected routes
-    { path: '/login', element: IndexForm },
+    { path: '/auth/login', element: IndexForm },
     {
         path: '/',
         element: ProtectedRoutes,
@@ -39,10 +39,22 @@ const routes = [
                     { path: 'table', title: 'Table', element: TableAdmin }, // This matches /admin/db/table
                     { path: 'home', title: 'Home', element: HomePage }, // This matches /admin/db/home
                     { path: 'tableadmin', title: 'TableAdmin', element: TableAdmin }, // This matches /admin/db/table
+                    { path: '*', element: PageNotFound }
                 ],
             },
+            {
+                path: 'setting', // This path matches /admin/db
+                title: 'setting',
+                element: AdminPages, // AdminPages component renders here
+                children: [
+                    { path: 'table', title: 'Table', element: TableAdmin },
+                    { path: '*', element: PageNotFound }
+                ],
+            },
+            { path: '*', element: PageNotFound }
         ],
     },
+    // { path: '*', element: PageNotFound },
 
     // Member routes
     {
@@ -53,7 +65,7 @@ const routes = [
         ],
     },
 
-    { path: '*', element: PageNotFound }, // Catch-all for unknown routes
+    { path: '*', element: ProtectedRoutes }, // Catch-all for unknown routes
 ];
 
 

@@ -1,7 +1,7 @@
 import React from "react";
 import { Layout, Breadcrumb } from 'antd';
-import { Link, Outlet, useLocation } from "react-router-dom";
-
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { HomeOutlined } from '@ant-design/icons';
 const { Content } = Layout;
 
 function AppContent({
@@ -15,7 +15,8 @@ function AppContent({
     const segments = pathname.split('/').filter(Boolean); // แยก segments และกรองค่าว่าง
 
     let url = ''; // สำหรับสร้าง URL
-
+    // กรอง "Admin" ออกจาก segments
+    const filteredSegments = segments.filter(segment => segment !== 'admin');
     const breadcrumbLinks = segments.map((segment, i) => {
       url += `/${segment}`; // สร้าง URL ตาม segment
 
@@ -24,7 +25,7 @@ function AppContent({
           {i === segments.length - 1 ? ( // เช็คว่าตอนนี้คือหน้าสุดท้ายหรือไม่
             <div style={{ fontWeight: 'bold' }}>
               {segment.charAt(0).toUpperCase() + segment.slice(1)}
-              </div> // แสดงชื่อ segment โดยไม่ทำลิงก์
+            </div> // แสดงชื่อ segment โดยไม่ทำลิงก์
           ) : (
             <Link to={url}>
               {segment.charAt(0).toUpperCase() + segment.slice(1)} {/* Capitalize the first letter */}
@@ -45,7 +46,7 @@ function AppContent({
     >
       <Breadcrumb>
         <Breadcrumb.Item>
-          <Link to="/">Home</Link>
+          <Link to="/admin/dashboard"><HomeOutlined /></Link>
         </Breadcrumb.Item>
         {Breadcrumbs()} {/* เรียกใช้ Breadcrumbs */}
       </Breadcrumb>

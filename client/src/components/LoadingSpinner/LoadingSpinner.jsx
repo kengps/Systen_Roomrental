@@ -4,15 +4,18 @@ import { storeAuth } from '../../service/zustand/store/loginStore';
 import { Box, Typography } from '@mui/material';
 
 import '../../DemoAnimation.css'
+import persistMiddleware from '../../service/zustand/middleware/persistMiddleware';
 
 
 const LoadingSpinner = () => {
     const navigate = useNavigate();
     let [count, setCount] = useState(5); //กำหนด 3 = 3 วิ
 
-    const { user } = storeAuth();
-    console.log(`⩇⩇:⩇⩇🚨  file: LoadingSpinner.jsx:14  user :`, user);
+    const { user } = persistMiddleware();
 
+console.log('====================================');
+console.log('มาหน้านี้');
+console.log('====================================');
 
     const username = storeAuth((state) => state.user)
 
@@ -29,7 +32,7 @@ const LoadingSpinner = () => {
             // localStorage.removeItem("token");
             // localStorage.removeItem("expirationDate");
         }, 1000);
-        count === 0 && navigate("/login");
+        count === 0 && navigate("/auth/login");
         return () => clearInterval(interval);
     }, [count, navigate]);
 
