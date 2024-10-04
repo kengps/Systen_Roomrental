@@ -57,7 +57,7 @@ const AppRoutes = () => {
         // </Routes>
         <Suspense fallback={<Spin />}>
             <Routes>
-//* map routes
+                //* map routes
                 {routes.map((route, index) => {
 
                     //1 //* ตรวจสอบว่ามี children หรือไม่ ถ้ามี จะสร้าง Route ที่มี children ซ้อนอยู่
@@ -66,7 +66,7 @@ const AppRoutes = () => {
                             //3 //* สร้าง Route ที่มี children ซ้อนอยู่
                             <Route key={route.path} path={route.path} element={<route.element />} >
 
-      //4 //* ทำการ map children routes และตรวจสอบว่ามี children ซ้อนอยู่หรือไม่
+                 //4 //* ทำการ map children routes และตรวจสอบว่ามี children ซ้อนอยู่หรือไม่
                                 {route.children.map((childrenRoute, index) => {
 
                                     //5 //! ตรวจสอบว่ามี children ใน childrenRoute หรือไม่ ถ้ามี สร้าง nested route อีกชั้น
