@@ -58,6 +58,7 @@ const AppRoutes = () => {
 
         <Suspense fallback={<Spin />}>
             <Routes>
+<<<<<<< HEAD
   //* map routes
                 {routes.map((route, index) => {
 
@@ -102,6 +103,9 @@ const AppRoutes = () => {
                         <Route key={route.path} path={route.path} element={<route.element />} />
                     )
                 })}
+=======
+                {routes.map(() => ({}))}
+>>>>>>> origin/develop
             </Routes>
 
         </Suspense>
