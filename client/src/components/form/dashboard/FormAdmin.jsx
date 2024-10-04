@@ -5,8 +5,14 @@ import { UploadOutlined, UserOutlined, VideoCameraOutlined, MenuFoldOutlined, Me
 import { Outlet, useNavigate } from 'react-router-dom';
 import TableAdmin from '../../../pages/admin/Table';
 import HomePage from '../../../pages/HomePage';
+import AppHeader from './elements/antd/AppHeader';
+import AppContent from './elements/antd/AppContent';
+import AppFooter from './elements/antd/AppFooter';
+import AppSidebar from './elements/antd/AppSidebar';
+import routes from '../../../routes';
 
-const { Sider, Content, Header ,Footer} = Layout;
+
+const { Sider, Content, Header, Footer } = Layout;
 
 const FormAdmin = () => {
     const [collapsed, setCollapsed] = useState(false);
@@ -21,13 +27,13 @@ const FormAdmin = () => {
         const key = e.key;
         switch (key) {
             case '1':
-                navigate('/admin/db/table'); // เปลี่ยนเส้นทางไปยัง TableAdmin
+                navigate('/admin/dashboard/table'); // เปลี่ยนเส้นทางไปยัง TableAdmin
                 break;
             case '2':
-                navigate('/admin/db/home'); // เปลี่ยนเส้นทางไปยัง HomePage
+                navigate('/admin/dashboard/home'); // เปลี่ยนเส้นทางไปยัง HomePage
                 break;
             case '3':
-                navigate('/admin/user'); // เปลี่ยนเส้นทางไปยัง User
+                navigate('/admin/dashboard/tableadmin'); // เปลี่ยนเส้นทางไปยัง User
                 break;
             default:
                 break;
@@ -38,68 +44,14 @@ const FormAdmin = () => {
         <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
             <Box sx={{ display: "flex", flexGrow: 1 }}>
                 <Layout>
-                    <Sider trigger={null} collapsible collapsed={collapsed}>
-                        <Toolbar style={{ backgroundColor: 'gray' }} />
-                        <Menu
-                            theme="dark"
-                            mode="inline"
-                            defaultSelectedKeys={['1']}
-                            onClick={handleMenuClick} // ใช้ฟังก์ชัน handleMenuClick
-                            items={[
-                                {
-                                    key: '1',
-                                    icon: <UserOutlined />,
-                                    label: 'TableAdmin',
-                                },
-                                {
-                                    key: '2',
-                                    icon: <VideoCameraOutlined />,
-                                    label: 'HomePage',
-                                },
-                                {
-                                    key: '3',
-                                    icon: <UploadOutlined />,
-                                    label: 'User',
-                                },
-                            ]}
-                        />
-                    </Sider>
+                    <AppSidebar handleMenuClick={handleMenuClick} collapsed={collapsed} />
                     <Layout>
-                        <Header
-                            style={{
-                                padding: 0,
-                                background: colorBgContainer,
-                            }}
-                        >
-                            <Button
-                                type="text"
-                                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-                                onClick={() => setCollapsed(!collapsed)}
-                                style={{
-                                    fontSize: '16px',
-                                    width: 64,
-                                    height: 64,
-                                }}
-                            />
-                        </Header>
-                        <Content
-                            style={{
-                                margin: '24px 16px',
-                                padding: 24,
-                                minHeight: 280,
-                                background: colorBgContainer,
-                                borderRadius: borderRadiusLG,
-                            }}
-                        >
-                            <Outlet />
-                        </Content>
-                        <Footer
-                            style={{
-                                textAlign: 'center',
-                            }}
-                        >
-                            Ant Design ©{new Date().getFullYear()} Created by Ant UED
-                        </Footer>
+                        <AppHeader setCollapsed={setCollapsed} collapsed={collapsed} colorBg={colorBgContainer} />
+
+                        <AppContent colorBg={colorBgContainer} borderLG={borderRadiusLG} routes={routes} />
+
+                        <AppFooter />
+
                     </Layout>
                 </Layout>
             </Box>

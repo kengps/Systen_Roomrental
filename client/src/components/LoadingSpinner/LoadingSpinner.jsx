@@ -11,13 +11,14 @@ const LoadingSpinner = () => {
     let [count, setCount] = useState(5); //กำหนด 3 = 3 วิ
 
     const { user } = storeAuth();
+    console.log(`⩇⩇:⩇⩇🚨  file: LoadingSpinner.jsx:14  user :`, user);
+
 
     const username = storeAuth((state) => state.user)
 
 
 
     useEffect(() => {
-
 
         const interval = setInterval(() => {
             setCount((currentCount) => --currentCount);

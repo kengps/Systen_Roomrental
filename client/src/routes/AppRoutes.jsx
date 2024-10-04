@@ -55,51 +55,50 @@ const AppRoutes = () => {
 
         //     <Route path='*' element={<Navigate to='/404' replace />} />
         // </Routes>
-        <Suspense fallback={<Spin />}>
+
+
+        <Suspense fallback={<div>Loading</div>}>
             <Routes>
-                //* map routes
                 {routes.map((route, index) => {
-
-                    //1 //* ตรวจสอบว่ามี children หรือไม่ ถ้ามี จะสร้าง Route ที่มี children ซ้อนอยู่
+                    // //! ตรวจสอบว่า route มี children หรือไม่
                     if (route.children) {
+                        // //* ถ้ามี children ให้สร้าง Route หลัก
                         return (
-                            //3 //* สร้าง Route ที่มี children ซ้อนอยู่
-                            <Route key={route.path} path={route.path} element={<route.element />} >
-
-                 //4 //* ทำการ map children routes และตรวจสอบว่ามี children ซ้อนอยู่หรือไม่
-                                {route.children.map((childrenRoute, index) => {
-
-                                    //5 //! ตรวจสอบว่ามี children ใน childrenRoute หรือไม่ ถ้ามี สร้าง nested route อีกชั้น
-                                    if (childrenRoute.children) {
+                            <Route key={index} path={route.path} element={<route.element />}>
+                                {/* //TODO: ตรวจสอบ children และสร้าง Route สำหรับ children */}
+                                {route.children.map((childRoute, childIndex) => {
+                                    // //! ตรวจสอบว่า childRoute มี children หรือไม่
+                                    if (childRoute.children) {
+                                        // //* ถ้ามี children ให้สร้าง Route สำหรับ childRoute
                                         return (
-                                            //7 //* ถ้ามี children ใน childrenRoute ให้สร้าง nested Route ซ้อนอีกชั้น
-                                            <Route key={childrenRoute.path} path={childrenRoute.path} element={<childrenRoute.element />} >
-
-                                     // 8 //* ทำการ map childrenRoute children เพื่อดูว่ามี children ซ้อนอีกหรือไม่
-                                                {childrenRoute.children.map((grandChildRoute, index) => {
-
-                                                    //! ตรงนี้ถ้ามี children ใน grandChildRoute ให้ if else ปกติ แต่ถ้าไม่มีแล้ว ให้ส่งค่า (Route) เลยก็ได้ ไม่ต้อง return
-                                                    return (
-                                                        <Route key={grandChildRoute.path} path={grandChildRoute.path} element={<grandChildRoute.element />} />
-                                                    )
-                                                })}
+                                            <Route key={childIndex} path={childRoute.path} element={<childRoute.element />}>
+                                                {/* //TODO: ตรวจสอบ grandChildRoute และสร้าง Route สำหรับ grandChildRoute */}
+                                                {childRoute.children.map((grandChildRoute, grandChildIndex) => (
+                                                    <Route
+                                                        key={grandChildIndex}
+                                                        path={grandChildRoute.path}
+                                                        element={<grandChildRoute.element />}
+                                                    />
+                                                ))}
                                             </Route>
-                                        )
+                                        );
                                     }
-
-                                    //6 // ถ้าไม่มี children ให้สร้าง Route ปกติ
+                                    // //* ถ้าไม่มี children ให้สร้าง Route ปกติ
                                     return (
-                                        <Route key={childrenRoute.path} path={childrenRoute.path} element={<childrenRoute.element />} />
-                                    )
+                                        <Route
+                                            key={childIndex}
+                                            path={childRoute.path}
+                                            element={<childRoute.element />}
+                                        />
+                                    );
                                 })}
                             </Route>
-                        )
+                        );
                     }
-
-                    //2 // ถ้าไม่มี children ให้สร้าง Route ปกติ
+                    // //* ถ้าไม่มี children ให้สร้าง Route ปกติ
                     return (
-                        <Route key={route.path} path={route.path} element={<route.element />} />
-                    )
+                        <Route key={index} path={route.path} element={<route.element />} />
+                    );
                 })}
             </Routes>
 

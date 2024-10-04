@@ -1,19 +1,41 @@
 import React from "react";
-import AppRoutes from "../../../../../routes/AppRoutes";
-
-
 import { Layout, Breadcrumb } from 'antd';
-import { Outlet } from "react-router-dom";
-const { Content } = Layout;
+import { Link, Outlet, useLocation } from "react-router-dom";
 
+const { Content } = Layout;
 
 function AppContent({
   colorBg,
   borderLG,
-  children
 }) {
-  console.log(`⩇⩇:⩇⩇🚨  file: AppContent.jsx:14  children :`, children);
+  const location = useLocation();
 
+  const Breadcrumbs = () => {
+    const { pathname } = location;
+    const segments = pathname.split('/').filter(Boolean); // แยก segments และกรองค่าว่าง
+
+    let url = ''; // สำหรับสร้าง URL
+
+    const breadcrumbLinks = segments.map((segment, i) => {
+      url += `/${segment}`; // สร้าง URL ตาม segment
+
+      return (
+        <Breadcrumb.Item key={i}>
+          {i === segments.length - 1 ? ( // เช็คว่าตอนนี้คือหน้าสุดท้ายหรือไม่
+            <div style={{ fontWeight: 'bold' }}>
+              {segment.charAt(0).toUpperCase() + segment.slice(1)}
+              </div> // แสดงชื่อ segment โดยไม่ทำลิงก์
+          ) : (
+            <Link to={url}>
+              {segment.charAt(0).toUpperCase() + segment.slice(1)} {/* Capitalize the first letter */}
+            </Link>
+          )}
+        </Breadcrumb.Item>
+      );
+    });
+
+    return breadcrumbLinks;
+  };
 
   return (
     <Content
@@ -21,15 +43,13 @@ function AppContent({
         padding: '0 28px',
       }}
     >
-      <Breadcrumb
-        style={{
-          margin: '10px 0',
-        }}
-      >
-        <Breadcrumb.Item>Home</Breadcrumb.Item>
-        <Breadcrumb.Item>List</Breadcrumb.Item>
-        <Breadcrumb.Item>App</Breadcrumb.Item>
+      <Breadcrumb>
+        <Breadcrumb.Item>
+          <Link to="/">Home</Link>
+        </Breadcrumb.Item>
+        {Breadcrumbs()} {/* เรียกใช้ Breadcrumbs */}
       </Breadcrumb>
+
       <div
         style={{
           padding: 24,
@@ -38,14 +58,10 @@ function AppContent({
           borderRadius: borderLG,
         }}
       >
-        {/* {children} */}
         <Outlet />
       </div>
     </Content>
   );
 }
 
-
-
 export default AppContent;
-

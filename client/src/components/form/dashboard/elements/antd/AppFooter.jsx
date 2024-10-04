@@ -1,19 +1,17 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
+import { Layout } from "antd";
 
+const { Footer } = Layout
 function AppFooter() {
     return (
-        <Box sx={{
-            p: 2,
-            bgcolor: "background.paper",
-            textAlign: "center",
-            mt: "auto",
-            borderTop: "1px solid #ccc" // เพิ่มเส้นกรอบด้านบน
-        }}>
-            <Typography variant="body2">
-                © 2024 Your Company. All rights reserved.
-            </Typography>
-        </Box>
+        <Footer
+            style={{
+                textAlign: 'center',
+            }}
+        >
+            Ant Design ©{new Date().getFullYear()} Created by Ant UED
+        </Footer>
     );
 }
 

@@ -47,7 +47,7 @@ const IndexForm = () => {
             if (data.user.role === 'user') {
                 navigate('/member/homepage')
             } else {
-                navigate('/admin/homepage')
+                navigate('/admin/dashboard')
             }
         } catch (error) {
             console.log(`⩇⩇:⩇⩇🚨  file: IndexLogin.jsx:39  error :`, error);

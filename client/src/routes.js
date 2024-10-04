@@ -1,7 +1,7 @@
 import React from "react";
+import IndexForm from "./pages/login/Index";
 
 // Lazy load components
-const IndexLogin = React.lazy(() => import("./pages/login/Index"));
 const HomePage = React.lazy(() => import("./pages/HomePage"));
 const PageNotFound = React.lazy(() => import("./pages/404/PageNotFound"));
 const AdminPages = React.lazy(() => import("./pages/admin/Admin"));
@@ -14,9 +14,8 @@ const MemberRoutes = React.lazy(() => import("./routes/MemberRoutes"));
 
 
 const routes = [
-    { path: '/login', element: IndexLogin },
-
     // Protected routes
+    { path: '/login', element: IndexForm },
     {
         path: '/',
         element: ProtectedRoutes,
@@ -29,14 +28,17 @@ const routes = [
     // Admin routes
     {
         path: '/admin',
+        title: 'Admin',
         element: AdminRoutes, // AdminRoutes should handle rendering child routes
         children: [
             {
-                path: 'db', // This path matches /admin/db
+                path: 'dashboard', // This path matches /admin/db
+                title: 'Dashboard',
                 element: AdminPages, // AdminPages component renders here
                 children: [
-                    { path: 'table', element: TableAdmin  }, // This matches /admin/db/table
-                    { path: 'home', element: HomePage }, // This matches /admin/db/home
+                    { path: 'table', title: 'Table', element: TableAdmin }, // This matches /admin/db/table
+                    { path: 'home', title: 'Home', element: HomePage }, // This matches /admin/db/home
+                    { path: 'tableadmin', title: 'TableAdmin', element: TableAdmin }, // This matches /admin/db/table
                 ],
             },
         ],
