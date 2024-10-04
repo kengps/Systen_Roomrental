@@ -55,11 +55,9 @@ const AppRoutes = () => {
 
         //     <Route path='*' element={<Navigate to='/404' replace />} />
         // </Routes>
-
         <Suspense fallback={<Spin />}>
             <Routes>
-<<<<<<< HEAD
-  //* map routes
+//* map routes
                 {routes.map((route, index) => {
 
                     //1 //* ตรวจสอบว่ามี children หรือไม่ ถ้ามี จะสร้าง Route ที่มี children ซ้อนอยู่
@@ -68,7 +66,7 @@ const AppRoutes = () => {
                             //3 //* สร้าง Route ที่มี children ซ้อนอยู่
                             <Route key={route.path} path={route.path} element={<route.element />} >
 
-          //4 //* ทำการ map children routes และตรวจสอบว่ามี children ซ้อนอยู่หรือไม่
+      //4 //* ทำการ map children routes และตรวจสอบว่ามี children ซ้อนอยู่หรือไม่
                                 {route.children.map((childrenRoute, index) => {
 
                                     //5 //! ตรวจสอบว่ามี children ใน childrenRoute หรือไม่ ถ้ามี สร้าง nested route อีกชั้น
@@ -77,7 +75,7 @@ const AppRoutes = () => {
                                             //7 //* ถ้ามี children ใน childrenRoute ให้สร้าง nested Route ซ้อนอีกชั้น
                                             <Route key={childrenRoute.path} path={childrenRoute.path} element={<childrenRoute.element />} >
 
-                                         // 8 //* ทำการ map childrenRoute children เพื่อดูว่ามี children ซ้อนอีกหรือไม่
+                                     // 8 //* ทำการ map childrenRoute children เพื่อดูว่ามี children ซ้อนอีกหรือไม่
                                                 {childrenRoute.children.map((grandChildRoute, index) => {
 
                                                     //! ตรงนี้ถ้ามี children ใน grandChildRoute ให้ if else ปกติ แต่ถ้าไม่มีแล้ว ให้ส่งค่า (Route) เลยก็ได้ ไม่ต้อง return
@@ -103,9 +101,6 @@ const AppRoutes = () => {
                         <Route key={route.path} path={route.path} element={<route.element />} />
                     )
                 })}
-=======
-                {routes.map(() => ({}))}
->>>>>>> origin/develop
             </Routes>
 
         </Suspense>
