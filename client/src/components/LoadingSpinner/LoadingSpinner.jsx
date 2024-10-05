@@ -9,20 +9,17 @@ import persistMiddleware from '../../service/zustand/middleware/persistMiddlewar
 
 const LoadingSpinner = () => {
     const navigate = useNavigate();
-    let [count, setCount] = useState(5); //กำหนด 3 = 3 วิ
+    let [count, setCount] = useState(3); //กำหนด 3 = 3 วิ
 
     const { user } = persistMiddleware();
 
-console.log('====================================');
-console.log('มาหน้านี้');
-console.log('====================================');
-
     const username = storeAuth((state) => state.user)
 
-
+console.log('====================================');
+console.log('ทำไมมาหน้านี้');
+console.log('====================================');
 
     useEffect(() => {
-
         const interval = setInterval(() => {
             setCount((currentCount) => --currentCount);
             if (!user) {

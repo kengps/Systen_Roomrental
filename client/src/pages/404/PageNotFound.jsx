@@ -1,12 +1,24 @@
 import { Button } from 'antd'
 import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
+import persistMiddleware from '../../service/zustand/middleware/persistMiddleware'
 
 const PageNotFound = () => {
+
+    const { user } = persistMiddleware();
+    console.log(`⩇⩇:⩇⩇🚨  file: PageNotFound.jsx:9  user :`, user);
+
     const redirect = useNavigate()
     const navigate = () => {
-     
-        redirect('/admin/dashboard');
+
+        if(user.userPayLoad.user.role === 'admin'){
+            console.log('admin');
+            
+            redirect('/admin/dashboard');
+        }else {
+            console.log('member');
+            redirect('/member/homepage');
+        }
 
     }
     return (

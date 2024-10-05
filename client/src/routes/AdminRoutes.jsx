@@ -18,15 +18,9 @@ const AdminRoutes = () => {
   console.log(location);
   console.log('====================================');
 
-  const checkPath = (() => {
-    if (location.pathname === '/admin' 
-      // || location.pathname === '/admin/'
-    ) {
-      navigate('/admin/dashboard');
-    }
-  })
+ 
   useEffect(() => {
-    checkPath();
+    
     const checkAdmin = async () => {
       if (user && user.token) {
         try {

@@ -1,5 +1,7 @@
 import React from "react";
 import IndexForm from "./pages/login/Index";
+import { Navigate } from "react-router-dom";
+// import NavigateToDb from "./utilities/Navigate/NavigateToDb";
 
 // Lazy load components
 const HomePage = React.lazy(() => import("./pages/HomePage"));
@@ -11,17 +13,23 @@ const MemberPage = React.lazy(() => import('./pages/member/Member'));
 const ProtectedRoutes = React.lazy(() => import("./routes/ProtectedRoutes"));
 const AdminRoutes = React.lazy(() => import("./routes/AdminRoutes"));
 const MemberRoutes = React.lazy(() => import("./routes/MemberRoutes"));
+const NavigateToDb = React.lazy(() => import("./utilities/Navigate/NavigateToDb"));
+
+
+// const RedirectToDashboard = () => {
+//     return <Navigate to="/admin/dashboard" replace />;
+// };
 
 
 const routes = [
     // Protected routes
     { path: '/auth/login', element: IndexForm },
     {
-        path: '/',
+        // path: '/',
         element: ProtectedRoutes,
         children: [
-            { path: 'homepage', element: HomePage }, // HomePage at root
-            { path: '404', element: PageNotFound }, // PageNotFound route
+            { path: '/homepage', element: HomePage }, // HomePage at root
+            { path: '/404', element: PageNotFound }, // PageNotFound route
         ],
     },
 
@@ -31,6 +39,7 @@ const routes = [
         title: 'Admin',
         element: AdminRoutes, // AdminRoutes should handle rendering child routes
         children: [
+            { index: true, element: NavigateToDb },
             {
                 path: 'dashboard', // This path matches /admin/db
                 title: 'Dashboard',

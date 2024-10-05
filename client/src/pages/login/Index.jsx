@@ -20,24 +20,36 @@ import persistMiddleware from '../../service/zustand/middleware/persistMiddlewar
 
 const IndexForm = () => {
     const navigate = useNavigate();
+    // const { Login } = storeAuth();
+    const Login2 = persistMiddleware((state) => state.Login)
+    const { Login, isAuthenticated, user } = persistMiddleware();
+    console.log(`⩇⩇:⩇⩇🚨  file: Index.jsx:26  isAuthenticated :`, isAuthenticated);
+
+    console.log(`⩇⩇:⩇⩇🚨  file: Index.jsx:26  user :`, user);
 
 
+
+    const checkStatusAuth = () => {
+        const authStorage = localStorage.getItem('auth-storage');
+
+        if (isAuthenticated) {
+            if (user.userPayLoad.user.role === 'user') {
+                navigate('/member/homepage')
+            } else {
+                navigate('/admin/dashboard')
+            }
+
+        }
+
+    }
     //0 check Status Login
     useEffect(() => {
         checkStatusAuth();
     }, [])
-    const checkStatusAuth = () => {
-        const authStorage = localStorage.getItem('auth-storage');
-
-        if (isAuthenticated) return navigate('/')
-
-    }
     //1 login โดยการใช้ useForm
     const { register, handleSubmit, formState: { errors }, } = useForm();
 
-    // const { Login } = storeAuth();
-    const Login2 = persistMiddleware((state) => state.Login)
-    const { Login, isAuthenticated } = persistMiddleware();
+
 
     //2 ทำการตรวจสอบ Role
     const checkLevelRole = async (data) => {
@@ -58,12 +70,11 @@ const IndexForm = () => {
     }
 
     const onSubmit = async (value) => {
-    console.log(`⩇⩇:⩇⩇🚨  file: Index.jsx:61  value :`, value);
+        console.log(`⩇⩇:⩇⩇🚨  file: Index.jsx:61  value :`, value);
 
 
         try {
             const response = await Login(value);
-            console.log(`⩇⩇:⩇⩇🚨  file: IndexLogin.jsx:31  response  :`, response);
 
 
             toast.success(response.messages)
@@ -80,8 +91,7 @@ const IndexForm = () => {
 
 
         } catch (error) {
-
-            toast('🦄 Wow so easy!', {
+            toast(`🦄 ${error.response.data.message}`, {
                 position: "top-right",
                 autoClose: 5000,
                 hideProgressBar: false,
