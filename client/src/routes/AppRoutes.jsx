@@ -15,6 +15,7 @@ import TableAdmin from '../pages/admin/Table';
 import routes from '../routes';
 
 import { Spin } from 'antd';
+import IndexForm from '../pages/login/Index';
 
 const AppRoutes = () => {
     // persist store
@@ -55,55 +56,85 @@ const AppRoutes = () => {
 
         //     <Route path='*' element={<Navigate to='/404' replace />} />
         // </Routes>
-        <Suspense fallback={<Spin />}>
-            <Routes>
-//* map routes
-                {routes.map((route, index) => {
 
-                    //1 //* ตรวจสอบว่ามี children หรือไม่ ถ้ามี จะสร้าง Route ที่มี children ซ้อนอยู่
+
+        // <Routes>
+        //     {/* Protected routes (for general users) */}
+
+        //     <Route path='/auth/login' element={<IndexForm />} />
+
+        //     <Route element={<ProtectedRoutes isAuthenticated={isAuthenticated} />}>
+        //         {/* <Route path='/' element={<HomePage />} /> */}
+        //         <Route path='404' element={<PageNotFound />} />
+        //     </Route>
+
+        //     {/* Admin routes */}
+        //     <Route path="/admin" element={<AdminRoutes />}>
+        //         {/* If user navigates to /admin without any specific route, redirect to /admin/db */}
+        //         <Route index element={<Navigate to="/admin/dashboard" replace />} />
+
+        //         {/* Admin dashboard pages */}
+        //         <Route path="dashboard" element={<AdminPages />}>
+        //             <Route path="table" element={<TableAdmin />} />
+        //             <Route path="home" element={<HomePage />} />
+        //         </Route>
+
+        //         {/* Redirect to 404 if accessing unknown routes under /admin */}
+        //         <Route path="*" element={<Navigate to="/404" replace />} />
+        //     </Route>
+
+        //     {/* Member routes */}
+        //     <Route path='/member' element={<MemberRoutes />}>
+        //         <Route path='homepage' element={<MemberPage />} />
+        //         <Route path="home" element={<HomePage />} />
+        //     </Route>
+
+        //     {/* Catch-all route for unknown paths */}
+        //     <Route path='*' element={<Navigate to='/404' replace />} />
+        // </Routes>
+
+        <Suspense fallback={<div>Loading...</div>}>
+            <Routes>
+                {routes.map((route, index) => {
                     if (route.children) {
                         return (
-                            //3 //* สร้าง Route ที่มี children ซ้อนอยู่
-                            <Route key={route.path} path={route.path} element={<route.element />} >
+                            <Route key={index} path={route.path} element={<route.element />}>
+                                {route.children.map((childRoute, childIndex) => {
+                                    console.log(`⩇⩇:⩇⩇🚨  file: AppRoutes.jsx:103  childRoute :`, childRoute.element);
 
-      //4 //* ทำการ map children routes และตรวจสอบว่ามี children ซ้อนอยู่หรือไม่
-                                {route.children.map((childrenRoute, index) => {
-
-                                    //5 //! ตรวจสอบว่ามี children ใน childrenRoute หรือไม่ ถ้ามี สร้าง nested route อีกชั้น
-                                    if (childrenRoute.children) {
+                                    if (childRoute.index) {
                                         return (
-                                            //7 //* ถ้ามี children ใน childrenRoute ให้สร้าง nested Route ซ้อนอีกชั้น
-                                            <Route key={childrenRoute.path} path={childrenRoute.path} element={<childrenRoute.element />} >
-
-                                     // 8 //* ทำการ map childrenRoute children เพื่อดูว่ามี children ซ้อนอีกหรือไม่
-                                                {childrenRoute.children.map((grandChildRoute, index) => {
-
-                                                    //! ตรงนี้ถ้ามี children ใน grandChildRoute ให้ if else ปกติ แต่ถ้าไม่มีแล้ว ให้ส่งค่า (Route) เลยก็ได้ ไม่ต้อง return
-                                                    return (
-                                                        <Route key={grandChildRoute.path} path={grandChildRoute.path} element={<grandChildRoute.element />} />
-                                                    )
-                                                })}
-                                            </Route>
-                                        )
+                                            <Route key={childIndex} index element={<Navigate to={'/admin/dashboard'} />} /> // Handle index route
+                                        );
                                     }
 
-                                    //6 // ถ้าไม่มี children ให้สร้าง Route ปกติ
+                                    if (childRoute.children) {
+                                        return (
+                                            <Route key={childIndex} path={childRoute.path} element={<childRoute.element />}>
+                                                {childRoute.children.map((grandChildRoute, grandChildIndex) => (
+                                                    <Route
+                                                        key={grandChildIndex}
+                                                        path={grandChildRoute.path}
+                                                        element={<grandChildRoute.element />}
+                                                    />
+                                                ))}
+                                            </Route>
+                                        );
+                                    }
                                     return (
-                                        <Route key={childrenRoute.path} path={childrenRoute.path} element={<childrenRoute.element />} />
-                                    )
+                                        <Route key={childIndex} path={childRoute.path} element={<childRoute.element />} />
+                                    );
                                 })}
                             </Route>
-                        )
+                        );
                     }
-
-                    //2 // ถ้าไม่มี children ให้สร้าง Route ปกติ
                     return (
-                        <Route key={route.path} path={route.path} element={<route.element />} />
-                    )
+                        <Route key={index} path={route.path} element={<route.element />} />
+                    );
                 })}
             </Routes>
-
         </Suspense>
+
     )
 }
 

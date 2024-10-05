@@ -5,7 +5,7 @@ const adminUser = mongoose.Schema(
     {
         username: { type: String, required: true, unique: true },
         password: { type: String, required: true },
-        role: { type: String, enum: ['superAdmin', 'adminUserManager', 'adminFinanceManager'], default: 'superAdmin' },
+        role: { type: String, enum: ['admin', 'adminUserManager', 'adminFinanceManager'], default: 'admin' },
         permissions: {
             manageUsers: { type: Boolean, default: true },  // จัดการผู้ใช้
             manageRentals: { type: Boolean, default: true }, // จัดการห้องเช่า

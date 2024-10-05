@@ -16,7 +16,7 @@ exports.adminCheck = async (req, res, next) => {
             userAdmin = await memberUser.findOne({ username: req.user.username }).select("-password").exec();
         }
 
-        if (userAdmin.role !== "superAdmin") return sendResponse(res, 404, 'Admin access denied!!!!!');
+        if (userAdmin.role !== "admin") return sendResponse(res, 404, 'Admin access denied!!!!!');
 
         next();
        

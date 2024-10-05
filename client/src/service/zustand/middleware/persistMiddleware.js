@@ -27,27 +27,45 @@ const persistMiddleware = create(
         (set, get) => ({
             isAuthenticated: false,
             user: '',
+            token: '',
+            expirationTime: null,
             Login: async (value) => {
                 const response = await logged(value);
-                console.log(`⩇⩇:⩇⩇🚨  file: persistMiddleware.js:32  persist value :`, value);
+                const token = response.data.token; // Assuming your API returns a token
+                const expiresIn = 3 * 60 * 60 * 1000; // 1 hour in milliseconds
+                const expirationTime = Date.now() + expiresIn;
 
                 set({
                     user: response.data,
-                    isAuthenticated: true
-                })
-                console.log('Save data in persist success');
-                return response.data
+                    isAuthenticated: true,
+                    token: token,
+                    expirationTime: expirationTime
+                });
 
+                // Set timeout to automatically logout after token expires
+                setTimeout(() => {
+                    get().Logout();
+                }, expiresIn);
+
+                console.log('Save data in persist success');
+                return response.data;
             },
             Logout: () => {
-                set({ user: '', isAuthenticated: false });
+                set({ user: '', isAuthenticated: false, token: '', expirationTime: null });
+                localStorage.clear();
+            },
+            checkTokenExpiration: () => {
+                const expirationTime = get().expirationTime;
+                if (expirationTime && Date.now() > expirationTime) {
+                    get().Logout(); // Auto logout if token has expired
+                }
             }
         }),
         {
-            name: 'auth-storage', // name of the item in the storage (must be unique)
-            // storage: createJSONStorage(() => sessionStorage), // (optional) by default, 'localStorage' is used
-            getStorage: () => localStorage // เลือกใช้ localStorage
-        },
+            name: 'auth-storage', 
+            getStorage: () => localStorage // Use localStorage
+        }
     ),
-)
+);
+
 export default persistMiddleware;

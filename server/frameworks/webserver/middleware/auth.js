@@ -13,13 +13,13 @@ exports.auth = async (req, res, next) => {
         const decoded = jwt.verify(token, 'jwtSecret');
 
         req.user = decoded.user
-        console.log(`⩇⩇:⩇⩇🚨  file: auth.js:16  req.user :`, req.user);
+       
 
 
         next();
     } catch (error) {
-        console.log('ทำไมมาตรงนี้');
-        console.log('User is not Found!!');
+
+        console.log('User is not Found!!',error);
         return sendResponse(res, 401, 'User is not Found!!')
     }
 

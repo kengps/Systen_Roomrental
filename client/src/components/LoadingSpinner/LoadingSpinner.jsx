@@ -4,21 +4,22 @@ import { storeAuth } from '../../service/zustand/store/loginStore';
 import { Box, Typography } from '@mui/material';
 
 import '../../DemoAnimation.css'
+import persistMiddleware from '../../service/zustand/middleware/persistMiddleware';
 
 
 const LoadingSpinner = () => {
     const navigate = useNavigate();
-    let [count, setCount] = useState(5); //กำหนด 3 = 3 วิ
+    let [count, setCount] = useState(3); //กำหนด 3 = 3 วิ
 
-    const { user } = storeAuth();
+    const { user } = persistMiddleware();
 
     const username = storeAuth((state) => state.user)
 
-
+console.log('====================================');
+console.log('ทำไมมาหน้านี้');
+console.log('====================================');
 
     useEffect(() => {
-
-
         const interval = setInterval(() => {
             setCount((currentCount) => --currentCount);
             if (!user) {
@@ -28,7 +29,7 @@ const LoadingSpinner = () => {
             // localStorage.removeItem("token");
             // localStorage.removeItem("expirationDate");
         }, 1000);
-        count === 0 && navigate("/login");
+        count === 0 && navigate("/auth/login");
         return () => clearInterval(interval);
     }, [count, navigate]);
 

@@ -24,9 +24,9 @@ exports.logged = [
 
       // ตรวจสอบจากฐานข้อมูล admin ก่อน
       let user = await adminUser.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } });
-      
+
       if (!user) {
-       
+
 
         // ถ้าไม่เจอใน adminUser ค้นหาต่อใน memberUser
         user = await memberUser.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } });

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { currentAdmin } from '../service/api/login_register';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner';
 import persistMiddleware from '../service/zustand/middleware/persistMiddleware';
 import { Outlet } from 'react-router-dom';
+
 
 const AdminRoutes = () => {
   const { user } = persistMiddleware();
@@ -12,23 +13,29 @@ const AdminRoutes = () => {
   const [ok, setOk] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const location = useLocation();
+  console.log('====================================');
+  console.log(location);
+  console.log('====================================');
+
+ 
   useEffect(() => {
+    
     const checkAdmin = async () => {
       if (user && user.token) {
         try {
           await currentAdmin(user.token);
           setOk(true);
         } catch (err) {
-          console.error("Authentication failed:", err); // Log error for debugging
           setOk(false);
-          navigate('/login');
+          navigate('/auth/login');
         } finally {
           setLoading(false);
         }
       } else {
         setOk(false);
         setLoading(false);
-        navigate('/login');
+        navigate('/auth/login');
       }
     };
 
