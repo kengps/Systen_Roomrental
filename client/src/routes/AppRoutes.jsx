@@ -35,8 +35,6 @@ const AppRoutes = () => {
     // }, [])
 
     return (
-<<<<<<< HEAD
-<<<<<<< HEAD
         // <Routes>
         //     {/* ProtectedRoutes will cover both AdminRoutes and MemberRoutes */}
         //     <Route element={<ProtectedRoutes isAuthenticated={isAuthenticated} />}>
@@ -60,55 +58,7 @@ const AppRoutes = () => {
         //     {/* Catch-all route for non-existent pages */}
         //     <Route path='*' element={<Navigate to='/404' replace />} />
         // </Routes>
-=======
-        <Routes>
-            <Route path='/auth/login' element={<IndexForm />} />
-            <Route
-                path="/admin"
-                element={
-                    <ProtectedRoutes roleRequired="admin" routeType="admin">
-                        <AdminPages />
-                    </ProtectedRoutes>
-                }
-            />
-            <Route element={<ProtectedRoutes roleRequired="admin" routeType="admin" />}>
-                <Route path="/admin" element={<AdminPages />} >
-                    <Route path="table" element={<TableAdmin />} />
-                </Route>
-            </Route>
-=======
-        // <Routes>
-        //     {/* ProtectedRoutes will cover both AdminRoutes and MemberRoutes */}
-        //     <Route element={<ProtectedRoutes isAuthenticated={isAuthenticated} />}>
->>>>>>> prasert
 
-        //         {/* Admin routes protected by both ProtectedRoutes and AdminRoutes */}
-        //         <Route path="/admin" element={<AdminRoutes />}>
-        //             <Route path="db" element={<AdminPages />}>
-        //                 <Route path="table" element={<TableAdmin />} />
-        //                 <Route path="home" element={<HomePage />} />
-        //             </Route>
-        //         </Route>
-
-        //         {/* Member routes protected by both ProtectedRoutes and MemberRoutes */}
-        //         <Route path='/member' element={<MemberRoutes />}>
-        //             <Route path='homepage' element={<MemberPage />} />
-        //         </Route>
-
-        //         <Route path='404' element={<PageNotFound />} />
-        //     </Route>
-
-        //     {/* Catch-all route for non-existent pages */}
-        //     <Route path='*' element={<Navigate to='/404' replace />} />
-        // </Routes>
-
-<<<<<<< HEAD
-            <Route path='*' element={<Navigate to='/404' replace />} />
-        </Routes>
->>>>>>> prasert
-
-=======
->>>>>>> prasert
 
 
         // <Routes>
@@ -161,10 +111,6 @@ const AppRoutes = () => {
                                         );
                                     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> prasert
                                     if (childRoute.children) {
                                         return (
                                             <Route key={childIndex} path={childRoute.path} element={<childRoute.element />}>
@@ -191,37 +137,6 @@ const AppRoutes = () => {
                 })}
             </Routes>
          </Suspense>
-<<<<<<< HEAD
-=======
-        //                             if (childRoute.children) {
-        //                                 return (
-        //                                     <Route key={childIndex} path={childRoute.path} element={<childRoute.element />}>
-        //                                         {childRoute.children.map((grandChildRoute, grandChildIndex) => (
-        //                                             <Route
-        //                                                 key={grandChildIndex}
-        //                                                 path={grandChildRoute.path}
-        //                                                 element={<grandChildRoute.element />}
-        //                                             />
-        //                                         ))}
-        //                                     </Route>
-        //                                 );
-        //                             }
-        //                             return (
-        //                                 <Route key={childIndex} path={childRoute.path} element={<childRoute.element />} />
-        //                             );
-        //                         })}
-        //                     </Route>
-        //                 );
-        //             }
-        //             return (
-        //                 <Route key={index} path={route.path} element={<route.element />} />
-        //             );
-        //         })}
-        //     </Routes>
-        // </Suspense>
->>>>>>> prasert
-=======
->>>>>>> prasert
 
     )
 }
