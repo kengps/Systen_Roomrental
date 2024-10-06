@@ -23,7 +23,7 @@ const PageNotFound = () => {
     }
     return (
         <div>
-            <div>PageNotFound 404</div>
+            <div>PageNotFound 40445345</div>
             <Button type='primary' htmlType='submit' onClick={navigate}>back to homepages</Button>
         </div>
     )
