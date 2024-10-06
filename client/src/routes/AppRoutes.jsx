@@ -36,6 +36,7 @@ const AppRoutes = () => {
 
     return (
 <<<<<<< HEAD
+<<<<<<< HEAD
         // <Routes>
         //     {/* ProtectedRoutes will cover both AdminRoutes and MemberRoutes */}
         //     <Route element={<ProtectedRoutes isAuthenticated={isAuthenticated} />}>
@@ -75,23 +76,39 @@ const AppRoutes = () => {
                     <Route path="table" element={<TableAdmin />} />
                 </Route>
             </Route>
+=======
+        // <Routes>
+        //     {/* ProtectedRoutes will cover both AdminRoutes and MemberRoutes */}
+        //     <Route element={<ProtectedRoutes isAuthenticated={isAuthenticated} />}>
+>>>>>>> prasert
 
-            {/* <Route path="/admin" element={<AdminRoutes />}> 
-                <Route path="db" element={<AdminPages />}>
-                    <Route path="table" element={<TableAdmin />} />
-                    <Route path="home" element={<HomePage />} />
-                </Route>
-            </Route> */}
+        //         {/* Admin routes protected by both ProtectedRoutes and AdminRoutes */}
+        //         <Route path="/admin" element={<AdminRoutes />}>
+        //             <Route path="db" element={<AdminPages />}>
+        //                 <Route path="table" element={<TableAdmin />} />
+        //                 <Route path="home" element={<HomePage />} />
+        //             </Route>
+        //         </Route>
 
-            {/* <Route path='/admin/homepage' element={<AdminPages />} /> */}
-            <Route path='/member' element={<MemberRoutes />}>
-                <Route path='homepage' element={<MemberPage />} />
-            </Route>
+        //         {/* Member routes protected by both ProtectedRoutes and MemberRoutes */}
+        //         <Route path='/member' element={<MemberRoutes />}>
+        //             <Route path='homepage' element={<MemberPage />} />
+        //         </Route>
 
+        //         <Route path='404' element={<PageNotFound />} />
+        //     </Route>
+
+        //     {/* Catch-all route for non-existent pages */}
+        //     <Route path='*' element={<Navigate to='/404' replace />} />
+        // </Routes>
+
+<<<<<<< HEAD
             <Route path='*' element={<Navigate to='/404' replace />} />
         </Routes>
 >>>>>>> prasert
 
+=======
+>>>>>>> prasert
 
 
         // <Routes>
@@ -129,22 +146,25 @@ const AppRoutes = () => {
         //     <Route path='*' element={<Navigate to='/404' replace />} />
         // </Routes>
 
-        // <Suspense fallback={<div>Loading...</div>}>
-        //     <Routes>
-        //         {routes.map((route, index) => {
-        //             if (route.children) {
-        //                 return (
-        //                     <Route key={index} path={route.path} element={<route.element />}>
-        //                         {route.children.map((childRoute, childIndex) => {
-        //                             console.log(`⩇⩇:⩇⩇🚨  file: AppRoutes.jsx:103  childRoute :`, childRoute.element);
+        <Suspense fallback={<div>Loading...</div>}>
+            <Routes>
+                {routes.map((route, index) => {
+                    if (route.children) {
+                        return (
+                            <Route key={index} path={route.path} element={<route.element />}>
+                                {route.children.map((childRoute, childIndex) => {
+                                    console.log(`⩇⩇:⩇⩇🚨  file: AppRoutes.jsx:103  childRoute :`, childRoute.element);
 
-        //                             if (childRoute.index) {
-        //                                 return (
-        //                                     <Route key={childIndex} index element={<Navigate to={'/admin/dashboard'} />} /> // Handle index route
-        //                                 );
-        //                             }
+                                    if (childRoute.index) {
+                                        return (
+                                            <Route key={childIndex} index element={<Navigate to={'/admin/dashboard'} />} /> // Handle index route
+                                        );
+                                    }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> prasert
                                     if (childRoute.children) {
                                         return (
                                             <Route key={childIndex} path={childRoute.path} element={<childRoute.element />}>
@@ -171,6 +191,7 @@ const AppRoutes = () => {
                 })}
             </Routes>
          </Suspense>
+<<<<<<< HEAD
 =======
         //                             if (childRoute.children) {
         //                                 return (
@@ -198,6 +219,8 @@ const AppRoutes = () => {
         //         })}
         //     </Routes>
         // </Suspense>
+>>>>>>> prasert
+=======
 >>>>>>> prasert
 
     )
