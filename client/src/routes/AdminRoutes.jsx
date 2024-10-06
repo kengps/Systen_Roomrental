@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner';
 import persistMiddleware from '../service/zustand/middleware/persistMiddleware';
 import { Outlet } from 'react-router-dom';
+import { Spin } from 'antd';
 
 
 const AdminRoutes = () => {
@@ -14,11 +15,7 @@ const AdminRoutes = () => {
   const [loading, setLoading] = useState(true);
 
   const location = useLocation();
-  console.log('====================================');
-  console.log(location);
-  console.log('====================================');
 
- 
   useEffect(() => {
     
     const checkAdmin = async () => {

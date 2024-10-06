@@ -1,6 +1,7 @@
 import React from "react";
 import IndexForm from "./pages/login/Index";
 import { Navigate } from "react-router-dom";
+import LoadingSpinner from "./components/LoadingSpinner/LoadingSpinner";
 // import NavigateToDb from "./utilities/Navigate/NavigateToDb";
 
 // Lazy load components
@@ -24,6 +25,7 @@ const NavigateToDb = React.lazy(() => import("./utilities/Navigate/NavigateToDb"
 const routes = [
     // Protected routes
     { path: '/auth/login', element: IndexForm },
+    { path: '/test/loading', element: LoadingSpinner },
     {
         // path: '/',
         element: ProtectedRoutes,

@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';  // ใช้ useNavigate เพ
 const { Sider } = Layout;
 
 const { SubMenu } = Menu;
-const AppSidebar = ({ collapsed, handleMenuClick,menuItems }) => {
+const AppSidebar = ({ collapsed, handleMenuClick,menuItems ,onOpenChange ,openKeys,}) => {
   const navigate = useNavigate();  // ใช้ useNavigate
 
 
@@ -21,6 +21,8 @@ const AppSidebar = ({ collapsed, handleMenuClick,menuItems }) => {
         defaultSelectedKeys={['1']}
         onClick={handleMenuClick}
         items={menuItems} // ใช้ menuItems ตรงนี้
+        onOpenChange={onOpenChange} // Pass onOpenChange to handle submenu toggling
+        openKeys={openKeys} // Control the state of open submenus
       />
     </Sider>
   );
