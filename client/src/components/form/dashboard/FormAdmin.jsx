@@ -16,9 +16,6 @@ const { Sider, Content, Header, Footer } = Layout;
 
 const FormAdmin = () => {
 
-    console.log('====================================');
-  console.log('เข้ามาไหม2');
-  console.log('====================================');
     const navigate = useNavigate(); // ใช้ useNavigate เพื่อเปลี่ยนเส้นทาง
     const location = useLocation();
 
@@ -51,7 +48,7 @@ const FormAdmin = () => {
                     label: 'DashBroad',
                     icon: <MailOutlined />,
                     children: [
-                        { key: '1', label: 'Table', path: '/admin/table' },
+                        { key: '1', label: 'Table', path: '/admin/dashboard/table' },
                         { key: '2', label: 'HomePage', path: '/admin/dashboard/home' },
                         { key: '3', label: 'MainPage', path: '/admin/dashboard/mainpage' },
                         { key: '4', label: 'Option 4', path: '/admin/dashboard/option4' },
