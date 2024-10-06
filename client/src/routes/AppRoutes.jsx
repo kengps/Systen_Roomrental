@@ -35,27 +35,36 @@ const AppRoutes = () => {
     // }, [])
 
     return (
-        // <Routes>
-        //     <Route element={<ProtectedRoutes isAuthenticated={isAuthenticated} />}>
-        //         {/* <Route path='/' element={<HomePage />} /> */}
-        //         <Route path='404' element={<PageNotFound />} />
-        //     </Route>
+        <Routes>
+            <Route path='/auth/login' element={<IndexForm />} />
+            <Route
+                path="/admin"
+                element={
+                    <ProtectedRoutes roleRequired="admin" routeType="admin">
+                        <AdminPages />
+                    </ProtectedRoutes>
+                }
+            />
+            <Route element={<ProtectedRoutes roleRequired="admin" routeType="admin" />}>
+                <Route path="/admin" element={<AdminPages />} >
+                    <Route path="table" element={<TableAdmin />} />
+                </Route>
+            </Route>
 
+            {/* <Route path="/admin" element={<AdminRoutes />}> 
+                <Route path="db" element={<AdminPages />}>
+                    <Route path="table" element={<TableAdmin />} />
+                    <Route path="home" element={<HomePage />} />
+                </Route>
+            </Route> */}
 
-        //     <Route path="/admin" element={<AdminRoutes />}> {/* ใช้ AdminRoutes เป็น wrapper */}
-        //         <Route path="db" element={<AdminPages />}>
-        //             <Route path="table" element={<TableAdmin />} />
-        //             <Route path="home" element={<HomePage />} />
-        //         </Route>
-        //     </Route>
+            {/* <Route path='/admin/homepage' element={<AdminPages />} /> */}
+            <Route path='/member' element={<MemberRoutes />}>
+                <Route path='homepage' element={<MemberPage />} />
+            </Route>
 
-        //     {/* <Route path='/admin/homepage' element={<AdminPages />} /> */}
-        //     <Route path='/member' element={<MemberRoutes />}>
-        //         <Route path='homepage' element={<MemberPage />} />
-        //     </Route>
-
-        //     <Route path='*' element={<Navigate to='/404' replace />} />
-        // </Routes>
+            <Route path='*' element={<Navigate to='/404' replace />} />
+        </Routes>
 
 
         // <Routes>
@@ -93,47 +102,47 @@ const AppRoutes = () => {
         //     <Route path='*' element={<Navigate to='/404' replace />} />
         // </Routes>
 
-        <Suspense fallback={<div>Loading...</div>}>
-            <Routes>
-                {routes.map((route, index) => {
-                    if (route.children) {
-                        return (
-                            <Route key={index} path={route.path} element={<route.element />}>
-                                {route.children.map((childRoute, childIndex) => {
-                                    console.log(`⩇⩇:⩇⩇🚨  file: AppRoutes.jsx:103  childRoute :`, childRoute.element);
+        // <Suspense fallback={<div>Loading...</div>}>
+        //     <Routes>
+        //         {routes.map((route, index) => {
+        //             if (route.children) {
+        //                 return (
+        //                     <Route key={index} path={route.path} element={<route.element />}>
+        //                         {route.children.map((childRoute, childIndex) => {
+        //                             console.log(`⩇⩇:⩇⩇🚨  file: AppRoutes.jsx:103  childRoute :`, childRoute.element);
 
-                                    if (childRoute.index) {
-                                        return (
-                                            <Route key={childIndex} index element={<Navigate to={'/admin/dashboard'} />} /> // Handle index route
-                                        );
-                                    }
+        //                             if (childRoute.index) {
+        //                                 return (
+        //                                     <Route key={childIndex} index element={<Navigate to={'/admin/dashboard'} />} /> // Handle index route
+        //                                 );
+        //                             }
 
-                                    if (childRoute.children) {
-                                        return (
-                                            <Route key={childIndex} path={childRoute.path} element={<childRoute.element />}>
-                                                {childRoute.children.map((grandChildRoute, grandChildIndex) => (
-                                                    <Route
-                                                        key={grandChildIndex}
-                                                        path={grandChildRoute.path}
-                                                        element={<grandChildRoute.element />}
-                                                    />
-                                                ))}
-                                            </Route>
-                                        );
-                                    }
-                                    return (
-                                        <Route key={childIndex} path={childRoute.path} element={<childRoute.element />} />
-                                    );
-                                })}
-                            </Route>
-                        );
-                    }
-                    return (
-                        <Route key={index} path={route.path} element={<route.element />} />
-                    );
-                })}
-            </Routes>
-        </Suspense>
+        //                             if (childRoute.children) {
+        //                                 return (
+        //                                     <Route key={childIndex} path={childRoute.path} element={<childRoute.element />}>
+        //                                         {childRoute.children.map((grandChildRoute, grandChildIndex) => (
+        //                                             <Route
+        //                                                 key={grandChildIndex}
+        //                                                 path={grandChildRoute.path}
+        //                                                 element={<grandChildRoute.element />}
+        //                                             />
+        //                                         ))}
+        //                                     </Route>
+        //                                 );
+        //                             }
+        //                             return (
+        //                                 <Route key={childIndex} path={childRoute.path} element={<childRoute.element />} />
+        //                             );
+        //                         })}
+        //                     </Route>
+        //                 );
+        //             }
+        //             return (
+        //                 <Route key={index} path={route.path} element={<route.element />} />
+        //             );
+        //         })}
+        //     </Routes>
+        // </Suspense>
 
     )
 }
