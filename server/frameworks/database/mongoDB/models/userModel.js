@@ -19,6 +19,7 @@ const memberUser = mongoose.Schema({
         default: true,
     },
     ipAddress: String,
+    picture: Buffer
     // lastPasswordChange: { type: Date, default: Date.now },
     // mustChangePassword: { type: Boolean, default: true },
     // tokenIfLoggedIn: {
