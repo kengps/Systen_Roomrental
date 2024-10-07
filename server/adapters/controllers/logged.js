@@ -64,12 +64,12 @@ exports.logged = [
 
       return res.json({
         messages: "Login successfully",
-        token: encodeURIComponent(token),
+        token: decodeURIComponent(token),
         userPayLoad: {
           user: {
-            username: encodeURIComponent(user.username),
-            role: encodeURIComponent(user.role),
-            id: encodeURIComponent(user._id),
+            username: decodeURIComponent(user.username),
+            role: decodeURIComponent(user.role),
+            id: decodeURIComponent(user._id),
           }
 
         },

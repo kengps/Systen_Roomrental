@@ -103,7 +103,7 @@ const AppRoutes = () => {
                         return (
                             <Route key={index} path={route.path} element={<route.element />}>
                                 {route.children.map((childRoute, childIndex) => {
-                                    console.log(`⩇⩇:⩇⩇🚨  file: AppRoutes.jsx:103  childRoute :`, childRoute.element);
+                                    
 
                                     if (childRoute.index) {
                                         return (

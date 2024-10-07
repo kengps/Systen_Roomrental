@@ -32,7 +32,7 @@ const persistMiddleware = create(
             Login: async (value) => {
                 const response = await logged(value);
                 const token = response.data.token; // Assuming your API returns a token
-                const expiresIn = 3 * 60 * 60 * 1000; // 1 hour in milliseconds
+                const expiresIn = 2 * 60 * 60 * 1000; // 1 hour in milliseconds
                 const expirationTime = Date.now() + expiresIn;
 
                 set({

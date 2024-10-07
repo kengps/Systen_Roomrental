@@ -1,8 +1,8 @@
-import { Button } from 'antd'
+
 import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import persistMiddleware from '../../service/zustand/middleware/persistMiddleware'
-
+import { Button, Result } from 'antd';
 const PageNotFound = () => {
 
     const { user } = persistMiddleware();
@@ -11,21 +11,23 @@ const PageNotFound = () => {
     const redirect = useNavigate()
     const navigate = () => {
 
-        if(user.userPayLoad.user.role === 'admin'){
+        if (user.userPayLoad.user.role === 'admin') {
             console.log('admin');
-            
+
             redirect('/admin/dashboard');
-        }else {
+        } else {
             console.log('member');
             redirect('/member/homepage');
         }
 
     }
     return (
-        <div>
-            <div>PageNotFound 40445345</div>
-            <Button type='primary' htmlType='submit' onClick={navigate}>back to homepages</Button>
-        </div>
+        <Result
+            status="404"
+            title="404"
+            subTitle="Sorry, the page you visited does not exist."
+            extra={<Button type="primary" onClick={navigate}>Back Home</Button>}
+        />
     )
 }
 

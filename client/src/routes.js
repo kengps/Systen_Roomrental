@@ -1,6 +1,7 @@
 import React from "react";
 import IndexForm from "./pages/login/Index";
 import { Navigate } from "react-router-dom";
+import LoadingSpinner from "./components/LoadingSpinner/LoadingSpinner";
 // import NavigateToDb from "./utilities/Navigate/NavigateToDb";
 
 // Lazy load components
@@ -20,10 +21,20 @@ const NavigateToDb = React.lazy(() => import("./utilities/Navigate/NavigateToDb"
 //     return <Navigate to="/admin/dashboard" replace />;
 // };
 
+const createAdminRoute = (path, title) => ({ //* Utility function to create admin routes
+    path,
+    title,
+    element: AdminPages,
+    children: [
+        { path: 'table', title: 'Table', element: TableAdmin },
+        { path: '*', element: PageNotFound },
+    ],
+});
 
 const routes = [
     // Protected routes
     { path: '/auth/login', element: IndexForm },
+    { path: '/test/loading', element: LoadingSpinner },
     {
         // path: '/',
         element: ProtectedRoutes,
@@ -35,31 +46,33 @@ const routes = [
 
     // Admin routes
     {
-        path: '/admin',
-        title: 'Admin',
-        element: AdminRoutes, // AdminRoutes should handle rendering child routes
+        // path: '/admin',
+        // title: 'Admin',
+        element: AdminRoutes, //* AdminRoutes should handle rendering child routes
         children: [
             { index: true, element: NavigateToDb },
-            {
-                path: 'dashboard', // This path matches /admin/db
-                title: 'Dashboard',
-                element: AdminPages, // AdminPages component renders here
-                children: [
-                    { path: 'table', title: 'Table', element: TableAdmin }, // This matches /admin/db/table
-                    { path: 'home', title: 'Home', element: HomePage }, // This matches /admin/db/home
-                    { path: 'tableadmin', title: 'TableAdmin', element: TableAdmin }, // This matches /admin/db/table
-                    { path: '*', element: PageNotFound }
-                ],
-            },
-            {
-                path: 'setting', // This path matches /admin/db
-                title: 'setting',
-                element: AdminPages, // AdminPages component renders here
-                children: [
-                    { path: 'table', title: 'Table', element: TableAdmin },
-                    { path: '*', element: PageNotFound }
-                ],
-            },
+            createAdminRoute('/dashboard', 'Dashboard'),//! ถ้าเอา // path: '/admin' กลับมาใช้ ตรงนี้ไม่ต้องมี / เพราะมันจะถือว่าเป็น child
+            createAdminRoute('/setting', 'Setting'),
+            createAdminRoute('/system', 'System'),
+
+            // {
+            //     path: 'setting', // This path matches /admin/db
+            //     title: 'setting',
+            //     element: AdminPages, // AdminPages component renders here
+            //     children: [
+            //         { path: 'table', title: 'Table', element: TableAdmin },
+            //         { path: '*', element: PageNotFound }
+            //     ],
+            // },
+            // {
+            //     path: 'system', // This path matches /admin/db
+            //     title: 'system',
+            //     element: AdminPages, // AdminPages component renders here
+            //     children: [
+            //         { path: 'table', title: 'Table', element: TableAdmin },
+            //         { path: '*', element: PageNotFound }
+            //     ],
+            // },
             { path: '*', element: PageNotFound }
         ],
     },
@@ -77,10 +90,9 @@ const routes = [
     { path: '*', element: ProtectedRoutes }, // Catch-all for unknown routes
 ];
 
-
-
-
 export default routes;
+
+
 
 
 // <Suspense fallback={<div>Loading</div>}>
