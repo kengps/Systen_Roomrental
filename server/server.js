@@ -11,6 +11,8 @@ const PORT = process.env.MY_PORT || 6000
 const userRoute = require('./frameworks/webserver/routes/userRoutes');
 const adminRoute = require('./frameworks/webserver/routes/adminRoutes');
 const loginRoute = require('./frameworks/webserver/routes/login');
+const room = require('./frameworks/webserver/routes/room');
+
 
 const { connectDatabases } = require('./frameworks/database/mongoDB/connectMongoose');
 
@@ -28,6 +30,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(`/${process.env.MY_API}`, loginRoute)
 app.use(`/${process.env.MY_API}/user`, userRoute)
 app.use(`/${process.env.MY_API}/admin`, adminRoute)
+app.use(`/${process.env.MY_API}/admin/room`, room)
 
 
 app.post('/asdf', (req, res) => {
