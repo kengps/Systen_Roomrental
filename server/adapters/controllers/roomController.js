@@ -41,25 +41,42 @@ const { sendResponse } = require("../../frameworks/webserver/utils/responseMessa
 
 //     }
 // }
-// สร้างห้องเช่าใหม่
+// // สร้างห้องเช่าใหม่
 exports.createRoom = async (req, res) => {
-    const { floor, roomNumber, status, rentalDate, tenant } = req.body;
+    const { rooms } = req.body;
+
 
     try {
-        const room = new Room({
-            room: { floor, roomNumber },
-            status,
-            rentalDate,
-            tenant
+        // หาเฉพาะห้องที่มีอยู่แล้ว
+        const existingRooms = await Room.find({
+            $or: rooms.map(room => ({
+                floor: room.floor,
+                roomNumber: room.roomNumber,
+            }))
         });
 
-        await room.save();
+        // สร้าง set ของห้องที่มีอยู่แล้ว (floor + roomNumber)
+        const existingSet = new Set(existingRooms.map(room => `${room.floor}-${room.roomNumber}`));
 
-        res.status(201).json({
-            success: true,
-            message: "ห้องเช่าสร้างสำเร็จ",
-            data: room
-        });
+        // คัดกรองห้องที่ยังไม่มีในฐานข้อมูล
+        const newRooms = rooms.filter(room => !existingSet.has(`${room.floor}-${room.roomNumber}`));
+
+        if (newRooms.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'ห้องทั้งหมดมีอยู่แล้วในระบบ',
+            });
+        }
+
+        // เพิ่มเฉพาะห้องใหม่
+        const roomResult = await Room.insertMany(newRooms.map(room => ({
+            floor: room.floor,
+            roomNumber: room.roomNumber,
+            status: 'available' // ตั้งค่าสถานะห้องว่าง
+        })));
+
+        return sendResponse(res, 200, 'Create room successfully', roomResult);
+
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -69,7 +86,53 @@ exports.createRoom = async (req, res) => {
     }
 };
 
+exports.addTenetRoom = async (req, res) => {
+    const { price, status, tenet } = req.body
 
+
+
+    try {
+        // สร้างอ็อบเจ็กต์สำหรับการอัปเดต
+        // const updateFields = {};
+        // if (req.body.status) {
+        //     updateFields.status = req.body.status;
+        // }
+        // if (req.body.price) {
+        //     updateFields.price = req.body.price;
+        // }
+        // if (req.body.tenet) {
+        //     updateFields.tenet = req.body.tenet;
+        // }
+
+        // สร้างอ็อบเจ็กต์สำหรับการอัปเดต
+        const updateFields = Object.keys(req.body).reduce((acc, key) => {
+            // ตรวจสอบว่า key ไม่ใช่ 'id' 
+            // เพราะเราไม่ต้องการอัปเดตค่า id
+            if (key !== 'id') {
+                // เพิ่ม key และค่าลงในอ็อบเจ็กต์ acc
+                acc[key] = req.body[key];
+            }
+            // ส่งกลับ acc เพื่อใช้ในรอบถัดไป
+            return acc;
+        }, {}); // เริ่มต้นด้วยอ็อบเจ็กต์ว่าง
+
+        // const updateFields2 = {...req.body}
+        await Room.bulkWrite([{
+            updateOne: {
+                filter: { _id: req.body.id },
+                update: { $set: updateFields },
+                upsert: true
+            }
+        }]);
+
+        return sendResponse(res, 200, 'Room updated successfully')
+
+    } catch (error) {
+    console.log(`⩇⩇:⩇⩇🚨  file: roomController.js:131  error :`, error);
+
+
+    }
+}
 
 exports.collectRent = async (req, res) => {
     console.log(`⩇⩇:⩇⩇🚨  file: roomController.js:6  req :`, req.body);

@@ -2,6 +2,7 @@ import React from "react";
 import IndexForm from "./pages/login/Index";
 import { Navigate } from "react-router-dom";
 import LoadingSpinner from "./components/LoadingSpinner/LoadingSpinner";
+import CreateRoom from "./pages/admin/CreateRoom";
 // import NavigateToDb from "./utilities/Navigate/NavigateToDb";
 
 // Lazy load components
@@ -16,7 +17,6 @@ const AdminRoutes = React.lazy(() => import("./routes/AdminRoutes"));
 const MemberRoutes = React.lazy(() => import("./routes/MemberRoutes"));
 const NavigateToDb = React.lazy(() => import("./utilities/Navigate/NavigateToDb"));
 
-
 // const RedirectToDashboard = () => {
 //     return <Navigate to="/admin/dashboard" replace />;
 // };
@@ -27,6 +27,7 @@ const createAdminRoute = (path, title) => ({ //* Utility function to create admi
     element: AdminPages,
     children: [
         { path: 'table', title: 'Table', element: TableAdmin },
+        { path: 'create', title: 'CreateRoom', element: CreateRoom },
         { path: '*', element: PageNotFound },
     ],
 });

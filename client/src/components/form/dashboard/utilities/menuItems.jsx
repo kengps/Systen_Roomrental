@@ -14,7 +14,7 @@ const menuItems = [
                 children: [
                     { key: '11', label: 'Table', path: '/dashboard/table' },
                     { key: '12', label: 'HomePage', path: '/dashboard/home' },
-                    { key: '13', label: 'MainPage', path: '/dashboard/mainpage' },
+                    { key: '13', label: 'MainPage', path: '/dashboard/create' },
                     { key: '14', label: 'Option 4', path: '/dashboard/option4' },
                 ],
             },

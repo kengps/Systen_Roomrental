@@ -1,5 +1,5 @@
 const express = require('express');
-const { createRoom ,collectRent,createRentDetails,addRentDetails ,listRoom,listRentDetails} = require('../../../adapters/controllers/roomController');
+const { createRoom ,collectRent,createRentDetails,addRentDetails ,listRoom,listRentDetails, addTenetRoom} = require('../../../adapters/controllers/roomController');
 const router = express.Router();
 
 
@@ -11,6 +11,9 @@ router.post('/collectrent', addRentDetails);
 
 router.get('/listroom',listRoom)
 router.get('/listrent',listRentDetails)
+
+
+router.put('/update',addTenetRoom)
 
 
 
