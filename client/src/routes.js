@@ -26,8 +26,8 @@ const createAdminRoute = (path, title) => ({ //* Utility function to create admi
     title,
     element: AdminPages,
     children: [
+        { path: 'addroom', title: 'CreateRoom', element: CreateRoom },
         { path: 'table', title: 'Table', element: TableAdmin },
-        { path: 'create', title: 'CreateRoom', element: CreateRoom },
         { path: '*', element: PageNotFound },
     ],
 });
@@ -52,7 +52,7 @@ const routes = [
         element: AdminRoutes, //* AdminRoutes should handle rendering child routes
         children: [
             { index: true, element: NavigateToDb },
-            createAdminRoute('/dashboard', 'Dashboard'),//! ถ้าเอา // path: '/admin' กลับมาใช้ ตรงนี้ไม่ต้องมี / เพราะมันจะถือว่าเป็น child
+            createAdminRoute('/admin/dashboard', 'Dashboard'),//! ถ้าเอา // path: '/admin' กลับมาใช้ ตรงนี้ไม่ต้องมี / เพราะมันจะถือว่าเป็น child
             createAdminRoute('/setting', 'Setting'),
             createAdminRoute('/system', 'System'),
 

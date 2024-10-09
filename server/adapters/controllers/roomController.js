@@ -44,47 +44,49 @@ const { sendResponse } = require("../../frameworks/webserver/utils/responseMessa
 // // สร้างห้องเช่าใหม่
 exports.createRoom = async (req, res) => {
     const { rooms } = req.body;
+    console.log(`⩇⩇:⩇⩇🚨  file: roomController.js:47   req.body; :`,  req.body);
 
 
-    try {
-        // หาเฉพาะห้องที่มีอยู่แล้ว
-        const existingRooms = await Room.find({
-            $or: rooms.map(room => ({
-                floor: room.floor,
-                roomNumber: room.roomNumber,
-            }))
-        });
 
-        // สร้าง set ของห้องที่มีอยู่แล้ว (floor + roomNumber)
-        const existingSet = new Set(existingRooms.map(room => `${room.floor}-${room.roomNumber}`));
+    // try {
+    //     // หาเฉพาะห้องที่มีอยู่แล้ว
+    //     const existingRooms = await Room.find({
+    //         $or: rooms.map(room => ({
+    //             floor: room.floor,
+    //             roomNumber: room.roomNumber,
+    //         }))
+    //     });
 
-        // คัดกรองห้องที่ยังไม่มีในฐานข้อมูล
-        const newRooms = rooms.filter(room => !existingSet.has(`${room.floor}-${room.roomNumber}`));
+    //     // สร้าง set ของห้องที่มีอยู่แล้ว (floor + roomNumber)
+    //     const existingSet = new Set(existingRooms.map(room => `${room.floor}-${room.roomNumber}`));
 
-        if (newRooms.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'ห้องทั้งหมดมีอยู่แล้วในระบบ',
-            });
-        }
+    //     // คัดกรองห้องที่ยังไม่มีในฐานข้อมูล
+    //     const newRooms = rooms.filter(room => !existingSet.has(`${room.floor}-${room.roomNumber}`));
 
-        // เพิ่มเฉพาะห้องใหม่
-        const roomResult = await Room.insertMany(newRooms.map(room => ({
-            floor: room.floor,
-            roomNumber: room.roomNumber,
-            status: 'available' // ตั้งค่าสถานะห้องว่าง
-        })));
+    //     if (newRooms.length === 0) {
+    //         return res.status(400).json({
+    //             success: false,
+    //             message: 'ห้องทั้งหมดมีอยู่แล้วในระบบ',
+    //         });
+    //     }
 
-        return sendResponse(res, 200, 'Create room successfully', roomResult);
+    //     // เพิ่มเฉพาะห้องใหม่
+    //     const roomResult = await Room.insertMany(newRooms.map(room => ({
+    //         floor: room.floor,
+    //         roomNumber: room.roomNumber,
+    //         status: 'available' // ตั้งค่าสถานะห้องว่าง
+    //     })));
 
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "เกิดข้อผิดพลาดในการสร้างห้องเช่า",
-            error: error.message
-        });
-    }
-};
+    //     return sendResponse(res, 200, 'Create room successfully', roomResult);
+
+    // } catch (error) {
+    //     res.status(500).json({
+    //         success: false,
+    //         message: "เกิดข้อผิดพลาดในการสร้างห้องเช่า",
+    //         error: error.message
+    //     });
+    // }
+}
 
 exports.addTenetRoom = async (req, res) => {
     const { price, status, tenet } = req.body

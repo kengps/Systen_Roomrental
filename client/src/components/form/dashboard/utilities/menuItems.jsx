@@ -4,18 +4,18 @@ import { UploadOutlined, UserOutlined, VideoCameraOutlined, MenuFoldOutlined, Me
 const menuItems = [
     {
         key: '1',
-        label: 'กลุ่ม',
+        label: 'ห้องพัก',
         type: 'group',
         children: [
             {
                 key: 'sub1',
-                label: 'DashBroad',
+                label: 'จัดการห้องพัก',
                 icon: <UploadOutlined />,
                 children: [
-                    { key: '11', label: 'Table', path: '/dashboard/table' },
-                    { key: '12', label: 'HomePage', path: '/dashboard/home' },
-                    { key: '13', label: 'MainPage', path: '/dashboard/create' },
-                    { key: '14', label: 'Option 4', path: '/dashboard/option4' },
+                    { key: '11', label: 'เพิ่มห้องพัก', path: '/admin/dashboard/addroom' },
+                    { key: '12', label: 'เพิ่มผู้เช่า', path: '/admin/dashboard/addtenant' },
+                    // { key: '13', label: 'MainPage', path: '/admin/dashboard/create' },
+                    // { key: '14', label: 'Option 4', path: '/admin/dashboard/option4' },
                 ],
             },
         ],

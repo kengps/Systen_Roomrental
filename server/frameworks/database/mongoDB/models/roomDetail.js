@@ -35,7 +35,7 @@ const rentDetailsSchema = new Schema({
     },
     internet: { type: Number, required: true },
     others: { type: Number, required: true },
-    status: { type: String, default: 'Not Paid' },
+    status: { type: String, default: 'noPaid' },
     additionalCharges: [{ type: Schema.Types.ObjectId, ref: 'AdditionalCharge' }], // อ้างอิงไปยังค่าใช้จ่ายเพิ่มเติม
 }, { timestamps: true });
 
@@ -45,6 +45,8 @@ const additionalChargeSchema = new Schema({
     amount: { type: Number, required: true },
     rentDetail: { type: Schema.Types.ObjectId, ref: 'RentDetails' }, // อ้างอิงไปยังรายละเอียดค่าเช่า
 }, { timestamps: true });
+
+
 
 
 const Room = mongoose.model('Room', roomSchema);
