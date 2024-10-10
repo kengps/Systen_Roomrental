@@ -1,6 +1,8 @@
 import { Paper, TextField, Typography } from '@mui/material';
 import { Button, Card, Form, Input, InputNumber, Collapse, Row, Col, Radio, Flex } from 'antd';
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import CreateRoomPage from '../../components/form/dashboard/rooms/CreateRoomPage';
 
 const { Panel } = Collapse;
 
@@ -9,42 +11,59 @@ const CreateRoom = () => {
     const [roomsPerFloor, setRoomsPerFloor] = useState(1);
     const [disabled, setDisable] = useState(true)
     const [count, setCount] = useState(3);
-    const [price, setPrice] = useState();
-
+    const [price, setPrice] = useState(3500);
     const [rooms, setRooms] = useState([]);
-    console.log(`⩇⩇:⩇⩇🚨  file: CreateRoom.jsx:14  rooms :`, rooms);
 
 
-    const handleAddRooms = () => {
+    const { register, handleSubmit, formState: { errors }, } = useForm();
+
+    const handleAddRooms = (value) => {
+      try {
+        console.log(`⩇⩇:⩇⩇🚨  file: CreateRoom.jsx:21  value :`, value);
+
+        const { floor, price, roomPerFloor, count } = value
+
         const newRooms = [];
-        for (let i = 1; i <= floors; i++) {
-            for (let j = 1; j <= roomsPerFloor; j++) {
+
+        for (let i = 1; i <= floor; i++) {
+            for (let j = 1; j <= roomPerFloor; j++) {
                 // newRooms.push({ floor: i, roomNumber: `${i}${j.toString().padStart(2, '0')}` });
                 newRooms.push({ floor: i, roomNumber: i * 10 ** (count - 1) + (j - 1), price });
             }
         }
+        console.log(`⩇⩇:⩇⩇🚨  file: CreateRoom.jsx:26  newRooms :`, newRooms);
         setRooms(newRooms);
-        setDisable(false);
+         setDisable(false);
+      } catch (error) {
+        console.log(`⩇⩇:⩇⩇🚨  file: CreateRoom.jsx:38  error :`, error);
+
+        
+      }
     };
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        await saveRoomsToDatabase(rooms);
-    };
+    // const onSubmit = async (event) => {
 
-    const saveRoomsToDatabase = async (rooms) => {
-        try {
-            const response = await fetch(`${import.meta.env.VITE_REACT_APP_API}/admin/room/create`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ rooms }),
-            });
-            const data = await response.json();
-        } catch (error) {
-            console.error('Error saving rooms:', error);
-        }
+    //     event.preventDefault();
+    //     await saveRoomsToDatabase(rooms);
+
+    // };
+
+
+    const onSubmit = async (rooms) => {
+        // console.log(`⩇⩇:⩇⩇🚨  file: CreateRoom.jsx:38  rooms :`, rooms);
+
+        // try {
+        //     const response = await fetch(`${import.meta.env.VITE_REACT_APP_API}/admin/room/create`, {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //         },
+        //         body: JSON.stringify({ rooms }),
+        //     });
+        //     const data = await response.json();
+        // } catch (error) {
+        //     console.error('Error saving rooms:', error);
+        // }
     };
 
     // Group rooms by floor
@@ -55,114 +74,39 @@ const CreateRoom = () => {
     }, {});
 
 
+    const onFinish = async (values) => {
+        // console.log(`⩇⩇:⩇⩇🚨  file: CreateRoom.jsx:70  values :`, values);
+
+        // try {
+        //     handleAddRooms(values)
+
+        // } catch (error) {
+
+        
+    }
+
+    // const onSubmit = (value) => {
+    // console.log(`⩇⩇:⩇⩇🚨  file: CreateRoom.jsx:83  value :`, value);
+
+
+    // }
 
     return (
-        <form onSubmit={handleSubmit}>
-            <Form.Item name="floor" label="จำนวนชั้น">
-                <InputNumber
-                    defaultValue={floors}
-                    onChange={(e) => setFloors(e)}
-                    min="1"
-                    style={{ width: 200 }}
-                />
-            </Form.Item>
-
-            <Form.Item name="room" label="จำนวนห้องต่อชั้น">
-                <InputNumber
-                    defaultValue={roomsPerFloor}
-                    onChange={(e) => setRoomsPerFloor(e)}
-                    min="1"
-                    style={{ width: 200 }}
-                />
-            </Form.Item>
-
-            <Form.Item name="count" label="จำนวนหลักของเลขห้อง">
-                <InputNumber
-                    defaultValue={count}
-                    onChange={(e) => setCount(e)}
-                    min="1"
-                    style={{ width: 200 }}
-                />
-            </Form.Item>
-
-
-            <Form.Item name="price" label="ราคาห้อง">
-                <InputNumber
-                    defaultValue={price}
-                    onChange={(e) => setPrice(e)}
-                    min="0"
-                    style={{ width: 200 }}
-                />
-            </Form.Item>
-            {/* 
-            <Radio.Group >
-                <Radio.Group
-                    optionType="button"
-                    buttonStyle="solid"
-                    onClick={handleAddRooms}>สร้างห้อง</Radio.Group>
-                <Radio.Button
-                    disabled={disabled} >บันทึก</Radio.Button>
-            </Radio.Group> */}
-            <Flex gap="small" wrap>
-                {/* <Button type="primary" onClick={handleAddRooms}>
-                    สร้างห้อง
-                </Button>
-                <Button
-                    type="primary"
-                    disabled={disabled}
-                >
-                    บันทึก
-                </Button> */}
-                <Radio.Group defaultValue="a" buttonStyle="solid">
-                    <Radio.Button onClick={handleAddRooms} value={'a'}>สร้างห้อง</Radio.Button>
-                    <Radio.Button disabled={disabled} value={'b'}>บันทึก</Radio.Button>
-
-                </Radio.Group>
-            </Flex>
-
-            {/* <Button type="primary" onClick={handleAddRooms}>
-                สร้างห้อง
-            </Button> */}
-
-            {/* {!groupedRooms && ()} */}
-            {/* <Button
-                type="primary"
-                disabled={disabled}
-            >
-                บันทึก
-            </Button> */}
-
-            <h3>ห้องที่สร้าง:</h3>
-            <Collapse size="small">
-                {Object.keys(groupedRooms).map((floor) => (
-                    <Panel header={`ชั้นที่ ${floor}`} key={floor} >
-                        <ul>
-                            <Row gutter={[8, 8]}>
-                                {groupedRooms[floor].map((room) => (
-                                    <Col span={8} key={room.roomNumber}>
-                                        <Card size="small" type="inner" key={room.roomNumber} title={`ชื่อห้อง: ${room.roomNumber}`}>
-                                            <p>ชื่อห้องที่ต้องการแก้ไข: <Input defaultValue={room.roomNumber} /></p>
-                                            <Button type="danger" onClick={() => console.log(`Delete room ${room.roomNumber}`)}>
-                                                ลบ
-                                            </Button>
-                                        </Card>
-                                    </Col>
-
-
-                                ))}
-                            </Row>
-
-                        </ul>
-
-                    </Panel>
-
-                ))}
-
-            </Collapse>
-            {/* <Button type="primary" >
-                บันทึก
-            </Button> */}
-        </form>
+        <CreateRoomPage
+            register={register}
+            handleSubmit={handleSubmit}
+            errors={errors}
+            onFinish={onFinish}
+            handleAddRooms={handleAddRooms}
+            disabled={disabled}
+            groupedRooms={groupedRooms}
+            floors={floors}
+            roomsPerFloor={roomsPerFloor}
+            count={count}
+            price={price}
+            onSubmit={onSubmit}
+            rooms={rooms}
+        />
     );
 };
 

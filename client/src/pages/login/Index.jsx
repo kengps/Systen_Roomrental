@@ -23,11 +23,7 @@ const IndexForm = () => {
     // const { Login } = storeAuth();
     const Login2 = persistMiddleware((state) => state.Login)
     const { Login, isAuthenticated, user } = persistMiddleware();
-    console.log(`⩇⩇:⩇⩇🚨  file: Index.jsx:26  isAuthenticated :`, isAuthenticated);
-
-    console.log(`⩇⩇:⩇⩇🚨  file: Index.jsx:26  user :`, user);
-
-
+    
 
     const checkStatusAuth = () => {
         const authStorage = localStorage.getItem('auth-storage');
@@ -46,6 +42,7 @@ const IndexForm = () => {
     useEffect(() => {
         checkStatusAuth();
     }, [])
+    
     //1 login โดยการใช้ useForm
     const { register, handleSubmit, formState: { errors }, } = useForm();
 
