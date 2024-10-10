@@ -18,52 +18,48 @@ const CreateRoom = () => {
     const { register, handleSubmit, formState: { errors }, } = useForm();
 
     const handleAddRooms = (value) => {
-      try {
-        console.log(`⩇⩇:⩇⩇🚨  file: CreateRoom.jsx:21  value :`, value);
+        try {
 
-        const { floor, price, roomPerFloor, count } = value
+            const { floor, price, roomPerFloor, count } = value
 
-        const newRooms = [];
+            const newRooms = [];
 
-        for (let i = 1; i <= floor; i++) {
-            for (let j = 1; j <= roomPerFloor; j++) {
-                // newRooms.push({ floor: i, roomNumber: `${i}${j.toString().padStart(2, '0')}` });
-                newRooms.push({ floor: i, roomNumber: i * 10 ** (count - 1) + (j - 1), price });
+            for (let i = 1; i <= floor; i++) {
+                for (let j = 1; j <= roomPerFloor; j++) {
+                    // newRooms.push({ floor: i, roomNumber: `${i}${j.toString().padStart(2, '0')}` });
+                    newRooms.push({ floor: i, roomNumber: i * 10 ** (count - 1) + (j - 1), price });
+                }
             }
-        }
-        console.log(`⩇⩇:⩇⩇🚨  file: CreateRoom.jsx:26  newRooms :`, newRooms);
-        setRooms(newRooms);
-         setDisable(false);
-      } catch (error) {
-        console.log(`⩇⩇:⩇⩇🚨  file: CreateRoom.jsx:38  error :`, error);
 
-        
-      }
+            setRooms(newRooms);
+            setDisable(false);
+        } catch (error) {
+
+        }
     };
 
     // const onSubmit = async (event) => {
 
-    //     event.preventDefault();
+    //     // event.preventDefault();
     //     await saveRoomsToDatabase(rooms);
 
     // };
 
 
-    const onSubmit = async (rooms) => {
-        // console.log(`⩇⩇:⩇⩇🚨  file: CreateRoom.jsx:38  rooms :`, rooms);
+    const onSubmit = async (vaue) => {
 
-        // try {
-        //     const response = await fetch(`${import.meta.env.VITE_REACT_APP_API}/admin/room/create`, {
-        //         method: 'POST',
-        //         headers: {
-        //             'Content-Type': 'application/json',
-        //         },
-        //         body: JSON.stringify({ rooms }),
-        //     });
-        //     const data = await response.json();
-        // } catch (error) {
-        //     console.error('Error saving rooms:', error);
-        // }
+        try {
+            const response = await fetch(`${import.meta.env.VITE_REACT_APP_API}/admin/room/create`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ rooms }),
+            });
+            const data = await response.json();
+        } catch (error) {
+            console.error('Error saving rooms:', error);
+        }
     };
 
     // Group rooms by floor
@@ -75,19 +71,15 @@ const CreateRoom = () => {
 
 
     const onFinish = async (values) => {
-        // console.log(`⩇⩇:⩇⩇🚨  file: CreateRoom.jsx:70  values :`, values);
-
         // try {
         //     handleAddRooms(values)
 
         // } catch (error) {
 
-        
+
     }
 
     // const onSubmit = (value) => {
-    // console.log(`⩇⩇:⩇⩇🚨  file: CreateRoom.jsx:83  value :`, value);
-
 
     // }
 
@@ -131,7 +123,6 @@ export default CreateRoom;
 //                                     >
 //                                         <Card size="small" type="inner" title={`ชื่อห้อง: ${room.roomNumber}`}>
 //                                             <p>ชื่อห้องที่ต้องการแก้ไข: <Input defaultValue={room.roomNumber} /></p>
-//                                             <Button type="danger" onClick={() => console.log(`Delete room ${room.roomNumber}`)}>
 //                                                 ลบ
 //                                             </Button>
 //                                         </Card>
@@ -155,7 +146,6 @@ export default CreateRoom;
                         <Col key={room.roomNumber} span={8}>
                             <Card size="small" type="inner" title={`ชื่อห้อง: ${room.roomNumber}`}>
                                 <p>ชื่อห้องที่ต้องการแก้ไข: <Input defaultValue={room.roomNumber} /></p>
-                                <Button type="danger" onClick={() => console.log(`Delete room ${room.roomNumber}`)}>
                                     ลบ
                                 </Button>
                             </Card>
