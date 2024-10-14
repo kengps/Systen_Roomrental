@@ -3,6 +3,7 @@ import { Button, Card, Form, Input, InputNumber, Collapse, Row, Col, Radio, Flex
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import CreateRoomPage from '../../components/form/dashboard/rooms/CreateRoomPage';
+import { toast } from 'react-toastify';
 
 const { Panel } = Collapse;
 
@@ -15,40 +16,47 @@ const CreateRoom = () => {
     const [rooms, setRooms] = useState([]);
 
 
-    const { register, handleSubmit, formState: { errors }, } = useForm();
+    const { register, handleSubmit, control, reset, formState: { errors }, } = useForm();
 
-    const handleAddRooms = (value) => {
+    const handleAddRooms = async (value) => {
         try {
 
             const { floor, price, roomPerFloor, count } = value
-
             const newRooms = [];
+
+            // ดึงข้อมูลห้องที่มีอยู่จาก API
+            const response = await fetch(`${import.meta.env.VITE_REACT_APP_API}/admin/room/listroom`);
+            const { result: existingRooms } = await response.json();
+
+
+            // สร้างอาเรย์ที่เก็บหมายเลขห้องที่มีอยู่
+            const existingRoomNumbers = existingRooms.map(room => room.roomNumber);
 
             for (let i = 1; i <= floor; i++) {
                 for (let j = 1; j <= roomPerFloor; j++) {
-                    // newRooms.push({ floor: i, roomNumber: `${i}${j.toString().padStart(2, '0')}` });
-                    newRooms.push({ floor: i, roomNumber: i * 10 ** (count - 1) + (j - 1), price });
+                    const roomNumber = i * 10 ** (count - 1) + (j - 1);
+                    // newRooms.push({ floor: i, roomNumber: i * 10 ** (count - 1) + (j - 1), price });
+
+                    // ตรวจสอบว่าห้องที่ต้องการสร้างมีอยู่แล้วหรือไม่
+                    if (!existingRoomNumbers.includes(roomNumber)) {
+                        newRooms.push({ floor: i, roomNumber, });
+                    }
                 }
             }
 
             setRooms(newRooms);
             setDisable(false);
+
         } catch (error) {
 
         }
     };
 
-    // const onSubmit = async (event) => {
 
-    //     // event.preventDefault();
-    //     await saveRoomsToDatabase(rooms);
-
-    // };
-
-
-    const onSubmit = async (vaue) => {
+    const onSubmit = async () => {
 
         try {
+
             const response = await fetch(`${import.meta.env.VITE_REACT_APP_API}/admin/room/create`, {
                 method: 'POST',
                 headers: {
@@ -57,8 +65,18 @@ const CreateRoom = () => {
                 body: JSON.stringify({ rooms }),
             });
             const data = await response.json();
+            toast.success(data.message)
+
+            setTimeout(() => {
+                reset();
+                setRooms([])
+                setDisable(true)
+            }, 2000)
+
+
         } catch (error) {
             console.error('Error saving rooms:', error);
+        } finally {
         }
     };
 
@@ -66,9 +84,22 @@ const CreateRoom = () => {
     const groupedRooms = rooms.reduce((acc, room) => {
         if (!acc[room.floor]) acc[room.floor] = [];
         acc[room.floor].push(room);
+
         return acc;
     }, {});
 
+
+    const deleteRoom = (e, room) => {
+        e.preventDefault();
+        // ลบห้องออกจากรายการ rooms โดยใช้ filter
+        try {
+            const updatedRooms = rooms.filter((value) => value.roomNumber !== room);
+            setRooms(updatedRooms); // อัปเดตรายการห้อง
+
+        } catch (error) {
+
+        }
+    }
 
     const onFinish = async (values) => {
         // try {
@@ -98,6 +129,8 @@ const CreateRoom = () => {
             price={price}
             onSubmit={onSubmit}
             rooms={rooms}
+            control={control}
+            deleteRoom={deleteRoom}
         />
     );
 };

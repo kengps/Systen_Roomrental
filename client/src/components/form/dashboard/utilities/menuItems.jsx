@@ -13,7 +13,8 @@ const menuItems = [
                 icon: <UploadOutlined />,
                 children: [
                     { key: '11', label: 'เพิ่มห้องพัก', path: '/admin/dashboard/addroom' },
-                    { key: '12', label: 'เพิ่มผู้เช่า', path: '/admin/dashboard/addtenant' },
+                    { key: '12', label: 'ห้องพัก', path: '/admin/dashboard/listroom' },
+                    { key: '13', label: 'stepper', path: '/admin/dashboard/stepper' },
                     // { key: '13', label: 'MainPage', path: '/admin/dashboard/create' },
                     // { key: '14', label: 'Option 4', path: '/admin/dashboard/option4' },
                 ],

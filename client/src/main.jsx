@@ -17,6 +17,7 @@ import { BrowserRouter as Router } from "react-router-dom";
 import { QueryParamProvider } from 'use-query-params';
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6';
 import { ToastContainer } from 'react-toastify';
+import { StoreContextProvider } from './pages/admin/StepperForm/StoreContextProvider .jsx'
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
@@ -26,7 +27,9 @@ root.render(
         
          <QueryParamProvider adapter={ReactRouter6Adapter}>
     
+    <StoreContextProvider>
            <App />
+    </StoreContextProvider>
         
       </QueryParamProvider>
          

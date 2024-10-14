@@ -3,6 +3,8 @@ import IndexForm from "./pages/login/Index";
 import { Navigate } from "react-router-dom";
 import LoadingSpinner from "./components/LoadingSpinner/LoadingSpinner";
 import CreateRoom from "./pages/admin/CreateRoom";
+import StepperForm from "./pages/admin/StepperForm/StepperForm";
+import ListRoom from "./pages/admin/ListRoom";
 // import NavigateToDb from "./utilities/Navigate/NavigateToDb";
 
 // Lazy load components
@@ -27,7 +29,8 @@ const createAdminRoute = (path, title) => ({ //* Utility function to create admi
     element: AdminPages,
     children: [
         { path: 'addroom', title: 'CreateRoom', element: CreateRoom },
-        { path: 'table', title: 'Table', element: TableAdmin },
+        { path: 'listroom', title: 'ListRoom', element: ListRoom },
+        { path: 'stepper', title: 'stepper', element: StepperForm },
         { path: '*', element: PageNotFound },
     ],
 });

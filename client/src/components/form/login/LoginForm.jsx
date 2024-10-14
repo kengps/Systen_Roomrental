@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
-import { Paper, Avatar, Typography, TextField, Button, Box, Container, InputAdornment, OutlinedInput, InputLabel, FormControl } from '@mui/material';
-
-
-import { Row, Col, Grid } from 'antd';
+import { Avatar, Typography, TextField, Button, Box, InputAdornment, OutlinedInput, InputLabel, FormControl } from '@mui/material';
+import { LoadingButton } from '@mui/lab';
+import { Row, Col } from 'antd';
 
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import IconButton from '@mui/material/IconButton';
@@ -12,8 +11,8 @@ import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined
 
 import bg from '../../../img/pattern_h.png'
 
-import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import { LockOutlined, UserOutlined, PoweroffOutlined } from '@ant-design/icons';
+
 
 const cardStyle = {
     overflowX: "hidden",
@@ -24,7 +23,7 @@ const cardStyle = {
         " rgba(17, 17, 26, 0.1) 0px 8px 24px, rgba(17, 17, 26, 0.1) 0px 16px 56px, rgba(17, 17, 26, 0.1) 0px 24px 80px",
     backgroundColor: "#15283c",
 }
-const LoginForm = ({ register, errors, handleSubmit, onSubmit }) => {
+const LoginForm = ({ register, errors, handleSubmit, onSubmit, loadings }) => {
 
     //Toggle show password
     const [showPassword, setShowPassword] = useState(false);
@@ -119,15 +118,18 @@ const LoginForm = ({ register, errors, handleSubmit, onSubmit }) => {
                         </FormControl>
 
                         {/* Submit Button */}
-                        <Button
+                        <LoadingButton
+
                             type="submit"
                             fullWidth
                             variant="contained"
                             color="primary"
                             sx={{ mt: 2 }}
+                            // disabled={loadings}
+                            loading={loadings}
                         >
                             Sign In
-                        </Button>
+                        </LoadingButton>
                     </Box>
                 </Col>
             </Row>

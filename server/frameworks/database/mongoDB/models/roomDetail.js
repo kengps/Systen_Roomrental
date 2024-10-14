@@ -8,8 +8,8 @@ const roomSchema = new Schema({
     floor: { type: Number },
     roomNumber: { type: Number },
     status: { type: String, default: 'available' },
-    price: { type: Number },
-    rentalDate: { type: Date },
+    price: { type: Number, default: 0 },
+    // rentalDate: { type: Date },
     // tenant: { type: Schema.Types.ObjectId, ref: 'memberUser' }, // อ้างอิงไปยังผู้เช่า
     tenet: { type: String }, // อ้างอิงไปยังผู้เช่า
 }, { timestamps: true });

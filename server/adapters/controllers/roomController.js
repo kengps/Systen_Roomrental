@@ -1,4 +1,5 @@
 const { Room, RentDetails, AdditionalCharge } = require("../../frameworks/database/mongoDB/models/roomDetail");
+const { handleRequestError } = require("../../frameworks/webserver/utils/HOCHandelRequest");
 const { sendResponse } = require("../../frameworks/webserver/utils/responseMessage");
 
 
@@ -42,56 +43,55 @@ const { sendResponse } = require("../../frameworks/webserver/utils/responseMessa
 //     }
 // }
 // // สร้างห้องเช่าใหม่
-exports.createRoom = async (req, res) => {
+const createRoom = handleRequestError(async (req, res) => {
     const { rooms } = req.body;
-    console.log(`⩇⩇:⩇⩇🚨  file: roomController.js:47   req.body; :`, req.body);
-
-
-
+   
     try {
-        console.log(`⩇⩇:⩇⩇🚨  file: roomController.js:47   req.body; :`, req.body);
-        // หาเฉพาะห้องที่มีอยู่แล้ว
-        // const existingRooms = await Room.find({
-        //     $or: rooms.map(room =>{
-        //         console.log(room);
+      
+        //หาเฉพาะห้องที่มีอยู่แล้ว
+        const existingRooms = await Room.find({
+            $or: rooms.map(room => ({
+                floor: room.floor,
+                roomNumber: room.roomNumber,
+            }))
+        });
 
-        //     })
-        // });
 
 
+        // สร้าง set ของห้องที่มีอยู่แล้ว (floor + roomNumber)
+        const existingSet = new Set(existingRooms.map(room => `${room.floor}-${room.roomNumber}`));
 
-        // // สร้าง set ของห้องที่มีอยู่แล้ว (floor + roomNumber)
-        // const existingSet = new Set(existingRooms.map(room => `${room.floor}-${room.roomNumber}`));
+        // คัดกรองห้องที่ยังไม่มีในฐานข้อมูล
+        const newRooms = rooms.filter(room => !existingSet.has(`${room.floor}-${room.roomNumber}`));
 
-        // // คัดกรองห้องที่ยังไม่มีในฐานข้อมูล
-        // const newRooms = rooms.filter(room => !existingSet.has(`${room.floor}-${room.roomNumber}`));
+        if (newRooms.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'ห้องทั้งหมดมีอยู่แล้วในระบบ',
+            });
+        }
 
-        // if (newRooms.length === 0) {
-        //     return res.status(400).json({
-        //         success: false,
-        //         message: 'ห้องทั้งหมดมีอยู่แล้วในระบบ',
-        //     });
-        // }
+        // เพิ่มเฉพาะห้องใหม่
+        const roomResult = await Room.insertMany(newRooms.map(room => ({
+            floor: room.floor,
+            roomNumber: room.roomNumber,
+            status: 'available' // ตั้งค่าสถานะห้องว่าง
+        })));
 
-        // // เพิ่มเฉพาะห้องใหม่
-        // const roomResult = await Room.insertMany(newRooms.map(room => ({
-        //     floor: room.floor,
-        //     roomNumber: room.roomNumber,
-        //     status: 'available' // ตั้งค่าสถานะห้องว่าง
-        // })));
-
-        // return sendResponse(res, 200, 'Create room successfully', roomResult);
+        return sendResponse(res, 200, 'Create room successfully', roomResult);
 
     } catch (error) {
+        console.log(`⩇⩇:⩇⩇🚨  file: roomController.js:86  error :`, error);
+
         res.status(500).json({
             success: false,
             message: "เกิดข้อผิดพลาดในการสร้างห้องเช่า",
             error: error.message
         });
     }
-}
+})
 
-exports.addTenetRoom = async (req, res) => {
+const addTenetRoom = handleRequestError(async (req, res) => {
     const { price, status, tenet } = req.body
 
 
@@ -137,9 +137,9 @@ exports.addTenetRoom = async (req, res) => {
 
 
     }
-}
+})
 
-exports.collectRent = async (req, res) => {
+const collectRent = handleRequestError(async (req, res) => {
     console.log(`⩇⩇:⩇⩇🚨  file: roomController.js:6  req :`, req.body);
 
     try {
@@ -149,7 +149,7 @@ exports.collectRent = async (req, res) => {
 
 
     }
-}
+})
 
 
 
@@ -210,7 +210,7 @@ exports.collectRent = async (req, res) => {
 // };
 
 
-exports.addRentDetails = async (req, res) => {
+const addRentDetails = handleRequestError(async (req, res) => {
     try {
         const {
             roomId,
@@ -275,21 +275,21 @@ exports.addRentDetails = async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
-};
+});
 
 
 
-exports.listRoom = async (req, res) => {
+const listRoom = handleRequestError(async (req, res) => {
     try {
         const listRoom = await Room.find();
         return sendResponse(res, 200, 'Get room success', listRoom)
     } catch (error) {
 
     }
-}
+})
 
 
-exports.listRentDetails = async (req, res) => {
+const listRentDetails = handleRequestError(async (req, res) => {
     try {
         const getMsgContents = await RentDetails.find().populate({ path: 'room', select: { _id: 0, tenant: 1 } }).exec();
         console.log(`⩇⩇:⩇⩇🚨  file: roomController.js:227  getMsgContents :`, getMsgContents);
@@ -304,4 +304,14 @@ exports.listRentDetails = async (req, res) => {
 
 
     }
+})
+
+
+module.exports = {
+    createRoom,
+    addRentDetails,
+    listRentDetails ,
+    listRoom,
+    collectRent,
+    addTenetRoom
 }
