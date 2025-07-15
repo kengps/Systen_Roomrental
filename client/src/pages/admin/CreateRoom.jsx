@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import CreateRoomPage from '../../components/form/dashboard/rooms/CreateRoomPage';
 import { toast } from 'react-toastify';
+import persistMiddleware from '../../service/zustand/middleware/persistMiddleware';
 
 const { Panel } = Collapse;
 
@@ -14,6 +15,11 @@ const CreateRoom = () => {
     const [count, setCount] = useState(3);
     const [price, setPrice] = useState(3500);
     const [rooms, setRooms] = useState([]);
+    const { user } = persistMiddleware()
+
+
+
+
 
 
     const { register, handleSubmit, control, reset, formState: { errors }, } = useForm();
@@ -54,6 +60,14 @@ const CreateRoom = () => {
 
 
     const onSubmit = async () => {
+        const userId = user.userPayLoad.user.id
+
+        const value = {
+            profileId: userId,
+            rooms
+
+        }
+
 
         try {
 
@@ -62,7 +76,7 @@ const CreateRoom = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ rooms }),
+                body: JSON.stringify({ value }),
             });
             const data = await response.json();
             toast.success(data.message)
@@ -137,66 +151,3 @@ const CreateRoom = () => {
 
 export default CreateRoom;
 
-
-
-// จะขยาย ไม่ให้มีพื่นที่ว่าง
-// <Collapse size="small">
-//                 {Object.keys(groupedRooms).map((floor) => (
-//                     <Panel header={`ชั้นที่ ${floor}`} key={floor}>
-//                         <Row gutter={[16, 16]}>
-//                             {groupedRooms[floor].map((room, index) => {
-//                                 // Check if it's the last row and fewer than 3 items remain
-//                                 const isLastRow = index >= Math.floor(groupedRooms[floor].length / 3) * 3;
-//                                 const remainingItems = groupedRooms[floor].length % 3;
-
-//                                 return (
-//                                     <Col
-//                                         key={room.roomNumber}
-//                                         span={isLastRow && remainingItems === 2 ? 12 : isLastRow && remainingItems === 1 ? 24 : 8}
-//                                     >
-//                                         <Card size="small" type="inner" title={`ชื่อห้อง: ${room.roomNumber}`}>
-//                                             <p>ชื่อห้องที่ต้องการแก้ไข: <Input defaultValue={room.roomNumber} /></p>
-//                                                 ลบ
-//                                             </Button>
-//                                         </Card>
-//                                     </Col>
-//                                 );
-//                             })}
-//                         </Row>
-//                     </Panel>
-//                 ))}
-//             </Collapse>
-
-
-
-//พื่้นที่ว่างทึบ
-{/* <Collapse size="small">
-    {Object.keys(groupedRooms).map((floor) => (
-        <Panel header={`ชั้นที่ ${floor}`} key={floor}>
-            <Row gutter={[16, 16]}>
-                {groupedRooms[floor].map((room, index) => {
-                    return (
-                        <Col key={room.roomNumber} span={8}>
-                            <Card size="small" type="inner" title={`ชื่อห้อง: ${room.roomNumber}`}>
-                                <p>ชื่อห้องที่ต้องการแก้ไข: <Input defaultValue={room.roomNumber} /></p>
-                                    ลบ
-                                </Button>
-                            </Card>
-                        </Col>
-                    );
-                })}
-
-             
-                {groupedRooms[floor].length % 3 === 1 && (
-                    <>
-                        <Col span={8} style={{ backgroundColor: '#D3D3D3' }}></Col>
-                        <Col span={8} style={{ backgroundColor: '#D3D3D3' }}></Col>
-                    </>
-                )}
-                {groupedRooms[floor].length % 3 === 2 && (
-                    <Col span={8} style={{ backgroundColor: '#D3D3D3' }}></Col>
-                )}
-            </Row>
-        </Panel>
-    ))}
-</Collapse> */}

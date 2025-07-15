@@ -8,7 +8,10 @@ import { Spin } from 'antd';
 
 
 const AdminRoutes = () => {
-  const { user } = persistMiddleware();
+  const { user, clearLocalStorage } = persistMiddleware();
+
+
+
   const navigate = useNavigate();
 
   const [ok, setOk] = useState(false);
@@ -17,13 +20,17 @@ const AdminRoutes = () => {
   const location = useLocation();
 
   useEffect(() => {
-    
+
     const checkAdmin = async () => {
       if (user && user.token) {
         try {
+
           await currentAdmin(user.token);
+
+
           setOk(true);
         } catch (err) {
+          clearLocalStorage()
           setOk(false);
           navigate('/auth/login');
         } finally {

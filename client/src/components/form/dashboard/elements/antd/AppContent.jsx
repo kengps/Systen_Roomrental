@@ -1,56 +1,58 @@
 import React from "react";
 import { Layout, Breadcrumb } from 'antd';
-import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { Link, useLocation, Outlet } from "react-router-dom";
 import { HomeOutlined } from '@ant-design/icons';
+
 const { Content } = Layout;
 
-function AppContent({
-  colorBg,
-  borderLG,
-}) {
+function AppContent({ colorBg, borderLG }) {
   const location = useLocation();
 
-  const Breadcrumbs = () => {
+  const getBreadcrumbItems = () => {
     const { pathname } = location;
-    const segments = pathname.split('/').filter(Boolean); // แยก segments และกรองค่าว่าง
+    const segments = pathname.split('/').filter(Boolean);
 
-    let url = ''; // สำหรับสร้าง URL
-    // กรอง "Admin" ออกจาก segments
-    const filteredSegments = segments.filter(segment => segment !== 'admin');
-    const breadcrumbLinks = segments.map((segment, i) => {
-      url += `/${segment}`; // สร้าง URL ตาม segment
+    let url = '';
+    const items = [];
 
-      return (
-        <Breadcrumb.Item key={i}>
-          {i === segments.length - 1 ? ( // เช็คว่าตอนนี้คือหน้าสุดท้ายหรือไม่
-            <div style={{ fontWeight: 'bold' }}>
-              {segment.charAt(0).toUpperCase() + segment.slice(1)}
-            </div> // แสดงชื่อ segment โดยไม่ทำลิงก์
-          ) : (
-            <Link to={url}>
-              {segment.charAt(0).toUpperCase() + segment.slice(1)} {/* Capitalize the first letter */}
-            </Link>
-          )}
-        </Breadcrumb.Item>
-      );
+    // ✅ เพิ่มหน้าแรกเป็นไอคอน
+    items.push({
+      title: (
+        <Link to="/admin/dashboard">
+          <HomeOutlined />
+        </Link>
+      ),
     });
 
-    return breadcrumbLinks;
+    segments.forEach((segment, i) => {
+      url += `/${segment}`;
+      const isLast = i === segments.length - 1;
+
+      const title = segment.charAt(0).toUpperCase() + segment.slice(1);
+
+      if (isLast) {
+        // ตัวสุดท้าย: หน้าปัจจุบัน
+        items.push({ title: <span style={{ fontWeight: 'bold' }}>{title}</span> });
+      } else if (i === 0) {
+        // ✅ อันแรกหลังบ้าน: static (ไม่เป็นลิงก์)
+        items.push({
+          title: <span>{title}</span>,
+        });
+      } else {
+        // อื่น ๆ ระหว่างกลาง: ทำเป็นลิงก์ได้ตามปกติ
+        items.push({
+          title: <Link to={url}>{title}</Link>,
+        });
+      }
+    });
+
+
+    return items;
   };
 
   return (
-    <Content
-      style={{
-        padding: '0 28px',
-      }}
-    >
-      <Breadcrumb>
-        <Breadcrumb.Item>
-          <Link to="/admin/dashboard"><HomeOutlined /></Link>
-        </Breadcrumb.Item>
-        {Breadcrumbs()} {/* เรียกใช้ Breadcrumbs */}
-      </Breadcrumb>
-
+    <Content style={{ padding: '0 28px', margin: '20px 0 10px 0' }}>
+      <Breadcrumb items={getBreadcrumbItems()} />
       <div
         style={{
           padding: 24,

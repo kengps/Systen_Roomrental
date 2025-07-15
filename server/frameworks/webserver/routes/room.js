@@ -1,22 +1,32 @@
 const express = require('express');
-const { createRoom, addRentDetails, listRentDetails, listRoom, collectRent, addTenetRoom } = require('../../../adapters/controllers/roomController');
-const router = express.Router();
+const { createRoom, addRentDetails, listRentDetails, listRoom, collectRent, addTenetRoom, updatePrice, apartmant, apartmantData } = require('../../../adapters/controllers/roomController');
+const { Hono } = require('hono');
 
 
+const appRooms = new Hono()
 
 
-router.post('/create', createRoom);
+appRooms.post('/create', createRoom);
 
-router.post('/collect', collectRent);
-
-router.post('/collectrent', addRentDetails);
-
-router.get('/listroom',listRoom)
-router.get('/listrent',listRentDetails)
+appRooms.put('/update-price', updatePrice);
 
 
-router.put('/update',addTenetRoom)
+appRooms.post('/collect', collectRent);
 
 
+appRooms.post('/collectrent', addRentDetails);
 
-module.exports = router
+appRooms.get('/listroom', listRoom)
+
+appRooms.get('/listrent', listRentDetails)
+
+
+appRooms.put('/update', addTenetRoom)
+
+
+//apartmentName
+// appRooms.post('/apartment-address', apartmant);
+// appRooms.get('/apartment', apartmantData);
+
+
+module.exports = appRooms

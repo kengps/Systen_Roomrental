@@ -1,113 +1,74 @@
+
 const { Room, RentDetails, AdditionalCharge } = require("../../frameworks/database/mongoDB/models/roomDetail");
 const { handleRequestError } = require("../../frameworks/webserver/utils/HOCHandelRequest");
-const { sendResponse } = require("../../frameworks/webserver/utils/responseMessage");
+const { sendResponse, sendResponseHono } = require("../../frameworks/webserver/utils/responseMessage");
+
+const { addressApartment, apartmentData, addServicesInApartment, getServicesInApartment } = require("../repositories/apartment");
+const { findOwner } = require("../repositories/register");
+const { assignServices, deleteServices } = require("../repositories/tenant/tanantReposit");
+
+const createRoom = handleRequestError(async (c) => {
+    const { value } = await c.req.json();
+    const { rooms, profileId } = value;
 
 
 
-// exports.createRoom = async (req, res) => {
-//     const { room, tenant, status, price, } = req.body
 
-
-//     console.log(`⩇⩇:⩇⩇🚨  file: roomController.js:7  room :`, room);
-
-//     try {
-//         const roomAlready = await Room.findOne({ "room.floor": room.floor, "room.roomNumber:": room.roomNumber }).exec()
-
-
-//         if (roomAlready) return sendResponse(res, 201, 'Room Already exist');
-
-//         const newData = new Room();
-
-//         if (!roomAlready) {
-//             const roomData = new Room({
-//                 _id: newData._id,
-//                 room: {
-//                     floor: room.floor,
-//                     roomNumber: room.roomNumber
-//                 },
-//                 price: price,
-//                 status: status,
-//                 tenant: tenant
-//             })
-//             const result = roomData.save()
-//             console.log(`⩇⩇:⩇⩇🚨  file: roomController.js:32  result :`, result);
-
-//             sendResponse(res, 200, 'Create Room successfully',result);
-//         }
-
-
-//     } catch (error) {
-//         console.log(`⩇⩇:⩇⩇🚨  file: roomController.js:11  error :`, error);
-
-
-//     }
-// }
-// // สร้างห้องเช่าใหม่
-const createRoom = handleRequestError(async (req, res) => {
-    const { rooms } = req.body;
-   
     try {
-      
-        //หาเฉพาะห้องที่มีอยู่แล้ว
-        const existingRooms = await Room.find({
-            $or: rooms.map(room => ({
-                floor: room.floor,
-                roomNumber: room.roomNumber,
-            }))
-        });
+        const profileOrConditions = [
+            { owner: profileId },
+            { owner: { $exists: false } },
+            { owner: null }
+        ];
 
 
 
-        // สร้าง set ของห้องที่มีอยู่แล้ว (floor + roomNumber)
+        const conditions = rooms.map(room => ({
+            floor: room.floor,
+            roomNumber: room.roomNumber,
+            $or: profileOrConditions
+        }));
+
+        const existingRooms = await Room.find({ $or: conditions });
+
+
         const existingSet = new Set(existingRooms.map(room => `${room.floor}-${room.roomNumber}`));
 
-        // คัดกรองห้องที่ยังไม่มีในฐานข้อมูล
         const newRooms = rooms.filter(room => !existingSet.has(`${room.floor}-${room.roomNumber}`));
 
         if (newRooms.length === 0) {
-            return res.status(400).json({
+            return c.json({
                 success: false,
                 message: 'ห้องทั้งหมดมีอยู่แล้วในระบบ',
             });
         }
 
-        // เพิ่มเฉพาะห้องใหม่
         const roomResult = await Room.insertMany(newRooms.map(room => ({
+            owner: profileId,
             floor: room.floor,
             roomNumber: room.roomNumber,
-            status: 'available' // ตั้งค่าสถานะห้องว่าง
+            status: 'available'
         })));
 
-        return sendResponse(res, 200, 'Create room successfully', roomResult);
+        return sendResponseHono(c, 200, 'Create room successfully', roomResult);
 
     } catch (error) {
-        console.log(`⩇⩇:⩇⩇🚨  file: roomController.js:86  error :`, error);
+        console.log(`⩇⩇:⩇⩇🚨 file: roomController.js error :`, error);
 
-        res.status(500).json({
+        return c.json({
             success: false,
             message: "เกิดข้อผิดพลาดในการสร้างห้องเช่า",
             error: error.message
         });
     }
-})
+});
 
-const addTenetRoom = handleRequestError(async (req, res) => {
-    const { price, status, tenet } = req.body
 
+const addTenetRoom = handleRequestError(async (c) => {
+    const { price, status, tenet } = await c.req.json()
 
 
     try {
-        // สร้างอ็อบเจ็กต์สำหรับการอัปเดต
-        // const updateFields = {};
-        // if (req.body.status) {
-        //     updateFields.status = req.body.status;
-        // }
-        // if (req.body.price) {
-        //     updateFields.price = req.body.price;
-        // }
-        // if (req.body.tenet) {
-        //     updateFields.tenet = req.body.tenet;
-        // }
 
         // สร้างอ็อบเจ็กต์สำหรับการอัปเดต
         const updateFields = Object.keys(req.body).reduce((acc, key) => {
@@ -130,7 +91,7 @@ const addTenetRoom = handleRequestError(async (req, res) => {
             }
         }]);
 
-        return sendResponse(res, 200, 'Room updated successfully')
+        return sendResponseHono(c, 200, 'Room updated successfully')
 
     } catch (error) {
         console.log(`⩇⩇:⩇⩇🚨  file: roomController.js:131  error :`, error);
@@ -139,78 +100,22 @@ const addTenetRoom = handleRequestError(async (req, res) => {
     }
 })
 
-const collectRent = handleRequestError(async (req, res) => {
-    console.log(`⩇⩇:⩇⩇🚨  file: roomController.js:6  req :`, req.body);
+const collectRent = handleRequestError(async (c) => {
+    // console.log(`⩇⩇:⩇⩇🚨  file: roomController.js:6  req :`, req.body);
 
-    try {
+    // try {
 
-    } catch (error) {
-        console.log(`⩇⩇:⩇⩇🚨  file: roomController.js:11  error :`, error);
+    // } catch (error) {
+    //     console.log(`⩇⩇:⩇⩇🚨  file: roomController.js:11  error :`, error);
 
 
-    }
+    // }
 })
 
 
 
 
-
-// // สร้างรายละเอียดค่าเช่า
-// exports.createRentDetails = async (req, res) => {
-//     const { roomId, monthlyRent, water, electricity, mobile, tv, internet, others } = req.body;
-//     console.log(`⩇⩇:⩇⩇🚨  file: roomController.js:94  water :`, water);
-
-
-//     try {
-//         const room = await Room.findById(roomId);
-//         if (!room) {
-//             return res.status(404).json({
-//                 success: false,
-//                 message: "ไม่พบห้องเช่า"
-//             });
-//         }
-
-//         const rentDetails = new RentDetails({
-//             room: roomId,
-//             monthlyRent,
-//             water: {
-//                 price: water.price,
-//                 previousUnits: water.previousUnits,
-//                 currentUnits: water.currentUnits,
-//                 quality: water.quality,
-//                 total: water.total,
-//             },
-//             electricity: {
-//                 price: electricity.price,
-//                 previousUnits: electricity.previousUnits,
-//                 currentUnits: electricity.currentUnits,
-//                 quality: electricity.quality,
-//                 total: electricity.total,
-//             },
-//             mobile,
-//             tv,
-//             internet,
-//             others
-//         });
-
-//         await rentDetails.save();
-
-//         res.status(201).json({
-//             success: true,
-//             message: "รายละเอียดค่าเช่าสร้างสำเร็จ",
-//             data: rentDetails
-//         });
-//     } catch (error) {
-//         res.status(500).json({
-//             success: false,
-//             message: "เกิดข้อผิดพลาดในการสร้างรายละเอียดค่าเช่า",
-//             error: error.message
-//         });
-//     }
-// };
-
-
-const addRentDetails = handleRequestError(async (req, res) => {
+const addRentDetails = handleRequestError(async (c) => {
     try {
         const {
             roomId,
@@ -220,12 +125,12 @@ const addRentDetails = handleRequestError(async (req, res) => {
             internet,
             others,
             additionalCharges // รับข้อมูลค่าใช้จ่ายเพิ่มเติมจาก req.body
-        } = req.body;
+        } = await c.req.json();
 
         // ตรวจสอบว่าห้องเช่านี้มีอยู่หรือไม่
         const room = await Room.findById(roomId);
         if (!room) {
-            return res.status(404).json({ message: 'Room not found' });
+            return c.json({ message: 'Room not found' });
         }
 
         // สร้างรายละเอียดค่าเช่าใหม่
@@ -270,35 +175,49 @@ const addRentDetails = handleRequestError(async (req, res) => {
             await rentDetails.save(); // บันทึกการอัปเดตหลังเพิ่มค่าใช้จ่ายเพิ่มเติม
         }
 
-        res.status(200).json({ message: 'Rent details added successfully', rentDetails });
+        return c.json({ message: 'Rent details added successfully', rentDetails });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        c.json({ message: 'Server error' });
     }
 });
 
 
+const listRoom = handleRequestError(async (c) => {
 
-const listRoom = handleRequestError(async (req, res) => {
+    const { profileId } = await c.req.query()
+
+
     try {
-        const listRoom = await Room.find();
-        return sendResponse(res, 200, 'Get room success', listRoom)
-    } catch (error) {
 
+        let ownerId = await findOwner(profileId)
+
+
+        if (!ownerId || Array.isArray(ownerId) && ownerId.length === 0) {
+            ownerId = profileId
+        }
+
+
+        const listRoom = await Room.find({ owner: ownerId });
+
+
+        return sendResponseHono(c, 200, 'Get room success', listRoom, listRoom.length)
+        //return c.json({ message: 'get List Rooms successfully', total: listRoom.length, listRoom })
+    } catch (error) {
+        throw error
     }
 })
 
 
-const listRentDetails = handleRequestError(async (req, res) => {
+
+const listRentDetails = handleRequestError(async (c) => {
     try {
         const getMsgContents = await RentDetails.find().populate({ path: 'room', select: { _id: 0, tenant: 1 } }).exec();
-        console.log(`⩇⩇:⩇⩇🚨  file: roomController.js:227  getMsgContents :`, getMsgContents);
-
 
 
         const listRentDetails = await RentDetails.find();
 
-        return sendResponse(res, 200, 'Get room success', getMsgContents)
+        return sendResponseHono(c, 200, 'Get room success', getMsgContents)
     } catch (error) {
         console.log(`⩇⩇:⩇⩇🚨  file: roomController.js:234  error :`, error);
 
@@ -306,12 +225,135 @@ const listRentDetails = handleRequestError(async (req, res) => {
     }
 })
 
+const updatePrice = handleRequestError(async (c) => {
+
+    const { value } = await c.req.json()
+    const { roomNumber, price, accountId } = value
+
+
+    try {
+        // ที่ไม่ใช้ id ผู้อัปเดตเพราะให้ส่ง id ของ ห้องนั้นๆมา
+        await Room.updateMany(
+            { _id: { $in: roomNumber } },
+            { $set: { price: price } }
+        )
+
+        return sendResponseHono(c, 200, 'update price success')
+    } catch (error) {
+        console.log(`⩇⩇:⩇⩇🚨  file: roomController.js:234  error :`, error);
+
+
+    }
+})
+
+const apartmant = handleRequestError(async (c) => {
+
+    const result = await addressApartment(req.body)
+
+    return c.json({ message: 'save data apartment successfully', result })
+})
+
+const apartmantData = handleRequestError(async (c) => {
+
+
+    const { profileId } = await c.req.query()
+
+    console.log(`⩇⩇:⩇⩇🚨 await c.req.query() :`, await c.req.query());
+
+    let ownerId = await findOwner(profileId)
+
+
+    if (!ownerId || Array.isArray(ownerId) && ownerId.length === 0) {
+        ownerId = profileId
+    }
+
+
+
+    const result = await apartmentData(ownerId)
+
+    return c.json({ message: 'data', result })
+})
+
+const addServices = handleRequestError(async (c) => {
+
+
+    const { accountId, ...services } = await c.req.json()
+
+
+    let ownerId = await findOwner(accountId)
+
+
+
+    if (!ownerId || Array.isArray(ownerId) && ownerId.length === 0) {
+        ownerId = accountId
+    }
+
+
+    const data = await addServicesInApartment(ownerId, services);
+
+
+    return c.json({ message: 'Save The service fee has been successfully', data })
+})
+const getServices = handleRequestError(async (c) => {
+
+
+    const { accountId } = await c.req.query()
+
+
+    let ownerId = await findOwner(accountId)
+
+
+
+    if (!ownerId || Array.isArray(ownerId) && ownerId.length === 0) {
+        ownerId = accountId
+    }
+
+
+    const data = await getServicesInApartment(ownerId);
+
+
+
+
+    return sendResponseHono(c, 201, 'get data successfully', data.services)
+    //return c.json({ message: 'Save The service fee has been successfully', data })
+})
+
+
+const assignServicesTenant = handleRequestError(async (c) => {
+    const { tenantId } = await c.req.param()
+    const { newServiceIds } = await c.req.json()
+
+
+    const a = await assignServices(tenantId, newServiceIds)
+
+    return c.json({ message: a })
+})
+
+
+const deleteServicesTenant = handleRequestError(async (c) => {
+
+
+
+    const { tenantId, serviceUsageId } = await c.req.param();
+
+
+    const a = await deleteServices(tenantId, serviceUsageId)
+
+    return c.json({ message: a })
+})
 
 module.exports = {
     createRoom,
     addRentDetails,
-    listRentDetails ,
+    listRentDetails,
     listRoom,
     collectRent,
-    addTenetRoom
+    addTenetRoom,
+    updatePrice,
+    apartmant,
+    apartmantData,
+    addServices,
+    getServices,
+    assignServicesTenant,
+    deleteServicesTenant
 }

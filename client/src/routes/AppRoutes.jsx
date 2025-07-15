@@ -27,74 +27,7 @@ const AppRoutes = () => {
     }
 
 
-    // const idToken = localStorage.token;  //token คือชื่อที่เราตั้ง
-
-
-    // useEffect(() => {
-    //     fetchUserInfo(idToken);
-    // }, [])
-
     return (
-        // <Routes>
-        //     {/* ProtectedRoutes will cover both AdminRoutes and MemberRoutes */}
-        //     <Route element={<ProtectedRoutes isAuthenticated={isAuthenticated} />}>
-
-        //         {/* Admin routes protected by both ProtectedRoutes and AdminRoutes */}
-        //         <Route path="/admin" element={<AdminRoutes />}>
-        //             <Route path="db" element={<AdminPages />}>
-        //                 <Route path="table" element={<TableAdmin />} />
-        //                 <Route path="home" element={<HomePage />} />
-        //             </Route>
-        //         </Route>
-
-        //         {/* Member routes protected by both ProtectedRoutes and MemberRoutes */}
-        //         <Route path='/member' element={<MemberRoutes />}>
-        //             <Route path='homepage' element={<MemberPage />} />
-        //         </Route>
-
-        //         <Route path='404' element={<PageNotFound />} />
-        //     </Route>
-
-        //     {/* Catch-all route for non-existent pages */}
-        //     <Route path='*' element={<Navigate to='/404' replace />} />
-        // </Routes>
-
-
-
-        // <Routes>
-        //     {/* Protected routes (for general users) */}
-
-        //     <Route path='/auth/login' element={<IndexForm />} />
-
-        //     <Route element={<ProtectedRoutes isAuthenticated={isAuthenticated} />}>
-        //         {/* <Route path='/' element={<HomePage />} /> */}
-        //         <Route path='404' element={<PageNotFound />} />
-        //     </Route>
-
-        //     {/* Admin routes */}
-        //     <Route path="/admin" element={<AdminRoutes />}>
-        //         {/* If user navigates to /admin without any specific route, redirect to /admin/db */}
-        //         <Route index element={<Navigate to="/admin/dashboard" replace />} />
-
-        //         {/* Admin dashboard pages */}
-        //         <Route path="dashboard" element={<AdminPages />}>
-        //             <Route path="table" element={<TableAdmin />} />
-        //             <Route path="home" element={<HomePage />} />
-        //         </Route>
-
-        //         {/* Redirect to 404 if accessing unknown routes under /admin */}
-        //         <Route path="*" element={<Navigate to="/404" replace />} />
-        //     </Route>
-
-        //     {/* Member routes */}
-        //     <Route path='/member' element={<MemberRoutes />}>
-        //         <Route path='homepage' element={<MemberPage />} />
-        //         <Route path="home" element={<HomePage />} />
-        //     </Route>
-
-        //     {/* Catch-all route for unknown paths */}
-        //     <Route path='*' element={<Navigate to='/404' replace />} />
-        // </Routes>
 
         <Suspense fallback={<div>Loading...</div>}>
             <Routes>
@@ -103,7 +36,7 @@ const AppRoutes = () => {
                         return (
                             <Route key={index} path={route.path} element={<route.element />}>
                                 {route.children.map((childRoute, childIndex) => {
-                                    
+
 
                                     if (childRoute.index) {
                                         return (
@@ -136,7 +69,7 @@ const AppRoutes = () => {
                     );
                 })}
             </Routes>
-         </Suspense>
+        </Suspense>
 
     )
 }

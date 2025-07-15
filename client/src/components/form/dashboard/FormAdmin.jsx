@@ -10,8 +10,11 @@ import AppFooter from './elements/antd/AppFooter';
 import AppSidebar from './elements/antd/AppSidebar';
 import routes from '../../../routes';
 import persistMiddleware from '../../../service/zustand/middleware/persistMiddleware';
-import menuItems from './utilities/menuItems';
+
 import sweetalert from 'sweetalert2'
+import { menuItems } from './utilities/menuItems';
+import { toast } from 'react-toastify';
+import { useQuery } from '@tanstack/react-query';
 
 const { Sider, Content, Header, Footer } = Layout;
 
@@ -19,7 +22,9 @@ const FormAdmin = () => {
 
     const navigate = useNavigate(); // ใช้ useNavigate เพื่อเปลี่ยนเส้นทาง
     const location = useLocation();
-    const { Logout,user } = persistMiddleware()
+    const { Logout, user, apartmentData } = persistMiddleware()
+
+
 
     // ตรวจสอบและนำทางไปยัง /admin/home เมื่ออยู่ที่ /admin
     useEffect(() => {
@@ -28,7 +33,7 @@ const FormAdmin = () => {
         }
     }, [navigate, location.pathname]);
 
-
+    const userId = user?.userPayLoad?.user?.id
 
     const [collapsed, setCollapsed] = useState(false);
     const [openKeys, setOpenKeys] = useState([]); // Initial open key for submenu
@@ -36,6 +41,13 @@ const FormAdmin = () => {
     const {
         token: { colorBgContainer, borderRadiusLG },
     } = theme.useToken();
+
+
+
+
+
+
+
 
 
     const handleMenuClick = async (e) => {
@@ -50,9 +62,19 @@ const FormAdmin = () => {
                     icon: "question"
                 });
                 if (confirm.isConfirmed) {
-                    Logout();
+                    const userId = user.userPayLoad.user.id
+
+                    const res = await Logout(userId);
+
+                    if (res.status === 201) {
+                        toast.success('logout สำเร็จ')
+                        navigate('/auth/login'); // เปลี่ยนไปยังหน้า Home
+                    }
+
+
 
                 }
+
 
             }
             // ฟังก์ชันค้นหาเส้นทางจาก menuItems
@@ -70,7 +92,7 @@ const FormAdmin = () => {
             };
             const path = findPath(menuItems);
             if (path) {
-                console.log(`⩇⩇:⩇⩇🚨  file: FormAdmin.jsx:73  path :`, path);
+
 
                 navigate(path); // นำทางไปยังเส้นทางที่ค้นพบ
             }
@@ -92,9 +114,9 @@ const FormAdmin = () => {
         <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
             <Box sx={{ display: "flex", flexGrow: 1 }}>
                 <Layout>
-                    <AppSidebar handleMenuClick={handleMenuClick} collapsed={collapsed} menuItems={menuItems} onOpenChange={onOpenChange} openKeys={openKeys}  user={user}/>
+                    <AppSidebar handleMenuClick={handleMenuClick} collapsed={collapsed} menuItems={menuItems} onOpenChange={onOpenChange} openKeys={openKeys} user={user} />
                     <Layout>
-                        <AppHeader setCollapsed={setCollapsed} collapsed={collapsed} colorBg={colorBgContainer} />
+                        <AppHeader setCollapsed={setCollapsed} collapsed={collapsed} colorBg={colorBgContainer} apartmentData={apartmentData} />
 
                         <AppContent colorBg={colorBgContainer} borderLG={borderRadiusLG} routes={routes} />
 

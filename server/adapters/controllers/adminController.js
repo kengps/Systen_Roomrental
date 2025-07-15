@@ -21,7 +21,6 @@ exports.adminRegister = async (req, res) => {
             password: hashedPassword 
         })
 
-
         await newAdminData.save();
 
         sendResponse(res, 200, "Register successfully", newAdminData)

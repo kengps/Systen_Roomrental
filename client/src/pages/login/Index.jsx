@@ -10,33 +10,45 @@ import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom';
 import persistMiddleware from '../../service/zustand/middleware/persistMiddleware';
 
+import { useQuery } from '@tanstack/react-query';
+
 
 const IndexForm = () => {
     const navigate = useNavigate();
     // const { Login } = storeAuth();
     const Login2 = persistMiddleware((state) => state.Login)
-    const { Login, isAuthenticated, user } = persistMiddleware();
+    const { Login, isAuthenticated, user, GetDataApartment } = persistMiddleware();
+
     const [loadings, setLoadings] = useState(false)
 
 
-    const checkStatusAuth = () => {
+    const userId = user?.userPayLoad?.user?.id
+
+    const checkStatusAuth = async () => {
         const authStorage = localStorage.getItem('auth-storage');
 
         if (isAuthenticated) {
+
+
             if (user.userPayLoad.user.role === 'user') {
                 navigate('/member/homepage')
             } else {
                 navigate('/admin/dashboard')
             }
         }
+
     }
     //0 check Status Login
     useEffect(() => {
-        checkStatusAuth();
-    }, [])
+        if (user) {
+            checkStatusAuth();
+            GetDataApartment(userId)
+        }
+    }, [user])
 
     //1 login โดยการใช้ useForm
     const { register, handleSubmit, formState: { errors }, } = useForm();
+
 
 
 
@@ -45,11 +57,14 @@ const IndexForm = () => {
 
 
         try {
-            
+
             if (data.user.role === 'user') {
                 navigate('/member/homepage')
+            } else if (data.user.role === 'admin') {
+                navigate('/admin/homepage')
             } else {
                 navigate('/admin/dashboard')
+
             }
         } catch (error) {
             console.log(`⩇⩇:⩇⩇🚨  file: IndexLogin.jsx:39  error :`, error);
@@ -63,7 +78,7 @@ const IndexForm = () => {
 
         setLoadings(true)
         try {
-            
+
             const response = await Login(value);
             toast.success(response.messages)
 
@@ -75,7 +90,7 @@ const IndexForm = () => {
             localStorage.setItem("expirationDate", expirationDate);
             localStorage.setItem('isOnline', one);
 
-           
+
             checkLevelRole(response.userPayLoad)
 
 

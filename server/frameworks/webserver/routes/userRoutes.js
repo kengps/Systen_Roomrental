@@ -1,12 +1,16 @@
 const express = require("express");
 const router = express.Router();
 
+
 const { getUsers, userRegister } = require('../../../adapters/controllers/userController');
+const { Hono } = require("hono");
+
+const appAccount = new Hono()
 
 
-router.post('/register', userRegister)
+// appAccount.post('/register', userRegister)
 
-router.get('/listmember', getUsers)
+appAccount.get('/listmember', getUsers)
 
 
-module.exports = router;
+module.exports = appAccount;

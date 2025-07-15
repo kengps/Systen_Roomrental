@@ -5,13 +5,22 @@ const Schema = mongoose.Schema;
 
 // Schema สำหรับห้องเช่า
 const roomSchema = new Schema({
+    owner: {
+        type: Schema.Types.ObjectId, ref: 'Account', required: true
+    },
     floor: { type: Number },
     roomNumber: { type: Number },
-    status: { type: String, default: 'available' },
+
     price: { type: Number, default: 0 },
+
     // rentalDate: { type: Date },
     // tenant: { type: Schema.Types.ObjectId, ref: 'memberUser' }, // อ้างอิงไปยังผู้เช่า
-    tenet: { type: String }, // อ้างอิงไปยังผู้เช่า
+    status: { type: String, default: 'available' },
+    meter: {
+        water: { type: Number, default: 0 },
+        electric: { type: Number, default: 0 },
+    },
+
 }, { timestamps: true });
 
 
@@ -35,8 +44,8 @@ const rentDetailsSchema = new Schema({
     },
     internet: { type: Number, required: true },
     others: { type: Number, required: true },
-    status: { type: String, default: 'noPaid' },
     additionalCharges: [{ type: Schema.Types.ObjectId, ref: 'AdditionalCharge' }], // อ้างอิงไปยังค่าใช้จ่ายเพิ่มเติม
+    status: { type: String, default: 'available' },
 }, { timestamps: true });
 
 // Schema สำหรับค่าใช้จ่ายเพิ่มเติม

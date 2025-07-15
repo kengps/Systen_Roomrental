@@ -1,0 +1,687 @@
+// import React, { useRef, useEffect } from 'react';
+// import ReactDOMServer from 'react-dom/server';
+// import { useForm, Controller, useWatch } from 'react-hook-form';
+// import {
+//     Card,
+//     Row,
+//     Col,
+//     Input,
+//     InputNumber,
+//     Select,
+//     Button,
+//     Typography,
+//     Space,
+//     Divider,
+//     Table,
+//     Badge,
+// } from 'antd';
+// import {
+//     PrinterOutlined,
+//     PlusOutlined,
+//     DeleteOutlined,
+//     CalculatorOutlined,
+//     UserOutlined,
+//     HomeOutlined,
+//     CalendarOutlined,
+//     ThunderboltOutlined,
+//     DropboxOutlined,
+// } from '@ant-design/icons';
+// import dayjs from 'dayjs';
+// import 'dayjs/locale/th';
+// import buddhistEra from 'dayjs/plugin/buddhistEra';
+
+// // --- SETUP DATE LIBRARY ---
+// dayjs.extend(buddhistEra);
+// dayjs.locale('th');
+
+// const { Title, Text } = Typography;
+// const { Option } = Select;
+
+// // --- MOCK DATA FOR UI ---
+// const tenantDataForUI = [
+//     { id: 't1', name: 'สมชาย ใจดี', roomNumber: 'A402', floor: '4', phone: '081-234-5678', address: '23/55 หมู่ที่ 9 ต.บางโฉลง อ.บางพลี จ.สมุทรปราการ' },
+//     { id: 't2', name: 'มานี มีสุข', roomNumber: 'B301', floor: '3', phone: '082-345-6789', address: '111/22 หมู่ที่ 1 ต.บางเมือง อ.เมือง จ.สมุทรปราการ' },
+//     { id: 't3', name: 'ปิติ ยินดี', roomNumber: 'C505', floor: '5', phone: '083-456-7890', address: '45/67 หมู่ที่ 3 ต.บางปู อ.เมือง จ.สมุทรปราการ' },
+//     { id: 't4', name: 'สุดา มานะ', roomNumber: 'A210', floor: '2', phone: '084-567-8901', address: '78/90 หมู่ที่ 5 ต.แพรกษา อ.เมือง จ.สมุทรปราการ' },
+// ];
+
+// const apartmentInfoForUI = {
+//     name: 'โน้ตเพลส อพาร์ทเมนท์',
+//     address: '19/11 ซอยเสรีไทย 6 ถนนเสรีไทย, คลองกุ่ม, บึงกุ่ม, กรุงเทพฯ 10240',
+//     phone: '02-733-8888',
+// };
+
+// // --- COMPONENT FOR PRINTING ONLY ---
+// const PrintableInvoice = ({ data }) => {
+//     const apartmentInfoForPrint = {
+//         name: 'Thai-C-Soft Apartment',
+//         address: '28/244 Moo 4 Phutthamonthon 4 Road, Sam Phran, Nakhon Pathom',
+//         logo: 'https://via.placeholder.com/80x40.png?text=Logo',
+//     };
+
+//     const { electricUsage, electricCost, waterUsage, waterCost } = data.calculations;
+//     const { tenantInfo, billingPeriod, roomCharges, utilities, additionalCharges } = data.formData;
+//     const monthName = dayjs().month(dayjs.months().indexOf(billingPeriod.month)).format('MMM');
+//     const yearBE = dayjs().year(billingPeriod.year).add(543, 'year').format('BB');
+//     const monthYearDisplay = `${monthName} ${yearBE}`;
+
+//     const items = [];
+//     if (electricCost > 0) items.push({
+//         description: `ค่าไฟ เดือน ${monthYearDisplay} ( ${utilities.electricPrevious} - ${utilities.electricCurrent} )`,
+//         qty: electricUsage, unitPrice: utilities.electricRate, amount: electricCost
+//     });
+//     if (waterCost > 0) items.push({
+//         description: `ค่าน้ำ เดือน ${monthYearDisplay} ( ${utilities.waterPrevious} - ${utilities.waterCurrent} )`,
+//         qty: waterUsage, unitPrice: utilities.waterRate, amount: waterCost
+//     });
+//     if (roomCharges.monthlyRent > 0) items.push({
+//         description: `ค่าเช่า เดือน ${monthYearDisplay}`, amount: roomCharges.monthlyRent
+//     });
+//     if (roomCharges.internetFee > 0) items.push({
+//         description: `ค่าอินเทอร์เน็ต เดือน ${monthYearDisplay}`, amount: roomCharges.internetFee
+//     });
+//     additionalCharges.forEach(charge => {
+//         if (charge.amount > 0) items.push({
+//             description: `${charge.description} เดือน ${monthYearDisplay}`, amount: charge.amount
+//         });
+//     });
+//     if (roomCharges.previousBalance > 0) items.push({
+//         description: `ยอดยกมาจากเดือนก่อน`, amount: roomCharges.previousBalance
+//     });
+
+//     const subtotal = items.reduce((sum, item) => sum + item.amount, 0);
+//     const totalAmount = subtotal - (roomCharges.deposit || 0);
+
+//     return (
+//         <div className="invoice-box" style={{ fontFamily: "'Sarabun', sans-serif", padding: '30px', maxWidth: '800px', margin: 'auto', fontSize: '14px', lineHeight: '20px' }}>
+//             <style>{`
+//         .invoice-table { width: 100%; border-collapse: collapse; }
+//         .invoice-table th, .invoice-table td { border: 1px solid #333; padding: 5px 8px; }
+//         .invoice-table th { background-color: #f2f2f2; font-weight: bold; text-align: center;}
+//         .text-right { text-align: right; }
+//         .text-center { text-align: center; }
+//       `}</style>
+
+//             <table style={{ width: '100%', marginBottom: '1rem' }}>
+//                 <tbody>
+//                     <tr>
+//                         <td style={{ width: '60%' }}>
+//                             <img src={apartmentInfoForPrint.logo} alt="logo" style={{ width: '80px', marginBottom: '5px' }} /> <br />
+//                             <strong style={{ fontSize: '16px' }}>{apartmentInfoForPrint.name}</strong><br />
+//                             <span style={{ fontSize: '12px' }}>{apartmentInfoForPrint.address}</span>
+//                         </td>
+//                         <td style={{ verticalAlign: 'top', textAlign: 'right' }}>
+//                             <h2 style={{ margin: '0', fontWeight: 'bold' }}>{tenantInfo.roomNumber}</h2>
+//                         </td>
+//                     </tr>
+//                 </tbody>
+//             </table>
+//             <h3 style={{ textAlign: 'center', marginBottom: '1rem', fontWeight: 'bold' }}>ใบแจ้งหนี้</h3>
+
+//             <div style={{ border: '1px solid black', padding: '8px', marginBottom: '1rem' }}>
+//                 <table style={{ width: '100%' }}>
+//                     <tbody>
+//                         <tr>
+//                             <td style={{ width: '70%', verticalAlign: 'top' }}>
+//                                 <strong>ชื่อผู้เช่า Name:</strong> {tenantInfo.name}<br />
+//                                 <strong>ที่อยู่ Address:</strong> {tenantInfo.address}
+//                             </td>
+//                             <td style={{ width: '30%', verticalAlign: 'top' }}>
+//                                 <strong>เลขที่ No.</strong>: {data.billNumber}<br />
+//                                 <strong>วันที่ Date</strong>: {dayjs().format('DD/MM/BBBB')}
+//                             </td>
+//                         </tr>
+//                     </tbody>
+//                 </table>
+//             </div>
+
+//             <table className="invoice-table" style={{ marginBottom: '1rem' }}>
+//                 <thead>
+//                     <tr>
+//                         <th style={{ width: '8%' }}>ลำดับ<br />Item</th>
+//                         <th>รายการ<br />Description</th>
+//                         <th style={{ width: '12%' }}>จำนวนหน่วย<br />Qty</th>
+//                         <th style={{ width: '15%' }}>ราคาต่อหน่วย<br />Unit Price</th>
+//                         <th style={{ width: '15%' }}>จำนวนเงิน<br />Amount</th>
+//                     </tr>
+//                 </thead>
+//                 <tbody>
+//                     {items.map((item, index) => (
+//                         <tr key={index}>
+//                             <td className="text-center">{index + 1}</td>
+//                             <td>{item.description}</td>
+//                             <td className="text-center">{item.qty?.toLocaleString() || ''}</td>
+//                             <td className="text-right">{item.unitPrice?.toLocaleString('en-US', { minimumFractionDigits: 2 }) || ''}</td>
+//                             <td className="text-right">{item.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+//                         </tr>
+//                     ))}
+//                 </tbody>
+//             </table>
+//             {roomCharges.deposit > 0 &&
+//                 <div style={{ textAlign: 'right', marginBottom: '1rem' }}>
+//                     <span>หักเงินมัดจำ: -{roomCharges.deposit.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+//                 </div>
+//             }
+
+//             <div style={{ border: '1px solid black', padding: '8px' }}>
+//                 <table style={{ width: '100%' }}>
+//                     <tbody>
+//                         <tr>
+//                             <td style={{ width: '70%', verticalAlign: 'top', fontSize: '12px' }}>
+//                                 <strong>หมายเหตุ:</strong>
+//                                 <ol style={{ paddingLeft: '20px', margin: 0 }}>
+//                                     <li>การโอนเงินเข้าบัญชี "นาย นิติภัทธิ์ พิมพ์แท้" และนำสลิปโอนเงินแจ้งที่สำนักงาน
+//                                         <ul style={{ paddingLeft: '20px', margin: 0 }}>
+//                                             <li>ธนาคารกสิกรไทย จำกัด เลขที่ XXX-X-XXXXX-X</li>
+//                                             <li>ธนาคารไทยพาณิชย์ จำกัด เลขที่ XXX-X-XXXXX-X</li>
+//                                         </ul>
+//                                     </li>
+//                                     <li>ค่าเช่าชำระไม่เกินวันที่ 5 ของเดือน เกินกำหนดจะปรับวันละ 100 บาท</li>
+//                                 </ol>
+//                             </td>
+//                             <td style={{ width: '30%', verticalAlign: 'bottom', textAlign: 'right' }}>
+//                                 <strong>จำนวนเงินรวม</strong>
+//                                 <strong style={{ marginLeft: '10px', fontSize: '18px' }}>
+//                                     {totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+//                                 </strong>
+//                             </td>
+//                         </tr>
+//                     </tbody>
+//                 </table>
+//             </div>
+//         </div>
+//     );
+// };
+
+
+// // --- MAIN APP COMPONENT ---
+// export default function DormBillingSystem() {
+//     const { control, setValue, watch } = useForm({
+//         defaultValues: {
+//             tenantId: 't1',
+//             tenantInfo: tenantDataForUI[0],
+//             billingPeriod: {
+//                 month: dayjs().format('MMMM'),
+//                 year: dayjs().year(),
+//             },
+//             roomCharges: {
+//                 monthlyRent: 4500, deposit: 0, internetFee: 300, previousBalance: 0,
+//             },
+//             utilities: {
+//                 electricPrevious: 1000, electricCurrent: 1150, electricRate: 7,
+//                 waterPrevious: 100, waterCurrent: 105, waterRate: 25,
+//             },
+//             additionalCharges: [
+//                 { id: 'common-fee', description: 'ค่าส่วนกลาง', amount: 100 },
+//                 { id: 'parking-fee', description: 'ค่าจอดรถ', amount: 300 },
+//             ],
+//         },
+//     });
+
+//     const printRef = useRef();
+//     const formData = useWatch({ control });
+//     const selectedTenantId = watch('tenantId');
+
+//     useEffect(() => {
+//         const selectedTenant = tenantDataForUI.find(t => t.id === selectedTenantId);
+//         if (selectedTenant) {
+//             setValue('tenantInfo', selectedTenant);
+//         }
+//     }, [selectedTenantId, setValue]);
+
+//     const calculateUtilities = () => {
+//         const { utilities } = formData;
+//         const electricUsage = Math.max(0, utilities.electricCurrent - utilities.electricPrevious);
+//         const electricCost = electricUsage * utilities.electricRate;
+//         const waterUsage = Math.max(0, utilities.waterCurrent - utilities.waterPrevious);
+//         const waterCost = waterUsage * utilities.waterRate;
+//         return { electricUsage, electricCost, waterUsage, waterCost };
+//     };
+
+//     const { electricUsage, waterUsage, electricCost, waterCost } = calculateUtilities();
+//     const calculations = { electricUsage, electricCost, waterUsage, waterCost };
+
+//     const calculateTotal = () => {
+//         const { roomCharges, additionalCharges } = formData;
+//         const monthlyTotal = (roomCharges.monthlyRent || 0) + (roomCharges.internetFee || 0);
+//         const utilitiesTotal = (electricCost || 0) + (waterCost || 0);
+//         const additionalTotal = additionalCharges.reduce((sum, charge) => sum + (charge.amount || 0), 0);
+//         const subtotal = monthlyTotal + utilitiesTotal + additionalTotal + (roomCharges.previousBalance || 0);
+//         return subtotal - (roomCharges.deposit || 0);
+//     };
+
+//     const total = calculateTotal();
+
+//     const handlePrint = () => {
+//         const billNumber = `${String(formData.billingPeriod.year).slice(-2)}${dayjs().month(formData.billingPeriod.month).format('MM')}${formData.tenantInfo.roomNumber || '000'}`;
+//         const dataForPrint = { formData, calculations, billNumber };
+//         const printHtml = ReactDOMServer.renderToString(<PrintableInvoice data={dataForPrint} />);
+
+//         const printWindow = window.open('', '_blank');
+//         printWindow.document.write(`
+//       <html>
+//         <head>
+//           <title>ใบแจ้งหนี้ค่าบริการ</title>
+//           <link rel="preconnect" href="https://fonts.googleapis.com">
+//           <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+//           <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+//         </head>
+//         <body>${printHtml}</body>
+//       </html>
+//     `);
+//         printWindow.document.close();
+//         printWindow.focus();
+//         setTimeout(() => {
+//             printWindow.print();
+//             printWindow.close();
+//         }, 250);
+//     };
+
+//     const addCharge = () => {
+//         const newCharge = { id: Date.now(), description: 'ค่าปรับ', amount: 100 };
+//         setValue('additionalCharges', [...formData.additionalCharges, newCharge]);
+//     };
+
+//     const removeCharge = (id) => {
+//         setValue('additionalCharges', formData.additionalCharges.filter((charge) => charge.id !== id));
+//     };
+
+//     const additionalChargeColumns = [
+//         { title: 'รายการ', dataIndex: 'description', key: 'description', render: (text, record, index) => (<Controller control={control} name={`additionalCharges.${index}.description`} render={({ field }) => <Input {...field} variant="borderless" />} />) },
+//         { title: 'จำนวนเงิน', dataIndex: 'amount', key: 'amount', width: '150px', render: (text, record, index) => (<Controller control={control} name={`additionalCharges.${index}.amount`} render={({ field }) => <InputNumber {...field} prefix="฿" className="w-full" variant="borderless" />} />) },
+//         { title: 'ดำเนินการ', key: 'action', width: '100px', align: 'center', render: (_, record) => (<Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeCharge(record.id)} />) },
+//     ];
+
+//     return (
+//         <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8">
+//             <div className="max-w-7xl mx-auto">
+//                 <Card className="mb-6 shadow-sm">
+//                     <div className="flex justify-between items-center">
+//                         <Space align="start" size="middle">
+//                             <HomeOutlined className="text-2xl text-gray-400 relative top-1" />
+//                             <div>
+//                                 <Title level={4} className="!mb-0">ระบบบิลค่าหอพัก</Title>
+//                                 <Text type="secondary">จัดการบิลค่าเช่าและสาธารณูปโภค</Text>
+//                             </div>
+//                         </Space>
+//                         <Button type="primary" icon={<PrinterOutlined />} size="large" onClick={handlePrint}>พิมพ์บิล</Button>
+//                     </div>
+//                 </Card>
+
+//                 <Row gutter={[24, 24]}>
+//                     <Col xs={24} lg={14}>
+//                         <Space direction="vertical" size="large" className="w-full">
+//                             <Card title={<><UserOutlined /> ข้อมูลผู้เช่า</>}>
+//                                 <Row gutter={[16, 16]}>
+//                                     <Col xs={24} sm={12}>
+//                                         <Controller name="tenantId" control={control} render={({ field }) => (
+//                                             <Select {...field} placeholder="เลือกห้อง" className="w-full">
+//                                                 {tenantDataForUI.map(tenant => (
+//                                                     <Option key={tenant.id} value={tenant.id}>ห้อง {tenant.roomNumber} - {tenant.name}</Option>
+//                                                 ))}
+//                                             </Select>
+//                                         )} />
+//                                     </Col>
+//                                     <Col xs={24} sm={12}>
+//                                         <Controller name="tenantInfo.phone" control={control} render={({ field }) => <Input {...field} placeholder="เบอร์โทรศัพท์" readOnly />} />
+//                                     </Col>
+//                                 </Row>
+//                             </Card>
+
+//                             <Card title={<><CalendarOutlined /> ประจำเดือน</>}>
+//                                 <Row gutter={[16, 16]}>
+//                                     <Col xs={24} sm={12}>
+//                                         <Controller name="billingPeriod.month" control={control} render={({ field }) => (
+//                                             <Select {...field} className="w-full">{dayjs.months().map((m, i) => (<Option key={i} value={m}>{m}</Option>))}</Select>
+//                                         )} />
+//                                     </Col>
+//                                     <Col xs={24} sm={12}>
+//                                         <Controller name="billingPeriod.year" control={control} render={({ field }) => (<InputNumber {...field} className="w-full" />)} />
+//                                     </Col>
+//                                 </Row>
+//                             </Card>
+
+//                             <Card title={<><CalculatorOutlined /> ค่าเช่าและค่าบริการ</>}>
+//                                 <Row gutter={[16, 16]}>
+//                                     <Col xs={12}><Controller name="roomCharges.monthlyRent" control={control} render={({ field }) => <InputNumber addonBefore="ค่าเช่า" {...field} className="w-full" prefix="฿" />} /></Col>
+//                                     <Col xs={12}><Controller name="roomCharges.internetFee" control={control} render={({ field }) => <InputNumber addonBefore="อินเทอร์เน็ต" {...field} className="w-full" prefix="฿" />} /></Col>
+//                                     <Col xs={12}><Controller name="roomCharges.previousBalance" control={control} render={({ field }) => <InputNumber addonBefore="ค้างชำระ" {...field} className="w-full" prefix="฿" />} /></Col>
+//                                     <Col xs={12}><Controller name="roomCharges.deposit" control={control} render={({ field }) => <InputNumber addonBefore="หักมัดจำ" {...field} className="w-full" prefix="฿" />} /></Col>
+//                                 </Row>
+//                             </Card>
+
+//                             <Row gutter={[16, 16]}>
+//                                 <Col xs={24} md={12}>
+//                                     <Card title={<><ThunderboltOutlined className="text-yellow-500" /> ค่าไฟฟ้า</>} size="small">
+//                                         <Row gutter={8}>
+//                                             <Col span={8}><Controller name="utilities.electricPrevious" control={control} render={({ field }) => <InputNumber {...field} className="w-full" placeholder="เลขเดิม" />} /></Col>
+//                                             <Col span={8}><Controller name="utilities.electricCurrent" control={control} render={({ field }) => <InputNumber {...field} className="w-full" placeholder="เลขใหม่" />} /></Col>
+//                                             <Col span={8}><Controller name="utilities.electricRate" control={control} render={({ field }) => <InputNumber {...field} className="w-full" prefix="฿" />} /></Col>
+//                                         </Row>
+//                                         <Divider className="my-2" />
+//                                         <Text><Badge color="gold" /> ใช้ไป: {electricUsage} หน่วย = ฿{electricCost.toLocaleString()}</Text>
+//                                     </Card>
+//                                 </Col>
+//                                 <Col xs={24} md={12}>
+//                                     <Card title={<><DropboxOutlined className="text-blue-500" /> ค่าน้ำ</>} size="small">
+//                                         <Row gutter={8}>
+//                                             <Col span={8}><Controller name="utilities.waterPrevious" control={control} render={({ field }) => <InputNumber {...field} className="w-full" placeholder="เลขเดิม" />} /></Col>
+//                                             <Col span={8}><Controller name="utilities.waterCurrent" control={control} render={({ field }) => <InputNumber {...field} className="w-full" placeholder="เลขใหม่" />} /></Col>
+//                                             <Col span={8}><Controller name="utilities.waterRate" control={control} render={({ field }) => <InputNumber {...field} className="w-full" prefix="฿" />} /></Col>
+//                                         </Row>
+//                                         <Divider className="my-2" />
+//                                         <Text><Badge color="blue" /> ใช้ไป: {waterUsage} หน่วย = ฿{waterCost.toLocaleString()}</Text>
+//                                     </Card>
+//                                 </Col>
+//                             </Row>
+
+//                             <Card title="ค่าใช้จ่ายอื่นๆ">
+//                                 <Table columns={additionalChargeColumns} dataSource={formData.additionalCharges} pagination={false} rowKey="id" size="small" />
+//                                 <Button type="dashed" icon={<PlusOutlined />} onClick={addCharge} className="mt-4 w-full">เพิ่มรายการ</Button>
+//                             </Card>
+//                         </Space>
+//                     </Col>
+
+//                     <Col xs={24} lg={10}>
+//                         <div className="sticky top-6">
+//                             <div ref={printRef}>
+//                                 <Card>
+//                                     <div className="text-center mb-4">
+//                                         <Title level={4} className="!mb-1">{apartmentInfoForUI.name}</Title>
+//                                         <Text type="secondary" style={{ fontSize: '12px' }}>{apartmentInfoForUI.address}</Text><br />
+//                                         <Text type="secondary" style={{ fontSize: '12px' }}>โทร. {apartmentInfoForUI.phone}</Text>
+//                                     </div>
+//                                     <Divider />
+//                                     <div className="text-center mb-6">
+//                                         <Title level={3}>ใบแจ้งหนี้ค่าบริการ</Title>
+//                                         <Text>วันที่ออก: {dayjs().format('D MMMM YYYY')}</Text>
+//                                     </div>
+
+//                                     <Card size="small" title="ข้อมูลผู้เช่า" className="mb-4">
+//                                         <Text>ชื่อ: {formData.tenantInfo.name || '-'}</Text><br />
+//                                         <Text>ห้อง: {formData.tenantInfo.roomNumber || '-'} {formData.tenantInfo.floor && `ชั้น ${formData.tenantInfo.floor}`}</Text><br />
+//                                         <Text>ประจำเดือน: {formData.billingPeriod.month} {formData.billingPeriod.year}</Text>
+//                                     </Card>
+
+//                                     <Space direction="vertical" className="w-full" size="small">
+//                                         <div className="flex justify-between"><Text>ค่าเช่าห้อง</Text><Text>฿{formData.roomCharges.monthlyRent.toLocaleString()}</Text></div>
+//                                         <div className="flex justify-between"><Text>ค่าอินเทอร์เน็ต</Text><Text>฿{formData.roomCharges.internetFee.toLocaleString()}</Text></div>
+//                                         <Divider className="my-1" />
+//                                         <div className="flex justify-between"><Text>ค่าไฟฟ้า ({electricUsage} หน่วย)</Text><Text>฿{electricCost.toLocaleString()}</Text></div>
+//                                         <div className="flex justify-between"><Text>ค่าน้ำ ({waterUsage} หน่วย)</Text><Text>฿{waterCost.toLocaleString()}</Text></div>
+//                                         <Divider className="my-1" />
+//                                         {formData.additionalCharges.map(charge => (
+//                                             <div key={charge.id} className="flex justify-between"><Text>{charge.description}</Text><Text>฿{(charge.amount || 0).toLocaleString()}</Text></div>
+//                                         ))}
+//                                         {formData.additionalCharges.length > 0 && <Divider className="my-1" />}
+//                                         {formData.roomCharges.previousBalance > 0 && <div className="flex justify-between"><Text type="danger">ค้างชำระ</Text><Text type="danger">฿{formData.roomCharges.previousBalance.toLocaleString()}</Text></div>}
+//                                         {formData.roomCharges.deposit > 0 && <div className="flex justify-between"><Text type="success">หักมัดจำ</Text><Text type="success">-฿{formData.roomCharges.deposit.toLocaleString()}</Text></div>}
+//                                         <Divider className="my-1" />
+//                                         <div className="flex justify-between">
+//                                             <Title level={4} className="!mb-0">ยอดชำระรวม</Title>
+//                                             <Title level={4} className="!mb-0" type={total >= 0 ? 'danger' : 'success'}>฿{Math.abs(total).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Title>
+//                                         </div>
+//                                     </Space>
+//                                     <div className="text-center mt-8">
+//                                         <Text type="secondary" className="text-xs">กรุณาชำระเงินภายในวันที่ 5 ของทุกเดือน</Text>
+//                                     </div>
+//                                 </Card>
+//                             </div>
+//                         </div>
+//                     </Col>
+//                 </Row>
+//             </div>
+//         </div>
+//     );
+// }
+import React, { useState } from 'react';
+import ReactDOMServer from 'react-dom/server';
+import { Card, Table, Button, Typography, Space, Tag, DatePicker, Row, Col, Tooltip } from 'antd';
+import { PrinterOutlined, CheckCircleOutlined, AuditOutlined, FilePdfOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
+import 'dayjs/locale/th';
+import buddhistEra from 'dayjs/plugin/buddhistEra';
+
+// --- Initialize dayjs for Thai locale and Buddhist Era ---
+dayjs.extend(buddhistEra);
+dayjs.locale('th');
+
+const { Title, Text } = Typography;
+
+// --- Initial mock data for paid bills ---
+const initialPaidBillsData = [
+    {
+        billId: 'BILL-A402-202507', paymentDate: '2025-07-03', paymentMethod: 'โอนผ่านธนาคาร', status: 'unprinted',
+        tenantInfo: { name: 'สมชาย ใจดี', roomNumber: 'A402', address: '23/55 หมู่ที่ 9 ต.บางโฉลง อ.บางพลี จ.สมุทรปราการ' },
+        billingPeriod: { month: 'กรกฎาคม', year: 2025 },
+        lineItems: [
+            { description: `ค่าเช่า`, amount: 4500 }, { description: `ค่าไฟ`, details: `(1000 - 1150)`, amount: 1050 },
+            { description: `ค่าน้ำ`, details: `(100 - 105)`, amount: 125 }, { description: `ค่าส่วนกลาง`, amount: 100 },
+        ],
+        totalAmount: 5775,
+    },
+    {
+        billId: 'BILL-B301-202507', paymentDate: '2025-07-04', paymentMethod: 'เงินสด', status: 'unprinted',
+        tenantInfo: { name: 'มานี มีสุข', roomNumber: 'B301', address: '111/22 หมู่ที่ 1 ต.บางเมือง อ.เมือง จ.สมุทรปราการ' },
+        billingPeriod: { month: 'กรกฎาคม', year: 2025 },
+        lineItems: [
+            { description: `ค่าเช่า`, amount: 5000 }, { description: `ค่าไฟ`, details: `(2000 - 2200)`, amount: 1400 },
+            { description: `ค่าน้ำ`, details: `(300 - 310)`, amount: 250 }, { description: `ค่าที่จอดรถ`, amount: 500 },
+        ],
+        totalAmount: 7150,
+    },
+    {
+        billId: 'BILL-C505-202507', paymentDate: '2025-07-05', paymentMethod: 'โอนผ่านธนาคาร', status: 'unprinted',
+        tenantInfo: { name: 'ปิติ ยินดี', roomNumber: 'C505', address: '45/67 หมู่ที่ 3 ต.บางปู อ.เมือง จ.สมุทรปราการ' },
+        billingPeriod: { month: 'กรกฎาคม', year: 2025 },
+        lineItems: [{ description: `ค่าเช่า`, amount: 4800 }, { description: `ค่าไฟ`, details: `(3000 - 3100)`, amount: 700 }],
+        totalAmount: 5500,
+    },
+];
+
+// --- React component for the printable receipt layout ---
+const PrintableReceipt = ({ bill, copyTitle }) => {
+    const apartmentInfo = {
+        name: 'Thai-C-Soft Apartment', address: '28/244 Moo 4 Phutthamonthon 4 Road, Sam Phran, Nakhon Pathom',
+        logo: 'https://placehold.co/80x40/6366f1/ffffff?text=Logo', // Updated placeholder with color
+    };
+    const monthYearDisplay = `${bill.billingPeriod.month} ${dayjs().year(bill.billingPeriod.year).add(543, 'year').format('BBBB')}`;
+    
+    // --- Enhanced styling for the receipt ---
+    return (
+        <div style={{ fontFamily: "'Sarabun', sans-serif", fontSize: '12px', lineHeight: '1.5', color: '#333', display: 'flex', flexDirection: 'column', height: '100%' }}>
+            {copyTitle && <Title level={5} style={{textAlign: 'center', fontWeight: 'bold', margin: '0 0 1rem 0', color: '#4338ca'}}>{copyTitle}</Title>}
+            <table style={{ width: '100%', marginBottom: '0.5rem' }}>
+                <tbody><tr>
+                    <td style={{ width: '60%' }}>
+                        <img src={apartmentInfo.logo} alt="logo" style={{width: '70px', marginBottom: '5px', borderRadius: '4px'}}/> <br/>
+                        <strong style={{ fontSize: '14px', color: '#4f46e5' }}>{apartmentInfo.name}</strong><br/>
+                        <span style={{ fontSize: '11px' }}>{apartmentInfo.address}</span>
+                    </td>
+                    <td style={{ verticalAlign: 'top', textAlign: 'right' }}><h3 style={{ margin: '0', fontWeight: 'bold', color: '#4f46e5' }}>{bill.tenantInfo.roomNumber}</h3></td>
+                </tr></tbody>
+            </table>
+            <h4 style={{ textAlign: 'center', margin: '0 0 0.5rem 0', fontWeight: 'bold', fontSize: '16px' }}>ใบเสร็จรับเงิน / Receipt</h4>
+            <div style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '8px', marginBottom: '0.5rem' }}>
+                <table style={{ width: '100%' }}><tbody><tr>
+                    <td style={{ width: '70%', verticalAlign: 'top' }}>
+                        <strong>ได้รับเงินจาก:</strong> {bill.tenantInfo.name}<br/><strong>ที่อยู่:</strong> {bill.tenantInfo.address}
+                    </td>
+                    <td style={{ width: '30%', verticalAlign: 'top' }}>
+                        <strong>เลขที่ No.</strong>: {bill.billId.replace('BILL', 'RCPT')}<br/><strong>วันที่ Date</strong>: {dayjs(bill.paymentDate).format('DD/MM/BBBB')}
+                    </td>
+                </tr></tbody></table>
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '0.5rem' }}>
+                <thead><tr>
+                    <th style={{border: '1px solid #ddd', padding: '5px', background: '#eef2ff', fontWeight: 'bold', textAlign: 'center'}}>ลำดับ</th>
+                    <th style={{border: '1px solid #ddd', padding: '5px', background: '#eef2ff', fontWeight: 'bold'}}>รายการชำระสำหรับเดือน {monthYearDisplay}</th>
+                    <th style={{border: '1px solid #ddd', padding: '5px', background: '#eef2ff', fontWeight: 'bold', textAlign: 'right'}}>จำนวนเงิน</th>
+                </tr></thead>
+                <tbody>
+                    {bill.lineItems.map((item, index) => (<tr key={index}>
+                        <td style={{border: '1px solid #ddd', padding: '4px', textAlign: 'center'}}>{index + 1}</td>
+                        <td style={{border: '1px solid #ddd', padding: '4px'}}>{item.description} {item.details || ''}</td>
+                        <td style={{border: '1px solid #ddd', padding: '4px', textAlign: 'right'}}>{item.amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                    </tr>))}
+                </tbody>
+                <tfoot><tr>
+                    <td colSpan="2" style={{border: '1px solid #ddd', padding: '4px', textAlign: 'right', fontWeight: 'bold'}}>รวมเป็นเงินทั้งสิ้น</td>
+                    <td style={{border: '1px solid #ddd', padding: '4px', textAlign: 'right', fontWeight: 'bold', background: '#eef2ff'}}>{bill.totalAmount.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                </tr></tfoot>
+            </table>
+            <div style={{marginTop: 'auto'}}>
+                <Text>ชำระโดย: {bill.paymentMethod}</Text>
+                <div style={{marginTop: '2rem', textAlign: 'right'}}><p style={{margin:0}}>.................................................</p><p style={{margin:0}}>(ผู้รับเงิน)</p></div>
+            </div>
+        </div>
+    );
+};
+
+// --- Main component for the page ---
+export default function ReceiptIssuingPage() {
+    const [paidBills, setPaidBills] = useState(initialPaidBillsData);
+    const [filterMonth, setFilterMonth] = useState(dayjs());
+
+    const filteredData = paidBills.filter(bill => dayjs(bill.paymentDate).isSame(filterMonth, 'month'));
+    const unprintedCount = filteredData.filter(bill => bill.status === 'unprinted').length;
+
+    // --- Function to open a new window and print its content ---
+    const openPrintWindow = (htmlContent) => {
+        const styles = `<style>
+            @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap');
+            @page {
+                size: A4 portrait;
+                margin: 1cm;
+            }
+            html, body {
+                height: 100%; margin: 0; padding: 0;
+            }
+            body { font-family: 'Sarabun', sans-serif; }
+            .page-layout { display: flex; flex-direction: column; height: 100%; width: 100%; box-sizing: border-box; }
+            .receipt-half { flex: 1 1 0; min-height: 0; overflow: hidden; }
+            .cut-line { flex-shrink: 0; border: none; border-top: 2px dashed #999; text-align: center; margin: 1mm 0; }
+            .cut-line::after { content: '✂'; font-size: 16px; position: relative; top: -12px; background: white; padding: 0 10px; }
+            .page-break { page-break-after: always; }
+        </style>`;
+        
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`<html><head><title>ใบเสร็จรับเงิน</title>${styles}</head><body>${htmlContent}</body></html>`);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => { printWindow.print(); printWindow.close(); }, 500);
+    };
+
+    // --- Handler to print a single receipt ---
+    const handlePrintReceipt = (billData) => {
+        const customerCopy = ReactDOMServer.renderToString(<PrintableReceipt bill={billData} copyTitle="ฉบับสำหรับลูกค้า (Customer Copy)" />);
+        const officeCopy = ReactDOMServer.renderToString(<PrintableReceipt bill={billData} copyTitle="ฉบับสำหรับผู้ประกอบการ (Office Copy)" />);
+        
+        const printHtml = `<div class="page-layout">
+            <div class="receipt-half">${customerCopy}</div>
+            <hr class="cut-line" />
+            <div class="receipt-half">${officeCopy}</div>
+        </div>`;
+        
+        openPrintWindow(printHtml);
+        setPaidBills(currentBills => currentBills.map(b => b.billId === billData.billId ? { ...b, status: 'printed' } : b));
+    };
+    
+    // --- Handler to print all unprinted receipts ---
+    const handlePrintAll = () => {
+        const billsToPrint = filteredData.filter(bill => bill.status === 'unprinted');
+        if (billsToPrint.length === 0) return;
+
+        let allReceiptsHtml = '';
+        billsToPrint.forEach((bill, index) => {
+            const customerCopy = ReactDOMServer.renderToString(<PrintableReceipt bill={bill} copyTitle="ฉบับสำหรับลูกค้า (Customer Copy)" />);
+            const officeCopy = ReactDOMServer.renderToString(<PrintableReceipt bill={bill} copyTitle="ฉบับสำหรับผู้ประกอบการ (Office Copy)" />);
+            
+            allReceiptsHtml += `<div class="page-layout">
+                <div class="receipt-half">${customerCopy}</div>
+                <hr class="cut-line" />
+                <div class="receipt-half">${officeCopy}</div>
+            </div>`;
+
+            if (index < billsToPrint.length - 1) {
+                allReceiptsHtml += '<div class="page-break"></div>';
+            }
+        });
+
+        openPrintWindow(allReceiptsHtml);
+        
+        const printedBillIds = billsToPrint.map(b => b.billId);
+        setPaidBills(currentBills => currentBills.map(b => printedBillIds.includes(b.billId) ? { ...b, status: 'printed' } : b));
+    };
+
+    // --- Column definitions for the Ant Design table ---
+    const columns = [
+        { title: 'วันที่ชำระ', dataIndex: 'paymentDate', key: 'paymentDate', render: (text) => dayjs(text).format('D MMM BB') },
+        { title: 'เลขห้อง', dataIndex: ['tenantInfo', 'roomNumber'], key: 'roomNumber', render: (text) => <Tag color="purple">{text}</Tag> },
+        { title: 'ชื่อผู้เช่า', dataIndex: ['tenantInfo', 'name'], key: 'name',},
+        { title: 'ยอดชำระ (บาท)', dataIndex: 'totalAmount', key: 'totalAmount', align: 'right', render: (amount) => <Text strong className="text-indigo-600">{amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</Text> },
+        { title: 'สถานะ', key: 'status', render: () => <Tag icon={<CheckCircleOutlined />} color="success">ชำระแล้ว</Tag>},
+        {
+            title: 'การดำเนินการ',
+            key: 'action',
+            align: 'center',
+            render: (_, record) => (
+                <Tooltip title={record.status === 'printed' ? 'ใบเสร็จนี้ถูกพิมพ์แล้ว' : 'พิมพ์ใบเสร็จรับเงิน'}>
+                    <Button 
+                        icon={<PrinterOutlined />} 
+                        onClick={() => handlePrintReceipt(record)} 
+                        disabled={record.status === 'printed'}
+                        // --- Enhanced button styling ---
+                        className={record.status === 'printed' ? '' : 'bg-white hover:bg-indigo-50 text-indigo-600 border-indigo-300 hover:border-indigo-500'}
+                    >
+                        พิมพ์ใบเสร็จ
+                    </Button>
+                </Tooltip>
+            ),
+        },
+    ];
+
+    // --- Main component JSX with Tailwind CSS for styling ---
+    return (
+        <div className="min-h-screen bg-slate-100 p-4 sm:p-6 lg:p-8 font-sans">
+            <Card bordered={false} className="max-w-7xl mx-auto shadow-lg rounded-2xl">
+                <Space direction="vertical" size="large" className="w-full">
+                    {/* --- Page Header --- */}
+                    <Row justify="space-between" align="middle" className="p-4 bg-indigo-50 rounded-xl">
+                        <Col>
+                            <Space align="center" size="middle">
+                                <AuditOutlined className="text-4xl text-indigo-500" />
+                                <div>
+                                    <Title level={4} className="!mb-0 !text-slate-800">หน้าออกใบเสร็จรับเงิน</Title>
+                                    <Text type="secondary">สำหรับห้องที่ชำระบิลแล้ว</Text>
+                                </div>
+                            </Space>
+                        </Col>
+                        <Col>
+                            <Space>
+                                <Text className="font-medium">เลือกเดือน:</Text>
+                                <DatePicker picker="month" value={filterMonth} onChange={(date) => setFilterMonth(date || dayjs())} format="MMMM BBBB" />
+                                <Button 
+                                    type="primary" 
+                                    icon={<PrinterOutlined />} 
+                                    onClick={handlePrintAll} 
+                                    disabled={unprintedCount === 0}
+                                    className="bg-indigo-600 hover:bg-indigo-700 shadow-md"
+                                >
+                                    พิมพ์ที่ยังไม่พิมพ์ ({unprintedCount})
+                                </Button>
+                            </Space>
+                        </Col>
+                    </Row>
+                    {/* --- Data Table --- */}
+                    <Table 
+                        columns={columns} 
+                        dataSource={filteredData} 
+                        rowKey="billId" 
+                        pagination={{ pageSize: 10, className: 'pr-4' }} 
+                    />
+                </Space>
+            </Card>
+        </div>
+    );
+}

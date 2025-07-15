@@ -1,10 +1,20 @@
 import React from "react";
-import IndexForm from "./pages/login/Index";
-import { Navigate } from "react-router-dom";
 import LoadingSpinner from "./components/LoadingSpinner/LoadingSpinner";
+import MetersPages from "./pages/admin/apartment/Meters";
+import SettingApartment from "./pages/admin/apartment/SettingApartment";
+import ManageServicesPage from "./pages/admin/apartment/SevicesPage";
+import TenantManagementPage from "./pages/admin/apartment/TenantManagementPage";
+import DormBillingSystem from "./pages/admin/bill/BillPage";
+import PaymentSystem from "./pages/admin/bill/Payments";
 import CreateRoom from "./pages/admin/CreateRoom";
-import StepperForm from "./pages/admin/StepperForm/StepperForm";
 import ListRoom from "./pages/admin/ListRoom";
+import StepperForm from "./pages/admin/StepperForm/StepperForm";
+import IndexForm from "./pages/login/Index";
+import History from "./pages/member/history/History";
+import { PayMent } from "./pages/member/payments/PayMent";
+
+
+
 // import NavigateToDb from "./utilities/Navigate/NavigateToDb";
 
 // Lazy load components
@@ -18,10 +28,10 @@ const ProtectedRoutes = React.lazy(() => import("./routes/ProtectedRoutes"));
 const AdminRoutes = React.lazy(() => import("./routes/AdminRoutes"));
 const MemberRoutes = React.lazy(() => import("./routes/MemberRoutes"));
 const NavigateToDb = React.lazy(() => import("./utilities/Navigate/NavigateToDb"));
-
 // const RedirectToDashboard = () => {
 //     return <Navigate to="/admin/dashboard" replace />;
 // };
+
 
 const createAdminRoute = (path, title) => ({ //* Utility function to create admin routes
     path,
@@ -30,7 +40,26 @@ const createAdminRoute = (path, title) => ({ //* Utility function to create admi
     children: [
         { path: 'addroom', title: 'CreateRoom', element: CreateRoom },
         { path: 'listroom', title: 'ListRoom', element: ListRoom },
+        { path: 'tenantManagement', title: 'TenantManagement', element: TenantManagementPage },
         { path: 'stepper', title: 'stepper', element: StepperForm },
+        { path: 'setting', title: 'Setting', element: SettingApartment },
+        { path: 'billing', title: 'Billing', element: PaymentSystem },
+        { path: 'payment', title: 'Payment', element: DormBillingSystem },
+        { path: 'meters', title: 'meters', element: MetersPages },
+        { path: 'sevices', title: 'sevices', element: ManageServicesPage },
+        { path: '*', element: PageNotFound },
+    ],
+});
+const createUserRoute = (path, title) => ({ //* Utility function to create admin routes
+    path,
+    title,
+    element: MemberPage,
+    children: [
+        { path: 'bill', title: 'Bill', element: PayMent },
+        {
+            path: 'history', title: 'History', element: History
+        },
+        { path: 'stepper2', title: 'stepper2', element: StepperForm },
         { path: '*', element: PageNotFound },
     ],
 });
@@ -50,33 +79,15 @@ const routes = [
 
     // Admin routes
     {
-        // path: '/admin',
-        // title: 'Admin',
+
         element: AdminRoutes, //* AdminRoutes should handle rendering child routes
         children: [
             { index: true, element: NavigateToDb },
             createAdminRoute('/admin/dashboard', 'Dashboard'),//! ถ้าเอา // path: '/admin' กลับมาใช้ ตรงนี้ไม่ต้องมี / เพราะมันจะถือว่าเป็น child
             createAdminRoute('/setting', 'Setting'),
             createAdminRoute('/system', 'System'),
+            createAdminRoute('/apartment', 'apartment'),
 
-            // {
-            //     path: 'setting', // This path matches /admin/db
-            //     title: 'setting',
-            //     element: AdminPages, // AdminPages component renders here
-            //     children: [
-            //         { path: 'table', title: 'Table', element: TableAdmin },
-            //         { path: '*', element: PageNotFound }
-            //     ],
-            // },
-            // {
-            //     path: 'system', // This path matches /admin/db
-            //     title: 'system',
-            //     element: AdminPages, // AdminPages component renders here
-            //     children: [
-            //         { path: 'table', title: 'Table', element: TableAdmin },
-            //         { path: '*', element: PageNotFound }
-            //     ],
-            // },
             { path: '*', element: PageNotFound }
         ],
     },
@@ -84,10 +95,16 @@ const routes = [
 
     // Member routes
     {
-        path: '/member',
+        // path: '/member',
         element: MemberRoutes,
         children: [
-            { path: 'homepage', element: MemberPage }, // This matches /member/homepage
+            { index: true, element: NavigateToDb },
+            createUserRoute('/member/homepage', 'HomePage'),//! ถ้าเอา // path: '/admin' กลับมาใช้ ตรงนี้ไม่ต้องมี / เพราะมันจะถือว่าเป็น child
+            createUserRoute('/member/payments', 'Payments'),//! ถ้าเอา // path: '/admin' กลับมาใช้ 
+            // createAdminRoute('/setting', 'Setting'),
+            // createAdminRoute('/system', 'System'),
+
+            { path: '*', element: PageNotFound }
         ],
     },
 

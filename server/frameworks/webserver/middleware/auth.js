@@ -1,26 +1,29 @@
 const jwt = require('jsonwebtoken');
-const { sendResponse } = require('../utils/responseMessage');
+const { sendResponse, sendResponseHono } = require('../utils/responseMessage');
+const { findeToken } = require('../../../adapters/repositories/login');
 
 
-exports.auth = async (req, res, next) => {
+exports.auth = async (c, next) => {
     try {
-        let token = req.headers['authtoken'];
-        
+        let bearer = await c.req.header('authorization');
+        if (!bearer || !bearer.startsWith('Bearer ')) {
+            return sendResponseHono(c, 401, 'Token not provided or invalid format');
+        }
 
-        if (!token) return sendResponse(res, 401, 'Not confirm is Token')
-
-
-        const decoded = jwt.verify(token, 'jwtSecret');
-
-        req.user = decoded.user
-       
+        const token = bearer.split(' ')[1];
+        console.log(`⩇⩇:⩇⩇🚨 token :`, token);
 
 
-        next();
+        const savedToken = await findeToken(token);
+        if (!savedToken) {
+            return sendResponseHono(c, 401, 'Token is not recognized or expired');
+        }
+
+        const decoded = jwt.verify(savedToken.token, 'jwtSecret');
+        c.set('user', decoded.user);
+
+        return await next();
     } catch (error) {
-
-        console.log('User is not Found!!',error);
-        return sendResponse(res, 401, 'User is not Found!!')
+        return sendResponseHono(c, 401, 'User is not Found!!');
     }
-
 }

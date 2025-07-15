@@ -19,7 +19,8 @@
 
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { logged } from '../../api/login_register';
+import { logged, logouted } from '../../api/login_register';
+import { getDataApartment } from '../../api/apartment';
 
 
 const persistMiddleware = create(
@@ -29,6 +30,7 @@ const persistMiddleware = create(
             user: '',
             token: '',
             expirationTime: null,
+            apartmentData: '',
             Login: async (value) => {
                 const response = await logged(value);
                 const token = response.data.token; // Assuming your API returns a token
@@ -50,7 +52,14 @@ const persistMiddleware = create(
                 console.log('Save data in persist success');
                 return response.data;
             },
-            Logout: () => {
+            Logout: async (userId) => {
+                const res = await logouted(userId);
+                set({ user: '', isAuthenticated: false, token: '', expirationTime: null, apartmentData: '' });
+                localStorage.clear();
+                return res
+
+            },
+            clearLocalStorage: async (userId) => {
                 set({ user: '', isAuthenticated: false, token: '', expirationTime: null });
                 localStorage.clear();
             },
@@ -59,10 +68,15 @@ const persistMiddleware = create(
                 if (expirationTime && Date.now() > expirationTime) {
                     get().Logout(); // Auto logout if token has expired
                 }
+            },
+            GetDataApartment: async (profileId) => {
+                const res = await getDataApartment(profileId)
+               
+                set({ apartmentData: res.data })
             }
         }),
         {
-            name: 'auth-storage', 
+            name: 'auth-storage',
             getStorage: () => localStorage // Use localStorage
         }
     ),

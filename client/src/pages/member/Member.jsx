@@ -1,9 +1,9 @@
 import React from 'react'
+import FormMember from '../../components/form/dashboard/FormMember'
 
 const MemberPage = () => {
     return (
-        <div>
-            Welcome to MemberPage</div>
+        <FormMember />
     )
 }
 
