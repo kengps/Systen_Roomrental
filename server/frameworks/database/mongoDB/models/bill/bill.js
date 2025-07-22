@@ -1,130 +1,10 @@
-// const mongoose = require('mongoose');
-// const BillSchema = new Schema({
-//     contract: {
-//         type: mongoose.Schema.ObjectId,
-//         ref: 'Contract',
-//         required: true
-//     },
-//     billingPeriod: {
-//         month: {
-//             type: Number,
-//             required: true,
-//             min: 1,
-//             max: 12
-//         },
-//         year: {
-//             type: Number,
-//             required: true
-//         }
-//     },
-//     cutoffDate: {
-//         type: Date,
-//         required: true
-//     },
-//     dueDate: {
-//         type: Date,
-//         required: true
-//     },
-//     charges: {
-//         rent: {
-//             type: Number,
-//             required: true
-//         },
-//         utilities: {
-//             water: { type: Number, default: 0 },
-//             electricity: { type: Number, default: 0 },
-//             other: { type: Number, default: 0 }
-//         },
-//         lateFee: {
-//             type: Number,
-//             default: 0
-//         }
-//     },
-//     totalAmount: {
-//         type: Number,
-//         required: true
-//     },
-//     status: {
-//         type: String,
-//         enum: ['pending', 'paid', 'overdue', 'cancelled'],
-//         default: 'pending'
-//     }
-
-// });
-
-
-// const mongoose = require('mongoose')
-
-// const billSchema = mongoose.Schema({
-//     tenantId: {
-//         type: mongoose.Schema.Types.ObjectId,
-//         ref: 'Tenant',
-//         required: true
-//     },
-//     billingMonth: {
-//         type: String, // หรือจะเก็บเป็น Number ก็ได้ เช่น 7
-//         required: true
-//     },
-//     billingYear: {
-//         type: String, // หรือ Number เช่น 2568
-//         required: true
-//     },
-//     billDate: {
-//         type: Date,
-//         required: true
-//     },
-//     dueDate: {
-//         type: Date,
-//         required: true
-//     },
-//     status: {
-//         type: String,
-//         enum: ['unpaid', 'paid'],
-//         default: 'unpaid'
-//     },
-//     paidDate: {
-//         type: Date
-//     },
-//     paymentInfo: {
-//         channel: String,
-//         slipUrl: String,
-//         note: String
-//     },
-//     items: [
-//         {
-//             name: {
-//                 type: String,
-//                 required: true
-//             },
-//             quantity: {
-//                 type: Number,
-//                 default: 1
-//             },
-//             unitPrice: {
-//                 type: Number,
-//                 required: true
-//             },
-//             total: {
-//                 type: Number,
-//                 required: true
-//             }
-//         }
-//     ],
-//     totalAmount: {
-//         type: Number,
-//         required: true
-//     }
-// }, { timestamps: true })
-
-// module.exports = mongoose.model('Bill', billSchema)
-
-
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 
 // ========== BILL CATEGORY SCHEMA ==========
 const BillCategorySchema = new Schema({
+
 
     owner: {
         type: mongoose.Schema.Types.ObjectId,
@@ -140,6 +20,10 @@ const BillCategorySchema = new Schema({
         type: String,
         required: true,
         trim: true
+    },
+    categoryGroup: {
+        type: String, // parking, cleaning, garbage, internet, etc.
+        default: 'other'
     },
     categoryCode: {
         type: String,
@@ -164,6 +48,11 @@ const BillCategorySchema = new Schema({
 
 // ========== BILL SCHEMA ==========
 const BillSchema = new Schema({
+    apartment: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Apartment',
+        required: true,
+    },
     billId: {
         type: String,
         required: true,
@@ -216,11 +105,11 @@ const BillSchema = new Schema({
         category: {
             type: mongoose.Schema.ObjectId,
             ref: 'BillCategory',
-            // required: true
+            required: true
         },
         categoryName: {
             type: String,
-            // required: true
+            required: true
         },
         description: {
             type: String,
@@ -244,6 +133,14 @@ const BillSchema = new Schema({
         unit: {
             type: String,
             default: 'รายการ'
+        },
+        previousUnit: {
+            type: String,
+            // required: true,
+        },
+        currentUnit: {
+            type: String,
+            // required: true,
         },
         // สำหรับติดตามการชำระแต่ละรายการ
         paidAmount: {
@@ -529,6 +426,7 @@ const SequenceSchema = new Schema({
 // Bill Category indexes
 
 BillCategorySchema.index({ isActive: 1, sortOrder: 1 });
+BillCategorySchema.index({ owner: 1, categoryName: 1 }, { unique: true });
 
 // Bill indexes
 BillSchema.index({ billId: 1 });
@@ -537,7 +435,7 @@ BillSchema.index({ billDate: 1 });
 BillSchema.index({ dueDate: 1 });
 BillSchema.index({ status: 1 });
 BillSchema.index({ fiscalYear: 1, status: 1 });
-BillSchema.index({ 'billingPeriod.year': 1, 'billingPeriod.month': 1 });
+BillSchema.index({ apartment: 1, 'billingPeriod.year': 1, 'billingPeriod.month': 1 });
 
 // Payment indexes
 PaymentSchema.index({ paymentId: 1 });

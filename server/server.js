@@ -80,6 +80,7 @@ const appCors = require('./middleware/corsMiddleware');
 const appHelmet = require('./middleware/helmetMiddleware');
 const appCompression = require('./middleware/compressionMiddleware');
 const appMeter = require('./frameworks/webserver/routes/meterRoutes');
+const appUploads = require('./frameworks/webserver/routes/uploads');
 
 
 const appHono = new Hono()
@@ -105,6 +106,7 @@ appHono.route(`/${process.env.MY_API}`, appMeter)
 appHono.route(`/${process.env.MY_API}`, appAccount)
 appHono.route(`/${process.env.MY_API}`, appRooms)
 appHono.route(`/${process.env.MY_API}`, appRegister)
+appHono.route(`/${process.env.MY_API}`, appUploads)
 appHono.get('/hono', (c) => c.text('Hono!'))
 
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import LoginForm from '../../components/form/login/LoginForm';
 
@@ -6,11 +6,10 @@ import { toast } from 'react-toastify';
 
 
 
-import { useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import persistMiddleware from '../../service/zustand/middleware/persistMiddleware';
 
-import { useQuery } from '@tanstack/react-query';
 
 
 const IndexForm = () => {
@@ -18,6 +17,8 @@ const IndexForm = () => {
     // const { Login } = storeAuth();
     const Login2 = persistMiddleware((state) => state.Login)
     const { Login, isAuthenticated, user, GetDataApartment } = persistMiddleware();
+    console.log(`⩇⩇:⩇⩇🚨 ~ IndexForm ~ user :`, user);
+
 
     const [loadings, setLoadings] = useState(false)
 
@@ -27,10 +28,10 @@ const IndexForm = () => {
     const checkStatusAuth = async () => {
         const authStorage = localStorage.getItem('auth-storage');
 
+
         if (isAuthenticated) {
 
-
-            if (user.userPayLoad.user.role === 'user') {
+            if (user.userPayLoad.user.role === 'User') {
                 navigate('/member/homepage')
             } else {
                 navigate('/admin/dashboard')
@@ -38,6 +39,7 @@ const IndexForm = () => {
         }
 
     }
+
     //0 check Status Login
     useEffect(() => {
         if (user) {
@@ -56,13 +58,16 @@ const IndexForm = () => {
     const checkLevelRole = async (data) => {
 
 
+
+
         try {
 
-            if (data.user.role === 'user') {
+            if (data.user.role === 'User') {
                 navigate('/member/homepage')
             } else if (data.user.role === 'admin') {
                 navigate('/admin/homepage')
             } else {
+
                 navigate('/admin/dashboard')
 
             }
@@ -80,9 +85,12 @@ const IndexForm = () => {
         try {
 
             const response = await Login(value);
+
+
             toast.success(response.messages)
 
-            const expirationTime = 12 * 60 * 60 * 1000; // 12 ชั่วโมง (เป็นตัวอย่าง)
+            //const expirationTime = 12 * 60 * 60 * 1000; // 12 ชั่วโมง (เป็นตัวอย่าง)
+            const expirationTime = 15 * 60 * 1000; // 15 นาที (900,000 ms)
             //const expirationTime = 60 * 1000; // 12 ชั่วโมง (เป็นตัวอย่าง)
             const expirationDate = new Date().getTime() + expirationTime;
             const one = Number(1)

@@ -38,3 +38,6 @@ const Profile = mongoose.Schema({
 }, { timestamps: true })
 
 module.exports = mongoose.model('Account', Profile)
+
+
+// Profile.index({ _id: 1 })

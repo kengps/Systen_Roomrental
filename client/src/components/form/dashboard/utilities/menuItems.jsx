@@ -69,10 +69,11 @@ export const menuItems = [
                 icon: <MailOutlined />,
                 children: [
                     { key: '41', label: 'ตั้งค่าหอพัก', path: '/apartment/setting' },
-                    { key: '42', label: 'ค่าน้ำ-ค่าไฟ', path: '/apartment/meters' },
-                    { key: '45', label: 'ค่าบริการ', path: '/apartment/sevices' },
-                    { key: '43', label: 'แจ้งชำระ', path: '/apartment/billing' },
-                    { key: '44', label: 'ออกบิล', path: '/apartment/payment' },
+                    { key: '42', label: 'บัญชี', path: '/apartment/bank' },
+                    { key: '43', label: 'ค่าน้ำ-ค่าไฟ', path: '/apartment/meters' },
+                    { key: '44', label: 'ค่าบริการ', path: '/apartment/sevices' },
+                    { key: '45', label: 'แจ้งชำระ', path: '/apartment/billing' },
+                    { key: '46', label: 'ออกบิล', path: '/apartment/payment' },
 
                 ],
             },
@@ -89,14 +90,15 @@ export const menuItems = [
 
 
 export const menuItemsUser = [
-    { key: 'homepage', icon: 'Home', label: 'หน้าหลัก', path: '/member/homepage' },
+    { key: 'info', label: 'ข้อมูลหอพัก', path: '/member/payments/apartmentInformations' },
     {
         key: 'payments',
         // icon: 'DollarSign',
         label: 'การชำระเงิน',
         children: [
             { key: 'history', label: 'ประวัติการชำระเงิน', path: '/member/payments/history' },
-            { key: 'bill', label: 'ชำระค่าเช่า', path: '/member/payments/bill' }
+            { key: 'bill', label: 'ชำระค่าเช่า', path: '/member/payments/bill' },
+            // { key: 'info', label: 'ข้อมูลหอพัก', path: '/member/payments/apartmentInformations' }
         ]
     },
     {
@@ -130,7 +132,7 @@ export const menuItemsUser = [
         path: '/member/announcements'
     },
     { key: 'profile', icon: 'User', label: 'โปรไฟล์', path: '/member/profile' },
-    { key: 'logout', icon: 'LogOut', label: 'ออกจากระบบ' }
+    // { key: 'logout', icon: 'LogOut', label: 'ออกจากระบบ' }
 ];
 
 

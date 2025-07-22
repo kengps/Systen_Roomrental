@@ -20,6 +20,8 @@ const roomSchema = new Schema({
         water: { type: Number, default: 0 },
         electric: { type: Number, default: 0 },
     },
+    // เพิ่มส่วนนี้
+
 
 }, { timestamps: true });
 

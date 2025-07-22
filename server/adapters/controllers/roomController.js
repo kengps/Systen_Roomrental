@@ -258,7 +258,6 @@ const apartmantData = handleRequestError(async (c) => {
 
     const { profileId } = await c.req.query()
 
-    console.log(`⩇⩇:⩇⩇🚨 await c.req.query() :`, await c.req.query());
 
     let ownerId = await findOwner(profileId)
 
@@ -273,6 +272,7 @@ const apartmantData = handleRequestError(async (c) => {
 
     return c.json({ message: 'data', result })
 })
+
 
 const addServices = handleRequestError(async (c) => {
 

@@ -104,8 +104,6 @@ exports.findOwner = async (accountId) => {
         const account = await Profile.findById({ _id: accountId }).populate('lineage')
 
 
-
-
         if (!account) {
             sendError('ไม่พบ', 'Account')
             //hrow new Error('Account not found');
@@ -118,10 +116,7 @@ exports.findOwner = async (accountId) => {
 
         const ownerIds = ownersInLineage.map(owner => owner._id);
 
-
-
-
-        return ownerIds
+        return ownerIds[0]?.toString() || null;
 
     } catch (error) {
         throw error

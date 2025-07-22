@@ -1,16 +1,18 @@
 import React from "react";
 import LoadingSpinner from "./components/LoadingSpinner/LoadingSpinner";
+import BankAccountPage from "./pages/admin/apartment/BankAccountPage";
 import MetersPages from "./pages/admin/apartment/Meters";
 import SettingApartment from "./pages/admin/apartment/SettingApartment";
 import ManageServicesPage from "./pages/admin/apartment/SevicesPage";
 import TenantManagementPage from "./pages/admin/apartment/TenantManagementPage";
+import BillingSystem from "./pages/admin/bill/BillingPage";
 import DormBillingSystem from "./pages/admin/bill/BillPage";
-import PaymentSystem from "./pages/admin/bill/Payments";
 import CreateRoom from "./pages/admin/CreateRoom";
 import ListRoom from "./pages/admin/ListRoom";
 import StepperForm from "./pages/admin/StepperForm/StepperForm";
 import IndexForm from "./pages/login/Index";
 import History from "./pages/member/history/History";
+import ApartmentInformations from "./pages/member/informations/InformationsPage";
 import { PayMent } from "./pages/member/payments/PayMent";
 
 
@@ -43,10 +45,11 @@ const createAdminRoute = (path, title) => ({ //* Utility function to create admi
         { path: 'tenantManagement', title: 'TenantManagement', element: TenantManagementPage },
         { path: 'stepper', title: 'stepper', element: StepperForm },
         { path: 'setting', title: 'Setting', element: SettingApartment },
-        { path: 'billing', title: 'Billing', element: PaymentSystem },
+        { path: 'billing', title: 'Billing', element: BillingSystem },
         { path: 'payment', title: 'Payment', element: DormBillingSystem },
         { path: 'meters', title: 'meters', element: MetersPages },
         { path: 'sevices', title: 'sevices', element: ManageServicesPage },
+        { path: 'bank', title: 'bank', element: BankAccountPage },
         { path: '*', element: PageNotFound },
     ],
 });
@@ -60,6 +63,7 @@ const createUserRoute = (path, title) => ({ //* Utility function to create admin
             path: 'history', title: 'History', element: History
         },
         { path: 'stepper2', title: 'stepper2', element: StepperForm },
+        { path: 'apartmentInformations', title: 'apartmentInformations', element: ApartmentInformations },
         { path: '*', element: PageNotFound },
     ],
 });

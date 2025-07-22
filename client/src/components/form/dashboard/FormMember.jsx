@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { Layout, theme } from 'antd';
 import { Box } from '@mui/material';
-import { useNavigate, useLocation } from 'react-router-dom';
-import AppHeader from './elements/antd/AppHeader';
+import { Layout, theme } from 'antd';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import AppContent from './elements/antd/AppContent';
 import AppFooter from './elements/antd/AppFooter';
+import AppHeader from './elements/antd/AppHeader';
 import AppSidebar from './elements/antd/AppSidebar';
 
-import persistMiddleware from '../../../service/zustand/middleware/persistMiddleware';
 import sweetalert from 'sweetalert2';
+import persistMiddleware from '../../../service/zustand/middleware/persistMiddleware';
 import { menuItemsUser } from './utilities/menuItems';
 
 
@@ -22,7 +22,10 @@ const FormMember = () => {
     const [collapsed, setCollapsed] = useState(false);
     const [openKeys, setOpenKeys] = useState([]);
     const { token: { colorBgContainer, borderRadiusLG } } = theme.useToken();
-    const userId = user.userPayLoad.user.id
+    const userId = user?.userPayLoad?.user?.id
+    console.log(`⩇⩇:⩇⩇🚨 ~ FormMember ~ userId :`, userId);
+
+    
     useEffect(() => {
         if (location.pathname === '/member') {
             navigate('/member/homepage');

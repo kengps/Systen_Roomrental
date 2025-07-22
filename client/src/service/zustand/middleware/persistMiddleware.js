@@ -17,10 +17,10 @@
 //   export default persistMiddleware;
 
 
-import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
-import { logged, logouted } from '../../api/login_register';
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { getDataApartment } from '../../api/apartment';
+import { logged, logouted } from '../../api/login_register';
 
 
 const persistMiddleware = create(
@@ -33,6 +33,9 @@ const persistMiddleware = create(
             apartmentData: '',
             Login: async (value) => {
                 const response = await logged(value);
+                console.log(`⩇⩇:⩇⩇🚨 ~ Login: ~ response :`, response);
+
+
                 const token = response.data.token; // Assuming your API returns a token
                 const expiresIn = 2 * 60 * 60 * 1000; // 1 hour in milliseconds
                 const expirationTime = Date.now() + expiresIn;
@@ -71,7 +74,7 @@ const persistMiddleware = create(
             },
             GetDataApartment: async (profileId) => {
                 const res = await getDataApartment(profileId)
-               
+
                 set({ apartmentData: res.data })
             }
         }),

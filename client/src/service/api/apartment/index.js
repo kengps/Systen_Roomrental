@@ -95,3 +95,27 @@ export const deleteServiceUsage = async (value) => {
 
     return re
 }
+
+
+
+
+export const createBankAccount = async (value) => {
+
+    const re = await axios.post(`${import.meta.env.VITE_REACT_APP_API}/bank-account`, value)
+
+    return re
+}
+export const listBankAccount = async (accountId) => {
+
+    const re = await axios.get(`${import.meta.env.VITE_REACT_APP_API}/bank-account/${accountId}`)
+
+    return re.data
+}
+
+
+export const deleteBankAccount = async (bankId) => {
+
+    const re = await axios.delete(`${import.meta.env.VITE_REACT_APP_API}/bank-account/${bankId}`,)
+
+    return re.data
+}

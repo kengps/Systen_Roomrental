@@ -5,7 +5,7 @@ const ApartmentSchema = new Schema(
         owner: {
             type: mongoose.Schema.ObjectId,
             ref: 'Account',
-            require: true
+            required: true
         },
         apartmentName: {
             type: String,
@@ -112,4 +112,18 @@ const ApartmentSchema = new Schema(
     }
 );
 
+
+//ApartmentSchema.index({ owner: 1 });
+ApartmentSchema.index({ _id: 1, owner: 1 });
+ApartmentSchema.index({ apartmentName: 1, owner: 1 });
+ApartmentSchema.index({ "addressLine": "text", "apartmentName": "text" });
+
+
+
+// Virtual fields
+ApartmentSchema.virtual('fullAddress').get(function () {
+    return `${this.addressLine}, ${this.tambon}, ${this.amphure}, ${this.province} ${this.zipCode}`;
+});
 export const ApartmentSchemaModel = model('Apartment', ApartmentSchema);
+
+

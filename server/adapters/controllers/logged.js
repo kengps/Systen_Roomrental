@@ -4,9 +4,10 @@ const bcrypt = require("bcryptjs");
 const { query, check, matchedData, validationResult } = require('express-validator');
 const { sendResponse, sendResponseHono } = require("../../frameworks/webserver/utils/responseMessage");
 const Profile = require("../../frameworks/database/mongoDB/models/profile");
-const { createTokenLogin, deleteTokenLogin, getExistingToken } = require("../repositories/login");
+const { createTokenLogin, deleteTokenLogin, getExistingToken, findeToken } = require("../repositories/login");
 const tokenModel = require("../../frameworks/database/mongoDB/models/tokenModel");
 
+const { setCookie, getCookie } = require('hono/cookie')
 
 // exports.logged = [
 //   check('username').trim().escape(),
@@ -108,12 +109,8 @@ exports.logged = async (c) => {
       return sendResponseHono(c, 400, "กรุณากรอก username และ password", null);
     }
 
-
     // ตรวจสอบจากฐานข้อมูล admin ก่อน
     let user = await Profile.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } }).populate('role', 'name');
-
-    console.log(`⩇⩇:⩇⩇🚨 user :`, user);
-
 
 
     if (!user) {
@@ -154,12 +151,27 @@ exports.logged = async (c) => {
       },
     };
     const expiresIn = 60 * 60 * 6; // อายุ 3 ชั่วโมงหน่อวย ms
+    const refreshTokenExpireInSeconds = 60 * 60 * 24 * 7; // 7 วัน (เป็นวินาที)
+    //const token = jwt.sign(userPayLoad, "jwtSecret", { expiresIn: expiresIn });
 
-    const token = jwt.sign(userPayLoad, "jwtSecret", { expiresIn: expiresIn });
+
+    // สร้าง Token
+    const token = jwt.sign(userPayLoad, process.env.JWT_SECRET, { expiresIn: "15m" });
+    const refreshToken = jwt.sign(userPayLoad, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" });
 
 
 
-    const fff = await createTokenLogin(user._id.toString(), token, new Date(Date.now() + expiresIn * 1000))
+
+
+    const fff = await createTokenLogin(user._id.toString(), refreshToken, new Date(Date.now() + refreshTokenExpireInSeconds * 1000))
+
+    setCookie(c, 'refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'prod',
+      sameSite: process.env.NODE_ENV === 'prod' ? 'Strict' : 'Lax',
+      maxAge: 7 * 24 * 60 * 60, // 7 วัน
+      path: '/',
+    })
 
 
 
@@ -187,10 +199,59 @@ exports.logged = async (c) => {
 exports.logouted = async (c) => {
   const { id } = await c.req.json()
 
-  console.log(`⩇⩇:⩇⩇🚨 id :`, id);
-
   await tokenModel.findOneAndDelete({ userId: id.toString() }).exec()
 
+  setCookie(c, 'refreshToken', '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'Strict' : 'Lax',
+    maxAge: 0,
+    path: '/'
+  })
+
+
   return c.json({ message: 'logout successfully' })
+
+}
+
+exports.refreshToken = async (c) => {
+
+  const refreshToken = getCookie(c, 'refreshToken'); // ✅ ใช้ getCookie
+
+  if (!refreshToken) {
+    return c.json({ error: "No refresh token" }, 401); // ✅ ใช้ c.json
+  }
+
+  try {
+    const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+
+    // ตรวจสอบว่า Refresh Token ยังอยู่ใน DB
+    const savedToken = await findeToken(refreshToken);
+    if (!savedToken) {
+
+      return c.json({ error: "Invalid refresh token" }, 403);
+    }
+
+    // สร้าง Access Token ใหม่
+    const newAccessToken = jwt.sign(
+      {
+        user: { // ✅ ให้ตรงกับ structure เดิม
+          id: payload.user.id,
+          role: payload.user.role,
+          username: payload.user.username
+        }
+      },
+      process.env.JWT_SECRET, // ✅ ใช้ string เดียวกับที่ login
+      { expiresIn: "15m" }
+    );
+
+
+    return c.json({ accessToken: newAccessToken });
+
+  } catch (err) {
+    console.log('JWT Error:', err);
+    return c.json({ error: "Invalid or expired refresh token" }, 403);
+  }
+
 
 }

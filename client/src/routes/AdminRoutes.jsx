@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { currentAdmin } from '../service/api/login_register';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner';
+import { currentAdmin } from '../service/api/login_register';
 import persistMiddleware from '../service/zustand/middleware/persistMiddleware';
-import { Outlet } from 'react-router-dom';
-import { Spin } from 'antd';
 
 
 const AdminRoutes = () => {
   const { user, clearLocalStorage } = persistMiddleware();
+
+
 
 
 
@@ -22,14 +22,25 @@ const AdminRoutes = () => {
   useEffect(() => {
 
     const checkAdmin = async () => {
+
       if (user && user.token) {
         try {
 
           await currentAdmin(user.token);
 
+          // const res = await api.post('/current-admin', {
+          //   headers: { Authorization: `Bearer ${user.token}` }
+          // });
+          // console.log(`⩇⩇:⩇⩇🚨 ~ checkAdmin ~ res :`, res);
+
+
+
 
           setOk(true);
         } catch (err) {
+         
+
+
           clearLocalStorage()
           setOk(false);
           navigate('/auth/login');

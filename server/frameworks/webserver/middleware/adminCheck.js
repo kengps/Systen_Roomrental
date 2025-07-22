@@ -13,6 +13,7 @@ exports.adminCheck = async (c, next) => {
 
     try {
 
+
         // ค้นหา profile และ populate role ด้วย
         const user = await profile
             .findOne({ username: req.username })
@@ -20,7 +21,7 @@ exports.adminCheck = async (c, next) => {
             .populate("role") // <-- เพิ่ม populate role
             .exec();
 
-        console.log(1)
+       
 
         // ตรวจสอบว่า user.role ถูก populate มาจริง ๆ
         if (!user || !user.role || !user.role.name) {

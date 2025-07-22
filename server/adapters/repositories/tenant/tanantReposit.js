@@ -1,6 +1,9 @@
 const { default: mongoose } = require("mongoose");
 const profile = require("../../../frameworks/database/mongoDB/models/profile");
 const Tenant = require("../../../frameworks/database/mongoDB/models/tenant");
+const { Bill } = require("../../../frameworks/database/mongoDB/models/bill/bill");
+const banks = require("../../../frameworks/database/mongoDB/models/apartments/banks");
+const { sendError } = require("../../../frameworks/webserver/utils/responseMessage");
 
 
 exports.createTenant = async (valuesTenant) => {
@@ -60,7 +63,7 @@ exports.updateTenancys = async (tenantId, tenancyStatus, moveOutDate) => {
             { $set: { tenancyStatus: tenancyStatus, moveOutDate: moveOutDate } },
             { new: true }
         )
-     
+
         return tenant
 
     } catch (error) {
@@ -100,7 +103,7 @@ exports.assignServices = async (tenantId, newServiceIds) => {
 
 
 exports.deleteServices = async (tenantId, serviceUsageId) => {
-    
+
 
     try {
 
@@ -112,8 +115,6 @@ exports.deleteServices = async (tenantId, serviceUsageId) => {
             },
             { new: true }
         )
-        console.log(`⩇⩇:⩇⩇🚨 ~ exports.deleteServices ~ tenant :`, tenant);
-
 
         //ใช้ pull ในการลย
 
@@ -139,4 +140,123 @@ exports.deleteServices = async (tenantId, serviceUsageId) => {
 
 }
 
+
+exports.informationApartmentForTenants = async (ownerId) => {
+    try {
+        const informationsApartment = await banks.aggregate([
+            {
+                $lookup: {
+                    from: 'apartments', // ชื่อ collection ของ ApartmentSchemaModel
+                    localField: 'apartmentId',
+                    foreignField: '_id',
+                    as: 'apartmentData'
+                }
+            }, {
+                $unwind: '$apartmentData'
+            },
+            {
+                $match: {
+                    'apartmentData.owner': new mongoose.Types.ObjectId(ownerId),
+
+                }
+            },
+            // 👉 เพิ่ม $lookup สำหรับ meters ถ้าต้องการ populate
+            {
+                $lookup: {
+                    from: 'meters', // collection ชื่อ meters
+                    localField: 'apartmentData.meters',
+                    foreignField: '_id',
+                    as: 'apartmentData.meterDetails'
+                }
+            },
+            {
+                $addFields: {
+                    'apartmentData.meters': '$$REMOVE'
+                }
+            }
+            , {
+                $group: {
+                    _id: '$apartmentData._id',
+                    apartment: { $first: '$apartmentData' },
+                    bank: {
+                        $push: {
+                            _id: '$_id',
+                            apartmentId: '$apartmentId',
+                            bankKey: '$bankKey',
+                            accountNumber: '$accountNumber',
+                            accountName: '$accountName',
+                            createdAt: '$createdAt',
+                            updatedAt: '$updatedAt',
+                            __v: '$__v'
+                        }
+                    }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    apartment: 1,
+                    bank: 1
+                }
+            }
+            // {
+            //     $project: {
+            //         _id: 0,
+            //         bank: [{
+            //             _id: '$_id',
+            //             apartmentId: '$apartmentId',
+            //             bankKey: '$bankKey',
+            //             accountNumber: '$accountNumber',
+            //             accountName: '$accountName',
+            //             createdAt: '$createdAt',
+            //             updatedAt: '$updatedAt',
+            //             __v: '$__v'
+            //         }],
+            //         apartment: {
+            //             $mergeObjects: [
+            //                 '$apartmentData',
+            //                 {
+            //วิธ๊นี้คือเอาทั้งหมด 
+            // { meters: '$apartmentData.meterDetails' } // แทนที่ field meters ด้วยข้อมูลจริง 
+            // meters: {
+            //     $map: {
+            //         input: '$apartmentData.meterDetails',
+            //         as: 'meter',
+            //         in: {
+            //             _id: '$$meter._id',
+            //             type: '$$meter.meterType',
+            //             rate: '$$meter.rate'
+            //         }
+            //     }
+            // }
+            //                 } // แทนที่ field meters ด้วยข้อมูลจริง
+            //             ]
+            //         }
+            //     }
+            // }
+
+        ]);
+
+        if (!informationsApartment || informationsApartment.length === 0) {
+            return sendError('ไม่พบ', `bill ${englishMonthMap[month] + ' ' + year} `);
+        }
+
+        return informationsApartment[0]
+
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+
+}
+
+
+
+
+exports.ListBillingTenant = async (accountId) => {
+    const bill = await Bill.find({ tenant: accountId }).populate({ path: 'apartment', select: 'billingSettings -_id' })
+
+    return bill
+
+
+}
 

@@ -4,7 +4,7 @@
 const { default: mongoose } = require("mongoose");
 const { handleRequestError } = require("../../frameworks/webserver/utils/HOCHandelRequest");
 const { sendResponse, sendResponseHono } = require("../../frameworks/webserver/utils/responseMessage");
-const { findRoom, updateStatusRoom } = require("../repositories/apartment");
+const { findRoom, updateStatusRoom, BankAccount, getBankAccount, deleteBankAccountId } = require("../repositories/apartment");
 const { RegistersWithTenant } = require("./registerController");
 
 const { createTenant, getTeanantInParent, updateTenancys } = require("../repositories/tenant/tanantReposit");
@@ -150,7 +150,67 @@ const updateTenancy = handleRequestError(async (c) => {
 
 
 
+const addBankAccount = handleRequestError(async (c) => {
+
+    const { accountId, accountName, accountNumber, bankKey } = await c.req.json()
+
+    console.log(`⩇⩇:⩇⩇🚨 ~ addBankAccount ~ await c.req.json() :`, await c.req.json());
+
+
+    let ownerId = await findOwner(accountId)
+
+
+
+    if (!ownerId || Array.isArray(ownerId) && ownerId.length === 0) {
+
+        ownerId = accountId
+    }
+
+    const db = await BankAccount(ownerId, bankKey, accountNumber, accountName)
+
+
+
+    return sendResponseHono(c, 201, "save account bank successfully", db);
+
+
+})
+const getBanksAccount = handleRequestError(async (c) => {
+
+    const { accountId } = await c.req.param()
+
+
+
+    let ownerId = await findOwner(accountId)
+
+
+
+    if (!ownerId || Array.isArray(ownerId) && ownerId.length === 0) {
+
+        ownerId = accountId
+    }
+
+    const db = await getBankAccount(ownerId)
+
+
+
+    return sendResponseHono(c, 201, "save account bank successfully", db);
+
+
+})
+
+const deleteBanksAccount = handleRequestError(async (c) => {
+
+
+    const { bankId } = await c.req.param()
+
+     await deleteBankAccountId(bankId)
+
+    return c.json({ message: "delete bank account successfully" })
+
+})
+
+
 
 module.exports = {
-    addTanets, getTenantParent, updateTenancy
+    addTanets, getTenantParent, updateTenancy, addBankAccount, getBanksAccount, deleteBanksAccount
 }

@@ -2,6 +2,7 @@ const { default: mongoose } = require("mongoose");
 const { ApartmentSchemaModel } = require("../../../frameworks/database/mongoDB/models/apartments/apartment");
 const { Room } = require("../../../frameworks/database/mongoDB/models/roomDetail");
 const { sendError } = require("../../../frameworks/webserver/utils/responseMessage");
+const banks = require("../../../frameworks/database/mongoDB/models/apartments/banks");
 
 
 
@@ -164,4 +165,83 @@ exports.getServicesInApartment = async (accountId) => {
         throw error
     }
 
+}
+exports.BankAccount = async (ownerId, bankKey, accountNumber, accountName) => {
+    try {
+        const apartment = await ApartmentSchemaModel.findOne({ owner: ownerId }).select('_id');
+
+        if (!apartment) {
+            return sendError('ไม่พบ', 'No apartments');
+        }
+
+        const newBank = new banks({
+            apartmentId: apartment._id,
+            bankKey,
+
+            accountNumber,
+            accountName
+        });
+
+        return await newBank.save();
+    } catch (error) {
+        if (error.code === 11000 && error.keyPattern.accountNumber) {
+            return sendError('ซ้ำ', 'Bank Number')
+
+        }
+        return sendError('เกิดข้อผิดพลาด', error.message || 'Internal server error');
+    }
+};
+
+exports.getBankAccount = async (ownerId) => {
+
+
+    try {
+        const billApartment = await banks.aggregate([
+            {
+                $lookup: {
+                    from: 'apartments', // ชื่อ collection ของ ApartmentSchemaModel
+                    localField: 'apartmentId',
+                    foreignField: '_id',
+                    as: 'apartmentData'
+                }
+            },
+            {
+                $match: {
+                    'apartmentData.owner': new mongoose.Types.ObjectId(ownerId),
+                }
+            },
+            {
+                $project: {
+                    apartmentData: 0 // ถ้าไม่ต้องการข้อมูล apartment ใน result
+                }
+            }
+        ]);
+        console.log(`⩇⩇:⩇⩇🚨 ~ exports.getBankAccount= ~ billApartment :`, billApartment);
+
+
+        if (!billApartment || billApartment.length === 0) {
+            return sendError('ไม่พบ', `bill ${englishMonthMap[month] + ' ' + year} `);
+        }
+
+        return billApartment;
+
+    } catch (error) {
+        if (error.code === 11000 && error.keyPattern.accountNumber) {
+            return sendError('ซ้ำ', 'Bank Number')
+
+        }
+        return sendError('เกิดข้อผิดพลาด', error.message || 'Internal server error');
+    }
+};
+
+
+exports.deleteBankAccountId = async (id) => {
+
+    try {
+
+        return await banks.findOneAndDelete({ _id: id })
+
+    } catch (error) {
+        throw error
+    }
 }
