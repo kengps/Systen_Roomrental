@@ -3,7 +3,8 @@ const { Room, RentDetails, AdditionalCharge } = require("../../frameworks/databa
 const { handleRequestError } = require("../../frameworks/webserver/utils/HOCHandelRequest");
 const { sendResponse, sendResponseHono } = require("../../frameworks/webserver/utils/responseMessage");
 
-const { addressApartment, apartmentData, addServicesInApartment, getServicesInApartment } = require("../repositories/apartment");
+const { addressApartment, apartmentData, addServicesInApartment, getServicesInApartment, getImageLogo } = require("../repositories/apartment");
+const { SubmitLogs } = require("../repositories/logactions/logactionsRepository");
 const { findOwner } = require("../repositories/register");
 const { assignServices, deleteServices } = require("../repositories/tenant/tanantReposit");
 
@@ -187,7 +188,6 @@ const listRoom = handleRequestError(async (c) => {
 
     const { profileId } = await c.req.query()
 
-
     try {
 
         let ownerId = await findOwner(profileId)
@@ -245,10 +245,54 @@ const updatePrice = handleRequestError(async (c) => {
 
     }
 })
+const updateUnitMeter = handleRequestError(async (c) => {
+
+    const { value, accountId } = await c.req.json()
+
+    const { roomNumber } = value
+
+
+
+    // หา meterType จาก value ดึง key ออกมา
+    const meterType = Object.keys(value).find(key => key !== 'roomNumber')
+
+
+    if (!accountId) {
+        const error = new Error("accountId is required");
+        error.status = 400;
+        throw error;
+    }
+
+    try {
+        // ที่ไม่ใช้ id ผู้อัปเดตเพราะให้ส่ง id ของ ห้องนั้นๆมา
+        await Room.updateMany(
+            { _id: { $in: roomNumber } },
+            { $set: { [`unitMeter.${meterType}`]: value[meterType] } } // อัปเดต unitMeter ตาม meterType ที่รับมาจาก value
+        )
+
+        return sendResponseHono(c, 200, `update price unit meters ${meterType} successfully`)
+    } catch (error) {
+        throw error
+
+    }
+})
+
 
 const apartmant = handleRequestError(async (c) => {
+    const { profileId } = await c.req.json()
+    const result = await addressApartment(await c.req.json())
 
-    const result = await addressApartment(req.body)
+    await SubmitLogs(
+        {
+            ipAddress: 0 || '',
+            action: "apartmant",
+            actor: profileId,
+            details: result
+        }
+    )
+
+
+
 
     return c.json({ message: 'save data apartment successfully', result })
 })
@@ -292,6 +336,17 @@ const addServices = handleRequestError(async (c) => {
     const data = await addServicesInApartment(ownerId, services);
 
 
+
+    await SubmitLogs(
+        {
+            ipAddress: 0 || '',
+            action: "addServices",
+            actor: accountId,
+            details: data
+        }
+    )
+
+
     return c.json({ message: 'Save The service fee has been successfully', data })
 })
 const getServices = handleRequestError(async (c) => {
@@ -326,6 +381,15 @@ const assignServicesTenant = handleRequestError(async (c) => {
 
     const a = await assignServices(tenantId, newServiceIds)
 
+    await SubmitLogs(
+        {
+            ipAddress: 0 || '',
+            action: "assignServices",
+            actor: tenantId,
+            details: a
+        }
+    )
+
     return c.json({ message: a })
 })
 
@@ -339,9 +403,36 @@ const deleteServicesTenant = handleRequestError(async (c) => {
 
     const a = await deleteServices(tenantId, serviceUsageId)
 
+    await SubmitLogs(
+        {
+            ipAddress: 0 || '',
+            action: "deleteServices",
+            actor: tenantId,
+            details: a
+        }
+    )
+
     return c.json({ message: a })
 })
 
+
+const ImageLogo = handleRequestError(async (c) => {
+    const { domainName } = await c.req.json();
+    console.log(`⩇⩇:⩇⩇🚨 ~ await c.req.json() :`, await c.req.json());
+
+    console.log(`⩇⩇:⩇⩇🚨 ~ domainName :`, domainName);
+
+
+    if (!domainName) {
+        const error = new Error('กรุณากรอก domainName');
+        error.status = 400;
+        throw error;
+    }
+
+    const result = await getImageLogo(domainName);
+    return c.json(result)
+
+})
 module.exports = {
     createRoom,
     addRentDetails,
@@ -355,5 +446,7 @@ module.exports = {
     addServices,
     getServices,
     assignServicesTenant,
-    deleteServicesTenant
+    deleteServicesTenant,
+    updateUnitMeter,
+    ImageLogo
 }

@@ -28,6 +28,12 @@ const bankSchema = new Schema({
         required: true
 
     },
+    BRANCH_ID: {
+        type: String,
+    },
+    API_KEY: {
+        type: String,
+    }
 
 }, {
     timestamps: true,

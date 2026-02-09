@@ -4,29 +4,31 @@ import AppRoutes from './routes/AppRoutes'
 
 import "react-toastify/dist/ReactToastify.css"
 import { FileUploadProvider } from './service/context/FileUploadContext'
+import { MobileProvider } from './contexts/MobileContext'
 
 
 function App() {
 
   return (
     <div>
-      <FileUploadProvider>
-        <ToastContainer
-          position="top-right"
-          autoClose={5000}
-          hideProgressBar={false}
-          newestOnTop
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="colored"
-        />
+      <MobileProvider>
+        <FileUploadProvider>
+          <ToastContainer
+            position="top-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="colored"
+          />
 
-        <AppRoutes />
-      </FileUploadProvider>
-
+          <AppRoutes />
+        </FileUploadProvider>
+      </MobileProvider>
     </div>
   )
 }

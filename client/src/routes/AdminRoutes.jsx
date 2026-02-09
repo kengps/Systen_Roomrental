@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner';
+import LoadingComponent from '../components/LoadingSpinner/LoadingComponent';
 import { currentAdmin } from '../service/api/login_register';
 import persistMiddleware from '../service/zustand/middleware/persistMiddleware';
 
 
 const AdminRoutes = () => {
   const { user, clearLocalStorage } = persistMiddleware();
-
-
-
 
 
   const navigate = useNavigate();
@@ -23,6 +21,7 @@ const AdminRoutes = () => {
 
     const checkAdmin = async () => {
 
+
       if (user && user.token) {
         try {
 
@@ -35,11 +34,8 @@ const AdminRoutes = () => {
 
 
 
-
           setOk(true);
         } catch (err) {
-         
-
 
           clearLocalStorage()
           setOk(false);
@@ -58,10 +54,18 @@ const AdminRoutes = () => {
   }, [user, navigate]);
 
   if (loading) {
-    return <LoadingSpinner />;
+    return <LoadingComponent
+      text="กำลังโหลด"
+      variant="spinner"
+      size="md"
+    />
   }
 
-  return ok ? <Outlet /> : <LoadingSpinner />; // Consider a different UI for unauthorized users
+  return ok ? <Outlet /> : <LoadingComponent
+    text="กำลังโหลด"
+    variant="spinner"
+    size="md"
+  />; // Consider a different UI for unauthorized users
 };
 
 export default AdminRoutes;

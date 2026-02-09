@@ -18,7 +18,6 @@ exports.addressApartment = async (value) => {
         profileId
     } = value
 
-    console.log(`📦 Incoming value:`, value)
 
     try {
         const updated = await ApartmentSchemaModel.findOneAndUpdate(
@@ -125,7 +124,7 @@ exports.addServicesInApartment = async (accountId, services) => {
 
         if (existServiceName) {
             // throw new Error("Service name already exists");
-            await sendError('ซ้ำ', 'Service name')
+            sendError('ซ้ำ', 'Service name')
             const error = new Error("Service name already exists");
             error.status = 409;
             throw error;
@@ -192,11 +191,51 @@ exports.BankAccount = async (ownerId, bankKey, accountNumber, accountName) => {
     }
 };
 
+// exports.getBankAccount = async (ownerId) => {
+
+
+//     try {
+//         const listBank = await banks.aggregate([
+//             {
+//                 $lookup: {
+//                     from: 'apartments', // ชื่อ collection ของ ApartmentSchemaModel
+//                     localField: 'apartmentId',
+//                     foreignField: '_id',
+//                     as: 'apartmentData'
+//                 }
+//             },
+//             {
+//                 $match: {
+//                     'apartmentData.owner': new mongoose.Types.ObjectId(ownerId),
+//                 }
+//             },
+//             {
+//                 $project: {
+//                     apartmentData: 0 // ถ้าไม่ต้องการข้อมูล apartment ใน result
+//                 }
+//             }
+//         ]);
+
+
+//         if (!listBank || listBank.length === 0) {
+//             return sendError('ไม่พบ', `bill ${englishMonthMap[month] + ' ' + year} `);
+//         }
+
+//         return listBank;
+
+//     } catch (error) {
+//         if (error.code === 11000 && error.keyPattern.accountNumber) {
+//             return sendError('ซ้ำ', 'Bank Number')
+
+//         }
+//         return sendError('เกิดข้อผิดพลาด', error.message || 'Internal server error');
+//     }
+// };
+
 exports.getBankAccount = async (ownerId) => {
-
-
     try {
-        const billApartment = await banks.aggregate([
+        const listBank = await banks.aggregate([
+            // ขั้นตอนที่ 1: เชื่อมต่อข้อมูล bank กับ apartment
             {
                 $lookup: {
                     from: 'apartments', // ชื่อ collection ของ ApartmentSchemaModel
@@ -205,34 +244,71 @@ exports.getBankAccount = async (ownerId) => {
                     as: 'apartmentData'
                 }
             },
+
+            // ขั้นตอนที่ 2: กรองเฉพาะ bank ที่เป็นของ owner นี้
             {
                 $match: {
                     'apartmentData.owner': new mongoose.Types.ObjectId(ownerId),
                 }
             },
+
+            // ขั้นตอนที่ 3: จัดกลุ่มข้อมูลทั้งหมดเป็น 1 document
+            {
+                $group: {
+                    _id: null, // ไม่แยกกลุ่ม รวมทุกอย่างเป็น 1 กลุ่ม
+
+                    // สร้าง array ของ banks โดยเอาเฉพาะข้อมูל bank
+                    banks: {
+                        $push: {
+                            _id: '$_id',
+                            apartmentId: '$apartmentId',
+                            bankKey: '$bankKey',
+                            accountNumber: '$accountNumber',
+                            accountName: '$accountName',
+                            createdAt: '$createdAt',
+                            updatedAt: '$updatedAt',
+                            __v: '$__v',
+                            API_KEY: '$API_KEY',
+                            BRANCH_ID: '$BRANCH_ID'
+                        }
+                    },
+
+                    // เก็บข้อมูล apartment (เอาตัวแรกเพราะ apartmentId เหมือนกันหมด)
+                    apartmentData: { $first: '$apartmentData' }
+                }
+            },
+
+            // ขั้นตอนที่ 4: จัดรูปแบบผลลัพธ์สุดท้าย
             {
                 $project: {
-                    apartmentData: 0 // ถ้าไม่ต้องการข้อมูล apartment ใน result
+                    _id: 0, // ไม่เอา _id
+                    banks: 1, // เอา array ของ banks
+                    apartment: {
+                        isSlipCheckEnabled: {
+                            $arrayElemAt: ['$apartmentData.isSlipCheckEnabled', 0]
+                        }
+                    }
                 }
             }
         ]);
-        console.log(`⩇⩇:⩇⩇🚨 ~ exports.getBankAccount= ~ billApartment :`, billApartment);
 
-
-        if (!billApartment || billApartment.length === 0) {
-            return sendError('ไม่พบ', `bill ${englishMonthMap[month] + ' ' + year} `);
+        // ขั้นตอนที่ 5: ตรวจสอบผลลัพธ์
+        if (!listBank || listBank.length === 0) {
+            return sendError('ไม่พบ', `bank account for owner ${ownerId}`);
         }
 
-        return billApartment;
+        // ส่งคืนเฉพาะ document แรก (เพราะ group แล้วจะได้แค่ 1 document)
+        return listBank[0];
 
     } catch (error) {
+        // ขั้นตอนที่ 6: จัดการ Error
         if (error.code === 11000 && error.keyPattern.accountNumber) {
             return sendError('ซ้ำ', 'Bank Number')
-
         }
         return sendError('เกิดข้อผิดพลาด', error.message || 'Internal server error');
     }
 };
+
 
 
 exports.deleteBankAccountId = async (id) => {
@@ -243,5 +319,35 @@ exports.deleteBankAccountId = async (id) => {
 
     } catch (error) {
         throw error
+    }
+}
+
+
+exports.findBankNumber = async (accountNumber) => {
+
+    try {
+
+        return await banks.findOne({ accountNumber: accountNumber })
+
+    } catch (error) {
+        throw error
+    }
+}
+
+exports.getImageLogo = async (domain) => {
+    try {
+        const logo = await ApartmentSchemaModel.findOne({ domain: domain })
+
+        return {
+            success: !!logo,
+            img: logo?.img ?? null
+        }
+
+    } catch (error) {
+        return {
+            success: false,
+            img: null,
+            error: error.message || 'unknown error'
+        }
     }
 }

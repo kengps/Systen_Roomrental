@@ -10,8 +10,12 @@ export const FileUploadProvider = ({
 }) => {
     const [file, setFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
+  
     const [uploadedFileKey, setUploadedFileKey] = useState(null);
+  
     const [uploading, setUploading] = useState(false);
+   
+
     const [uploadError, setUploadError] = useState(null);
 
     return (

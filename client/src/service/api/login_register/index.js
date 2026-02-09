@@ -1,8 +1,11 @@
+import axios from 'axios'
 import api from '..'
 
 
 export const logged = async (value) => {
-    return await api.post(`${import.meta.env.VITE_REACT_APP_API}/login`, value)
+    return await axios.post(`${import.meta.env.VITE_REACT_APP_API}/login`, value,
+        { withCredentials: true }
+    )
 }
 
 export const logouted = async (id) => {
@@ -33,4 +36,8 @@ export const currentAdmin = async (authtoken) => {
             },
         }
     )
+}
+
+export const createUser = async (value) => {
+    return await axios.post(`${import.meta.env.VITE_REACT_APP_API}/register`, value)
 }

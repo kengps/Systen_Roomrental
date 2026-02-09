@@ -2,8 +2,9 @@ const { ROLE_LEVELS, Role } = require("../../../frameworks/database/mongoDB/mode
 
 const Profile = require("../../../frameworks/database/mongoDB/models/profile")
 
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const { sendError } = require("../../../frameworks/webserver/utils/responseMessage");
+const { Types } = require("mongoose");
 
 
 exports.findParentByProfileId = async (id) => {
@@ -100,8 +101,11 @@ exports.registerUser = async (profiles) => {
 }
 
 exports.findOwner = async (accountId) => {
+ 
+
     try {
         const account = await Profile.findById({ _id: accountId }).populate('lineage')
+      
 
 
         if (!account) {
@@ -113,8 +117,11 @@ exports.findOwner = async (accountId) => {
         const ownersInLineage = await Profile.find({
             _id: { $in: account.lineage }
         }).select('_id');
+       
 
         const ownerIds = ownersInLineage.map(owner => owner._id);
+
+     
 
         return ownerIds[0]?.toString() || null;
 
@@ -140,4 +147,23 @@ exports.diableAccountId = async (accountId) => {
         throw error
     }
 
+}
+
+
+exports.getListUserLineages = async (userId) => {
+    console.log(`⩇⩇:⩇⩇🚨 ~ userId getListUserLineages:`, userId);
+
+    try {
+        const objectId = new Types.ObjectId(userId);
+
+        const user = await Profile.findById(objectId);
+
+        console.log(`⩇⩇:⩇⩇🚨 ~ user getListUserLineages:`, user);
+
+        return user;
+
+    } catch (error) {
+        console.error("Error fetching lineage:", error);
+        throw new Error("เกิดข้อผิดพลาดในการดึงข้อมูลสายผู้ใช้");
+    }
 }

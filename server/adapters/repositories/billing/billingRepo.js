@@ -635,6 +635,7 @@ exports.BillSave = async (
     accountId,
     ownerId,
     tenantId,
+    roomNumber,
     apartmentId,
     billingPeriod,
     issueDate,
@@ -936,6 +937,7 @@ exports.BillSave = async (
         const bill = new Bill({
             apartment: apartmentId,
             tenant: tenantId,
+            roomNumber,
             billId: billId,
             billNumber: billNumber,
             billingPeriod,
@@ -964,8 +966,8 @@ exports.updateMeter = async (accountId, tenantId, billingPeriod, utilityCharges)
     if (!room) throw new Error("ไม่พบ room");
 
     // 💾 เก็บค่าก่อนอัปเดต
-    const previousElectric = room.meter.electric || 0;
-    const previousWater = room.meter.water || 0;
+    const previousElectric = room.unitMeter.electric || 0;
+    const previousWater = room.unitMeter.water || 0;
 
     // คำนวณค่ารวม
     const expectedElectric = utilityCharges.electricity.previousReading + utilityCharges.electricity.usage;
@@ -1005,8 +1007,8 @@ exports.updateMeter = async (accountId, tenantId, billingPeriod, utilityCharges)
         { _id: room._id },
         {
             $set: {
-                'meter.electric': utilityCharges.electricity.currentReading,
-                'meter.water': utilityCharges.water.currentReading,
+                'unitMeter.electric': utilityCharges.electricity.currentReading,
+                'unitMeter.water': utilityCharges.water.currentReading,
             }
         },
         { new: true }

@@ -24,6 +24,7 @@ import { useNavigate, Outlet } from 'react-router-dom';
 import persistMiddleware from '../service/zustand/middleware/persistMiddleware';
 import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner';
 import { currentUser } from '../service/api/login_register'; // คุณต้องมี endpoint นี้
+import LoadingComponent from '../components/LoadingSpinner/LoadingComponent';
 
 const MemberRoutes = () => {
     const { user, clearLocalStorage } = persistMiddleware();
@@ -52,8 +53,16 @@ const MemberRoutes = () => {
         checkUser();
     }, [user, navigate]);
 
-    if (loading) return <LoadingSpinner />;
-    return ok ? <Outlet /> : <LoadingSpinner />;
+        if (loading) return <LoadingComponent
+        text="กำลังโหลด"
+        variant="spinner"
+        size="md"
+        />;
+    return ok ? <Outlet /> : <LoadingComponent
+      text="กำลังโหลด"
+      variant="spinner"
+      size="md"
+    />;
 };
 
 export default MemberRoutes;

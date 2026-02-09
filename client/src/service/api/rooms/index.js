@@ -40,3 +40,13 @@ export const createTenant = async (value, authtoken) => {
         })
     return res.data
 }
+
+export const updateUnitMeter = async (value,accountId) => {
+
+
+    const res = await axios.put(`${import.meta.env.VITE_REACT_APP_API}/update-unit-meter`, {
+        value,
+        accountId
+    })
+    return res.data
+}

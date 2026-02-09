@@ -2,6 +2,7 @@ import React from "react";
 import { Layout, Breadcrumb } from 'antd';
 import { Link, useLocation, Outlet } from "react-router-dom";
 import { HomeOutlined } from '@ant-design/icons';
+import { getBreadcrumbTitle } from '../../../../../utilities/breadcrumbMap';
 
 const { Content } = Layout;
 
@@ -11,6 +12,7 @@ function AppContent({ colorBg, borderLG }) {
   const getBreadcrumbItems = () => {
     const { pathname } = location;
     const segments = pathname.split('/').filter(Boolean);
+
 
     let url = '';
     const items = [];
@@ -28,7 +30,7 @@ function AppContent({ colorBg, borderLG }) {
       url += `/${segment}`;
       const isLast = i === segments.length - 1;
 
-      const title = segment.charAt(0).toUpperCase() + segment.slice(1);
+      const title = getBreadcrumbTitle(segment);
 
       if (isLast) {
         // ตัวสุดท้าย: หน้าปัจจุบัน

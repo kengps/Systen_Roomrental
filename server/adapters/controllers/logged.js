@@ -7,7 +7,10 @@ const Profile = require("../../frameworks/database/mongoDB/models/profile");
 const { createTokenLogin, deleteTokenLogin, getExistingToken, findeToken } = require("../repositories/login");
 const tokenModel = require("../../frameworks/database/mongoDB/models/tokenModel");
 
-const { setCookie, getCookie } = require('hono/cookie')
+const { setCookie, getCookie } = require('hono/cookie');
+const { SubmitLogs } = require("../repositories/logactions/logactionsRepository");
+const { GetIpAddress, getClientIP } = require("../../frameworks/services/getIpAddress");
+const { getConnInfo } = require("@hono/node-server/conninfo");
 
 // exports.logged = [
 //   check('username').trim().escape(),
@@ -105,6 +108,8 @@ exports.logged = async (c) => {
   try {
     const { username, password } = await c.req.json()
 
+    const info = getClientIP(c) // info is `ConnInfo`
+ 
     if (!username || !password) {
       return sendResponseHono(c, 400, "กรุณากรอก username และ password", null);
     }
@@ -134,8 +139,6 @@ exports.logged = async (c) => {
     }
 
 
-
-
     const passIsMatch = await bcrypt.compare(password, user.password);
     if (!passIsMatch) {
 
@@ -158,6 +161,8 @@ exports.logged = async (c) => {
     // สร้าง Token
     const token = jwt.sign(userPayLoad, process.env.JWT_SECRET, { expiresIn: "15m" });
     const refreshToken = jwt.sign(userPayLoad, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" });
+    console.log(`⩇⩇:⩇⩇🚨 ~ refreshToken :`, refreshToken);
+
 
 
 
@@ -167,11 +172,23 @@ exports.logged = async (c) => {
 
     setCookie(c, 'refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'prod',
-      sameSite: process.env.NODE_ENV === 'prod' ? 'Strict' : 'Lax',
+      // secure: process.env.NODE_ENV === 'production',
+      // sameSite: process.env.NODE_ENV === 'production' ? 'Strict' : 'Lax',
+      secure: true, // ✅ ต้องใช้ https เท่านั้น
+      sameSite: 'None', // ✅ เพื่อให้ cookie ใช้ข้าม origin ได้
       maxAge: 7 * 24 * 60 * 60, // 7 วัน
       path: '/',
     })
+
+    await SubmitLogs(
+      {
+        ipAddress: info || '',
+        action: "login",
+        actor: user._id,
+        details: userPayLoad
+      }
+    )
+
 
 
 
@@ -209,6 +226,15 @@ exports.logouted = async (c) => {
     path: '/'
   })
 
+
+  await SubmitLogs(
+    {
+      ipAddress: 0 || '',
+      action: "logout",
+      actor: id,
+      details: ''
+    }
+  )
 
   return c.json({ message: 'logout successfully' })
 

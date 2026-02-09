@@ -18,7 +18,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from 'react-toastify';
 import { createBilling, getBilling, getDataBill } from "../../../service/api/bill";
 import persistMiddleware from "../../../service/zustand/middleware/persistMiddleware";
-import BillingForm from "../components/billing/BillingForm";
+import BillingForm from "../components/billing-payment/BillingForm";
 
 dayjs.extend(buddhistEra);
 dayjs.locale("th");
@@ -45,7 +45,7 @@ const thaiMonthMap = {
 export default function BillingSystem() {
   const { apartmentData, user } = persistMiddleware();
 
-  const { addressLine, apartmentName, phones } = apartmentData?.result;
+  const { addressLine, apartmentName, phones } = apartmentData?.result || {};
 
 
   const accountId = user?.userPayLoad?.user?.id;
@@ -55,7 +55,6 @@ export default function BillingSystem() {
     queryFn: () => getDataBill(accountId),
     enabled: !!accountId,
   });
-  console.log(`⩇⩇:⩇⩇🚨 ~ BillingSystem ~ data :`, data);
 
 
 
@@ -92,6 +91,8 @@ export default function BillingSystem() {
 
 
   const detailTenant = data?.tenants;
+  console.log(`⩇⩇:⩇⩇🚨 ~ detailTenant :`, detailTenant);
+
 
 
 
@@ -103,101 +104,7 @@ export default function BillingSystem() {
     phone: phones,
   };
 
-  // 2. ใช้ useMemo เพื่อป้องกันการสร้าง array ใหม่ทุกครั้ง
-  // const tenantDataForUI = useMemo(() => {
-  //   if (!detailTenant) return [];
-  //   return detailTenant.map((item) => ({
-  //     id: item._id,
-  //     name: item.firstName + " " + item.lastName,
-  //     floor: item.room.floor,
-  //     roomNumber: item.room.roomNumber,
-  //     price: item.room.price,
-  //     prevWater: item.room.meter.water,
-  //     prevElectric: item.room.meter.electric,
-  //     serviceUsage: item.serviceUsage,
-  //     phone: item.phone,
-  //   }));
-  // }, [detailTenant]);
 
-  // const tenantDataForUI2 = useMemo(() => {
-  //   if (!detailTenant || !dataBilling) return [];
-
-  //   // ✅ กรองบิลตามเดือนและปีที่ต้องการ
-  //   const billedTenantIds = Array.isArray(dataBilling?.data)
-  //     ? dataBilling.data
-  //       .filter(
-  //         (bill) =>
-  //           bill.billingPeriod.month === selectedMonth &&
-  //           bill.billingPeriod.year === selectedYear
-  //       )
-  //       .map((bill) => bill.tenant)
-  //     : [];
-
-
-  //   // ✅ เอาเฉพาะผู้เช่าที่ยังไม่ออกบิลในเดือนนั้น
-  //   const unbilledTenants = detailTenant.filter(
-  //     (item) => !billedTenantIds.includes(item._id)
-  //   );
-
-  //   return unbilledTenants.map((item) => ({
-  //     id: item._id,
-  //     name: item.firstName + " " + item.lastName,
-  //     floor: item.room.floor,
-  //     roomNumber: item.room.roomNumber,
-  //     price: item.room.price,
-  //     prevWater: item.room.meter.water,
-  //     prevElectric: item.room.meter.electric,
-  //     serviceUsage: item.serviceUsage,
-  //     phone: item.phone,
-  //   }));
-  // }, [detailTenant, dataBilling, selectedMonth, selectedYear]);
-
-
-
-  // const tenantDataForUI = useMemo(() => {
-  //   if (!detailTenant || !dataBilling) return [];
-
-  //   // หารายชื่อ tenantId ที่ออกบิลแล้ว
-  //   const billedTenantIds = dataBilling?.data?.map((bill) => bill.tenant);
-
-  //   // กรองเฉพาะคนที่ยังไม่มีใน billedTenantIds
-  //   const unbilledTenants = detailTenant?.filter(
-  //     (item) => !billedTenantIds.includes(item._id)
-  //   );
-
-  //   return unbilledTenants.map((item) => ({
-  //     id: item._id,
-  //     name: item.firstName + " " + item.lastName,
-  //     floor: item.room.floor,
-  //     roomNumber: item.room.roomNumber,
-  //     price: item.room.price,
-  //     prevWater: item.room.meter.water,
-  //     prevElectric: item.room.meter.electric,
-  //     serviceUsage: item.serviceUsage,
-  //     phone: item.phone,
-  //   }));
-  // }, [detailTenant, dataBilling]);
-
-  const tenantDataForUI3 = useMemo(() => {
-    if (!detailTenant || !dataBilling) return [];
-
-    const billedTenantIds = Array.isArray(dataBilling?.data)
-      ? dataBilling.data.map((bill) => bill.tenant)
-      : [];
-
-    return detailTenant.map((item) => ({
-      id: item._id,
-      name: `${item.firstName} ${item.lastName}`,
-      floor: item.room.floor,
-      roomNumber: item.room.roomNumber,
-      price: item.room.price,
-      prevWater: item.room.meter.water,
-      prevElectric: item.room.meter.electric,
-      serviceUsage: item.serviceUsage,
-      phone: item.phone,
-      isBilled: billedTenantIds.includes(item._id), // ✅ ใส่สถานะตรงนี้
-    }));
-  }, [detailTenant, dataBilling]);
 
 
   const tenantDataForUI = useMemo(() => {
@@ -219,61 +126,13 @@ export default function BillingSystem() {
       floor: item.room.floor,
       roomNumber: item.room.roomNumber,
       price: item.room.price,
-      prevWater: item.room.meter.water,
-      prevElectric: item.room.meter.electric,
+      prevWater: item.room.unitMeter.water,
+      prevElectric: item.room.unitMeter.electric,
       serviceUsage: item.serviceUsage,
       phone: item.phone,
       isBilled: billedTenantIds.includes(item._id), // ✅ มี flag สถานะแล้ว
     }));
   }, [detailTenant, dataBilling, monthNumber, year]);
-
-
-  // ใน BillingSystem.jsx
-
-  // ...
-
-  // 👇 แก้ไข useMemo ส่วนนี้ทั้งหมด
-  // const tenantOptions = useMemo(() => {
-  //   if (!detailTenant) return [];
-  //   if (isLoadingBilling) {
-  //     return [{ label: 'กำลังตรวจสอบข้อมูลบิล...', options: [] }];
-  //   }
-
-  //   // 👇 --- ส่วนที่แก้ไข --- 👇
-  //   // 1. ดึง array ของบิลออกจาก object ที่ API ส่งมา
-  //   const bills = dataBilling?.data || [];
-
-  //   // 2. สร้าง Set จาก array ของบิลนั้นๆ
-  //   const tenantIdsWithBills = new Set(bills.map(bill => bill.tenant));
-  //   // -------------------------
-
-  //   const availableTenants = detailTenant.filter(
-  //     tenant => !tenantIdsWithBills.has(tenant._id)
-  //   );
-
-  //   const billedTenants = detailTenant.filter(
-  //     tenant => tenantIdsWithBills.has(tenant._id)
-  //   );
-
-  //   return [
-  //     {
-  //       label: `ยังไม่ได้ออกบิล (${availableTenants.length})`,
-  //       options: availableTenants.map(t => ({
-  //         label: `ห้อง ${t.room?.roomNumber} - ${t.firstName} ${t.lastName}`,
-  //         value: t._id,
-  //       })),
-  //     },
-  //     {
-  //       label: `ออกบิลแล้ว (${billedTenants.length})`,
-  //       options: billedTenants.map(t => ({
-  //         label: `ห้อง ${t.room?.roomNumber} - ${t.firstName} ${t.lastName}`,
-  //         value: t._id,
-  //         disabled: true,
-  //       })),
-  //     }
-  //   ];
-
-  // }, [detailTenant, dataBilling, isLoadingBilling]);
 
 
 
@@ -729,10 +588,14 @@ export default function BillingSystem() {
 
     const mountName = billingPeriod.month
     const mountNumber = thaiMonthMap[mountName] || null
+
+    console.log(`⩇⩇:⩇⩇🚨 ~ tenantInfo :`, tenantInfo);
+    console.log(`⩇⩇:⩇⩇🚨 ~ detailApartment :`, detailApartment);
     const billPayload = {
       // ข้อมูลผู้รับบิลและอพาร์ตเมนต์
       accountId: accountId,
       tenantId: tenantInfo.id,
+      roomNumber: tenantInfo.roomNumber,
       apartmentId: detailApartment?._id,
 
       // ข้อมูลรอบบิล
@@ -743,7 +606,8 @@ export default function BillingSystem() {
 
       // วันที่ออกบิลและวันครบกำหนด (ตัวอย่าง: ครบกำหนดใน 7 วัน)
       issueDate: dayjs().toISOString(),
-      dueDate: dayjs().add(detailApartment?.billingSettings?.paymentDueDate || 7, 'day').toISOString(),
+      dueDate: dayjs().add(1, 'month').date(detailApartment?.billingSettings?.paymentDueDate || 5).endOf('day').toISOString(),
+
 
       // รายการค่าใช้จ่ายหลัก
       roomCharge: {
@@ -793,15 +657,17 @@ export default function BillingSystem() {
       // สถานะเริ่มต้นของบิล
       status: 'unpaid',
     };
+    console.log(`⩇⩇:⩇⩇🚨 ~ billPayload :`, billPayload);
 
-    console.log("✅ Final Bill Payload:", billPayload);
+
+
 
 
 
     try {
 
       const res = await createBilling(billPayload)
-      console.log(`⩇⩇:⩇⩇🚨 ~ handleOkBilling ~ res :`, res);
+
       reset()
 
       if (res.success === true) {

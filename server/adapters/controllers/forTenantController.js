@@ -1,7 +1,9 @@
+const { NotificationService } = require("../../frameworks/database/mongoDB/models/apartments/notifications")
 const { handleRequestError } = require("../../frameworks/webserver/utils/HOCHandelRequest")
 const { sendResponseHono } = require("../../frameworks/webserver/utils/responseMessage")
+const { SubmitLogs } = require("../repositories/logactions/logactionsRepository")
 const { findOwner } = require("../repositories/register")
-const { informationApartmentForTenants, ListBillingTenant } = require("../repositories/tenant/tanantReposit")
+const { informationApartmentForTenants, ListBillingTenant, SavePayments } = require("../repositories/tenant/tanantReposit")
 
 
 
@@ -34,6 +36,29 @@ exports.BillingTenant = handleRequestError(async (c) => {
 
 
     return sendResponseHono(c, 200, 'get billing successfully', billings)
+
+
+})
+exports.PayMentsTenant = handleRequestError(async (c) => {
+
+    const body = await c.req.json()
+
+
+    const billings = await SavePayments(body)
+
+    await NotificationService.paymentWaiting(billings.payment, billings.check)
+
+    await SubmitLogs(
+        {
+            ipAddress: 0 || '',
+            action: "PayMentsTenant",
+            actor: body.tenant,
+            details: billings
+        }
+    )
+
+
+    return c.json({ status: 201, message: 'payment submit successfully', billings })
 
 
 })

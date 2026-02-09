@@ -23,22 +23,18 @@ import {
     Tag,
     Typography
 } from 'antd';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { addServices, getServices } from '../../../service/api/apartment';
 import persistMiddleware from '../../../service/zustand/middleware/persistMiddleware';
 import NumericInputControllerPage from '../components/ui/NumericInputControllerPage';
+import PageHeader from '../../../components/common/PageHeader';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-// --- Mock Data ---
-const initialServicesData = [
-    { id: 'S1', name: 'ค่าที่จอดรถ', unit: 'monthly', price: 300, status: true, description: 'สำหรับรถยนต์ 1 คัน' },
-    { id: 'S2', name: 'ค่าอินเทอร์เน็ต', unit: 'monthly', price: 599, status: true, description: 'ความเร็ว 300/300 Mbps' },
-    { id: 'S3', name: 'ค่าทำความสะอาดใหญ่', unit: 'onetime', price: 800, status: false, description: 'ทำความสะอาดเมื่อแจ้งย้ายออก' },
-    { id: 'S4', name: 'ค่าบริการฟิตเนส', unit: 'monthly', price: 200, status: true, description: 'สำหรับผู้พักอาศัย 1 ท่าน' },
-];
+
+
 export default function ManageServicesPage() {
     const [services, setServices] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -175,48 +171,114 @@ export default function ManageServicesPage() {
             title: 'ชื่อบริการ',
             dataIndex: 'name',
             key: 'name',
-            render: (text) => <Text strong>{text}</Text>,
+            width: 'auto',
+            ellipsis: true,
+            render: (text, record) => (
+                <div>
+                    <Text strong style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
+                        {text}
+                    </Text>
+                    {record.description && (
+                        <div>
+                            <Text
+                                type="secondary"
+                                style={{
+                                    fontSize: 'clamp(10px, 2vw, 12px)',
+                                    display: 'block',
+                                    marginTop: '2px'
+                                }}
+                            >
+                                {record.description}
+                            </Text>
+                        </div>
+                    )}
+                </div>
+            ),
         },
         {
             title: 'ประเภท',
             dataIndex: 'unit',
             key: 'unit',
+            width: 100,
+            responsive: ['md'],
             render: (unit) => (
-                <Tag color={unit === 'monthly' ? 'blue' : 'green'}>
+                <Tag
+                    color={unit === 'monthly' ? 'blue' : 'green'}
+                    style={{ fontSize: 'clamp(10px, 2vw, 12px)' }}
+                >
                     {unit === 'monthly' ? 'รายเดือน' : 'ครั้งเดียว'}
                 </Tag>
             ),
         },
         {
-            title: 'ราคา (บาท)',
+            title: 'ราคา',
             dataIndex: 'price',
             key: 'price',
+            width: 120,
             align: 'right',
-            render: (price) => price.toLocaleString('en-US', { minimumFractionDigits: 2 }),
+            render: (price, record) => (
+                <div style={{ textAlign: 'right' }}>
+                    <Text strong style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
+                        ฿{price.toLocaleString('en-US')}
+                    </Text>
+                    <div style={{ display: 'block', fontSize: 'clamp(10px, 2vw, 11px)' }}>
+                        <Tag
+                            color={record.unit === 'monthly' ? 'blue' : 'green'}
+                            size="small"
+                            className="md:hidden"
+                            style={{
+                                fontSize: 'clamp(9px, 1.8vw, 10px)',
+                                marginTop: '2px'
+                            }}
+                        >
+                            {record.unit === 'monthly' ? 'รายเดือน' : 'ครั้งเดียว'}
+                        </Tag>
+                    </div>
+                </div>
+            ),
         },
         {
             title: 'สถานะ',
             dataIndex: 'status',
             key: 'status',
+            width: 80,
+            align: 'center',
             render: (status, record) => (
-                <Switch checked={status} onChange={(checked) => handleStatusChange(checked, record)} />
+                <Switch
+                    checked={status}
+                    onChange={(checked) => handleStatusChange(checked, record)}
+                    size="small"
+                />
             ),
         },
         {
-            title: 'การดำเนินการ',
+            title: 'จัดการ',
             key: 'action',
+            width: 120,
             align: 'center',
             render: (_, record) => (
-                <Space>
-                    <Button icon={<EditOutlined />} onClick={() => showEditModal(record)}>แก้ไข</Button>
+                <Space size="small" wrap>
+                    <Button
+                        icon={<EditOutlined />}
+                        onClick={() => showEditModal(record)}
+                        size="small"
+                        style={{ fontSize: 'clamp(10px, 2vw, 12px)' }}
+                    >
+                        <span className="hidden sm:inline">แก้ไข</span>
+                    </Button>
                     <Popconfirm
                         title="ยืนยันการลบ"
                         description={`คุณแน่ใจหรือไม่ที่จะลบบริการ "${record.name}"?`}
                         onConfirm={() => handleDelete(record.id)}
                         okText="ยืนยัน"
                         cancelText="ยกเลิก"
+                        placement="topRight"
                     >
-                        <Button icon={<DeleteOutlined />} danger />
+                        <Button
+                            icon={<DeleteOutlined />}
+                            danger
+                            size="small"
+                        />
                     </Popconfirm>
                 </Space>
             ),
@@ -224,68 +286,147 @@ export default function ManageServicesPage() {
     ];
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f0f2f5', padding: '32px' }}>
-            <Card style={{ maxWidth: '1200px', margin: '0 auto', boxShadow: '0 4px 8px 0 rgba(0,0,0,0.1)' }}>
-                <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                    <Row justify="space-between" align="middle">
-                        <Col>
-                            <Space align="center" size="middle">
-                                <AppstoreAddOutlined style={{ fontSize: '2rem', color: '#1890ff' }} />
-                                <div>
-                                    <Title level={4} style={{ margin: 0 }}>จัดการค่าบริการเพิ่มเติม</Title>
-                                    <Text type="secondary">เพิ่ม ลบ หรือแก้ไขค่าบริการอื่นๆ สำหรับอพาร์ทเมนท์</Text>
-                                </div>
-                            </Space>
-                        </Col>
-                        <Col>
-                            <Button type="primary" icon={<PlusOutlined />} size="large" onClick={showAddModal}>
-                                เพิ่มบริการใหม่
-                            </Button>
-                        </Col>
-                    </Row>
-
-                    <Table
-                        columns={columns}
-                        dataSource={services}
-                        rowKey="id"
-                        loading={isLoadingServices}
-                        pagination={false}
+        <div style={{
+            minHeight: '100vh',
+            backgroundColor: '#f0f2f5',
+            padding: 'clamp(8px, 2vw, 32px)'
+        }}>
+            <Card style={{
+                maxWidth: '1200px',
+                margin: '0 auto',
+                boxShadow: '0 4px 8px 0 rgba(0,0,0,0.1)',
+                borderRadius: '8px'
+            }}>
+                <Space
+                    direction="vertical"
+                    size="large"
+                    style={{ width: '100%' }}
+                >
+                    <PageHeader
+                        title="จัดการค่าบริการเพิ่มเติม"
+                        subtitle="เพิ่ม ลบ หรือแก้ไขค่าบริการอื่นๆ สำหรับอพาร์ทเมนท์"
+                        icon="⚙️"
                     />
+                    
+                    <div style={{ textAlign: 'right', marginBottom: '16px' }}>
+                        <Button
+                            type="primary"
+                            icon={<PlusOutlined />}
+                            size="large"
+                            onClick={showAddModal}
+                            style={{
+                                fontSize: 'clamp(12px, 2.5vw, 14px)',
+                                height: 'clamp(36px, 6vw, 40px)'
+                            }}
+                        >
+                            เพิ่มบริการใหม่
+                        </Button>
+                    </div>
+
+                    {/* Table Section */}
+                    <div style={{
+                        overflowX: 'auto',
+                        margin: '0 -16px',
+                        padding: '0 16px'
+                    }}>
+                        <Table
+                            columns={columns}
+                            dataSource={services}
+                            rowKey="id"
+                            loading={isLoadingServices}
+                            pagination={{
+                                pageSize: 10,
+                                showSizeChanger: false,
+                                showQuickJumper: false,
+                                showTotal: (total, range) => (
+                                    <span style={{ fontSize: 'clamp(10px, 2vw, 12px)' }}>
+                                        {`${range[0]}-${range[1]} จาก ${total} รายการ`}
+                                    </span>
+                                ),
+                                itemRender: (page, type, originalElement) => {
+                                    if (type === 'prev' || type === 'next') {
+                                        return React.cloneElement(originalElement, {
+                                            style: { fontSize: 'clamp(10px, 2vw, 12px)' }
+                                        });
+                                    }
+                                    return originalElement;
+                                }
+                            }}
+                            scroll={{ x: 650 }}
+                            size="small"
+                            style={{
+                                fontSize: 'clamp(11px, 2.2vw, 13px)'
+                            }}
+                        />
+                    </div>
                 </Space>
             </Card>
 
+            {/* Modal */}
             <Modal
                 title={
-                    <Title level={4} style={{ margin: 0 }}>
+                    <Title
+                        level={4}
+                        style={{
+                            margin: 0,
+                            fontSize: 'clamp(16px, 3vw, 18px)'
+                        }}
+                    >
                         {editingService ? 'แก้ไขบริการ' : 'เพิ่มบริการใหม่'}
                     </Title>
                 }
                 open={isModalOpen}
                 onCancel={handleCancel}
                 footer={null}
-                destroyOnHidden
+                destroyOnClose
+                width="100%"
+                style={{
+                    maxWidth: '600px',
+                    top: 'clamp(20px, 5vh, 50px)'
+                }}
+                bodyStyle={{
+                    padding: 'clamp(12px, 3vw, 24px)',
+                    maxHeight: '80vh',
+                    overflowY: 'auto'
+                }}
             >
-                <Form layout="vertical" onFinish={handleSubmit(handleSave)} style={{ paddingTop: '16px' }}>
-                    <Form.Item label="ชื่อบริการ" required validateStatus={errors.name ? 'error' : ''} help={errors.name?.message}>
+                <Form
+                    layout="vertical"
+                    onFinish={handleSubmit(handleSave)}
+                    style={{ paddingTop: '16px' }}
+                >
+                    <Form.Item
+                        label={
+                            <span style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
+                                ชื่อบริการ
+                            </span>
+                        }
+                        required
+                        validateStatus={errors.name ? 'error' : ''}
+                        help={errors.name?.message}
+                        style={{ marginBottom: 'clamp(12px, 3vw, 16px)' }}
+                    >
                         <NumericInputControllerPage
                             type='string'
                             controllerName='name'
                             control={control}
                             rulesName='กรุณากรอกชื่อบริการ'
                             placeholder='เช่น ค่าที่จอดรถ, ค่าอินเทอร์เน็ต'
-
+                            style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}
                         />
-                        {/* <Controller
-                            name="name"
-                            control={control}
-                            rules={{ required: 'กรุณากรอกชื่อบริการ' }}
-                            render={({ field }) => <Input {...field} placeholder="เช่น ค่าที่จอดรถ, ค่าอินเทอร์เน็ต" />}
-                        /> */}
                     </Form.Item>
 
-                    <Row gutter={16}>
-                        <Col span={12}>
-                            <Form.Item label="ประเภทการเรียกเก็บ" required>
+                    <Row gutter={[12, 12]}>
+                        <Col xs={24} sm={12}>
+                            <Form.Item
+                                label={
+                                    <span style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
+                                        ประเภทการเรียกเก็บ
+                                    </span>
+                                }
+                                required
+                                style={{ marginBottom: 'clamp(12px, 3vw, 16px)' }}
+                            >
                                 <NumericInputControllerPage
                                     type="select"
                                     controllerName="unit"
@@ -293,85 +434,93 @@ export default function ManageServicesPage() {
                                     selectOptions={[
                                         { value: 'monthly', name: 'รายเดือน' },
                                         { value: 'onetime', name: 'ครั้งเดียว' },
-                                     
                                     ]}
+                                    style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}
                                 />
-
-                                {/* <Controller
-                                    name="unit"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Select {...field} >
-                                            <Option value="monthly">รายเดือน</Option>
-                                            <Option value="onetime">รายเดือน</Option>
-                                        </Select>
-                                    )}
-                                /> */}
                             </Form.Item>
                         </Col>
-                        <Col span={12}>
-                            <Form.Item label="ราคา" required validateStatus={errors.price ? 'error' : ''} help={errors.price?.message}>
-
+                        <Col xs={24} sm={12}>
+                            <Form.Item
+                                label={
+                                    <span style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
+                                        ราคา
+                                    </span>
+                                }
+                                required
+                                validateStatus={errors.price ? 'error' : ''}
+                                help={errors.price?.message}
+                                style={{ marginBottom: 'clamp(12px, 3vw, 16px)' }}
+                            >
                                 <NumericInputControllerPage
                                     type='number'
                                     controllerName='price'
                                     control={control}
                                     rulesName='ราคาต้องมากกว่า 0'
-                                    placeholder='เช่น ค่าที่จอดรถ, ค่าอินเทอร์เน็ต'
+                                    placeholder='0'
                                     prefix="฿"
-
+                                    style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}
                                 />
-                                {/* <Controller
-                                    name="price"
-                                    control={control}
-                                    rules={{ min: { value: 1, message: 'ราคาต้องมากกว่า 0' } }}
-                                    render={({ field }) => <InputNumber
-                                        min={0}{...field}
-                                        prefix="฿"
-                                        style={{ width: '100%' }}
-
-                                        onKeyDown={(event) => {
-                                            const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'];
-                                            const isCtrlCmd = event.ctrlKey || event.metaKey; // Ctrl หรือ Cmd
-
-                                            // อนุญาต Ctrl/Cmd + (C, V, X, A)
-                                            if (isCtrlCmd && ['a', 'c', 'v', 'x'].includes(event.key.toLowerCase())) {
-                                                return; // อนุญาตให้ทำงานตามปกติ
-                                            }
-
-                                            // ถ้าไม่ใช่เลข และไม่ใช่ปุ่มที่อนุญาตอื่น ๆ บล็อคการพิมพ์
-                                            if (!/[0-9]/.test(event.key) && !allowedKeys.includes(event.key)) {
-                                                event.preventDefault();
-                                            }
-                                        }}
-
-                                        onPaste={(event) => {
-                                            const pasteData = event.clipboardData.getData('text');
-                                            if (!/^\d+$/.test(pasteData)) {
-                                                event.preventDefault();
-                                            }
-                                        }}
-
-                                    />}
-                                /> */}
                             </Form.Item>
                         </Col>
                     </Row>
 
-                    <Form.Item label="คำอธิบาย (ถ้ามี)">
+                    <Form.Item
+                        label={
+                            <span style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
+                                คำอธิบาย (ถ้ามี)
+                            </span>
+                        }
+                        style={{ marginBottom: 'clamp(16px, 4vw, 24px)' }}
+                    >
                         <Controller
                             name="description"
                             control={control}
-                            render={({ field }) => <Input.TextArea {...field} rows={3} placeholder="รายละเอียดเพิ่มเติมเกี่ยวกับบริการนี้" />}
+                            render={({ field }) => (
+                                <Input.TextArea
+                                    {...field}
+                                    rows={3}
+                                    placeholder="รายละเอียดเพิ่มเติมเกี่ยวกับบริการนี้"
+                                    style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}
+                                />
+                            )}
                         />
                     </Form.Item>
 
-                    <Divider />
+                    <Divider style={{ margin: 'clamp(12px, 3vw, 16px) 0' }} />
 
-                    <Form.Item style={{ textAlign: 'right', marginBottom: 0 }}>
-                        <Space>
-                            <Button onClick={handleCancel}>ยกเลิก</Button>
-                            <Button type="primary" htmlType="submit">บันทึก</Button>
+                    <Form.Item
+                        style={{
+                            textAlign: 'right',
+                            marginBottom: 0
+                        }}
+                    >
+                        <Space
+                            size="middle"
+                            style={{
+                                width: '100%',
+                                justifyContent: 'flex-end',
+                                flexWrap: 'wrap'
+                            }}
+                        >
+                            <Button
+                                onClick={handleCancel}
+                                style={{
+                                    fontSize: 'clamp(12px, 2.5vw, 14px)',
+                                    minWidth: '80px'
+                                }}
+                            >
+                                ยกเลิก
+                            </Button>
+                            <Button
+                                type="primary"
+                                htmlType="submit"
+                                style={{
+                                    fontSize: 'clamp(12px, 2.5vw, 14px)',
+                                    minWidth: '80px'
+                                }}
+                            >
+                                บันทึก
+                            </Button>
                         </Space>
                     </Form.Item>
                 </Form>

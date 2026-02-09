@@ -1,7 +1,9 @@
 import {
     DeleteOutlined,
     DollarCircleOutlined,
+    EditOutlined,
     FileDoneOutlined,
+    KeyOutlined,
     LockOutlined,
     PhoneOutlined,
     PlusOutlined,
@@ -9,6 +11,7 @@ import {
     UserAddOutlined,
     UserOutlined,
 } from "@ant-design/icons";
+import PageHeader from '../../../components/common/PageHeader';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -25,6 +28,7 @@ import {
     Form,
     Input,
     InputNumber,
+    Upload,
     List,
     message,
     Modal,
@@ -41,24 +45,10 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
-// import { getTenants } from "../../../service/api/apartment";
 import { toast } from "react-toastify";
 import { addServiceUsageTenant, deleteServiceUsage, getServices, getTenants } from "../../../service/api/apartment";
 import { createTenant, getRoom, updateTenancyStatus } from "../../../service/api/rooms";
 import persistMiddleware from "../../../service/zustand/middleware/persistMiddleware";
-
-// // NOTE: Mocking API functions for demonstration purposes
-// const getRoom = async (profileId) => {
-//   console.log("Fetching rooms for", profileId);
-//   return { result: mockRooms };
-// };
-// const getTenants = async (profileId) => {
-//   console.log("Fetching tenants for", profileId);
-//   return { result: { result: mockTenants } };
-// };
-
-
-
 
 // ตั้งค่าภาษาไทยสำหรับ dayjs
 dayjs.locale("th");
@@ -67,18 +57,18 @@ dayjs.extend(relativeTime);
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-
-
 // --- Zod Schema for Validation ---
 const addTenantSchema = z.object({
     prefix: z.string(),
     firstName: z.string().min(1, { message: "กรุณากรอกชื่อจริง" }),
     lastName: z.string().min(1, { message: "กรุณากรอกนามสกุล" }),
+    nickName: z.string().optional().or(z.literal('')),
     username: z.string().min(1, { message: "กรุณากรอกไอดี" }),
     password: z.string().min(1, { message: "กรุณากรอกรหัสผ่าน" }),
     phoneNumber: z
         .string()
         .min(9, { message: "กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง" }),
+    nationalId: z.string().optional().or(z.literal('')),
     floor: z.number({
         required_error: "กรุณาเลือกชั้น",
         invalid_type_error: "กรุณาเลือกชั้น",
@@ -96,6 +86,23 @@ const addTenantSchema = z.object({
         required_error: "กรุณาเลือกวันที่เข้าพัก",
         invalid_type_error: "รูปแบบวันที่ไม่ถูกต้อง",
     }),
+    address: z.string().optional().or(z.literal('')),
+    email: z.string().email('อีเมลไม่ถูกต้อง').optional().or(z.literal('')),
+    facebook: z.string().optional().or(z.literal('')),
+    lineId: z.string().optional().or(z.literal('')),
+    education: z.string().optional().or(z.literal('')),
+    faculty: z.string().optional().or(z.literal('')),
+    majorOrPosition: z.string().optional().or(z.literal('')),
+    studentOrEmployeeId: z.string().optional().or(z.literal('')),
+    emergencyName: z.string().optional().or(z.literal('')),
+    emergencyRelation: z.string().optional().or(z.literal('')),
+    emergencyPhone: z.string().optional().or(z.literal('')),
+    vehicleType: z.string().optional().or(z.literal('')),
+    vehicleDetail: z.string().optional().or(z.literal('')),
+    vehiclePlate: z.string().optional().or(z.literal('')),
+    wifiCode: z.string().optional().or(z.literal('')),
+    internetCode: z.string().optional().or(z.literal('')),
+    remarks: z.string().optional().or(z.literal('')),
 });
 
 const editTenantSchema = z
@@ -114,6 +121,17 @@ const editTenantSchema = z
 
 // --- ฟอร์มเพิ่มผู้เช่า (AddTenantForm) ---
 const AddTenantForm = ({ onFinish, onCancel, rooms }) => {
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const {
         control,
         handleSubmit,
@@ -127,10 +145,30 @@ const AddTenantForm = ({ onFinish, onCancel, rooms }) => {
             contractDuration: 3,
             username: "",
             password: "",
+            nickName: "",
+            nationalId: "",
+            address: "",
+            email: "",
+            facebook: "",
+            lineId: "",
+            education: "",
+            faculty: "",
+            majorOrPosition: "",
+            studentOrEmployeeId: "",
+            emergencyName: "",
+            emergencyRelation: "",
+            emergencyPhone: "",
+            vehicleType: "",
+            vehicleDetail: "",
+            vehiclePlate: "",
+            wifiCode: "",
+            internetCode: "",
+            remarks: "",
         },
     });
     const [selectedFloor, setSelectedFloor] = useState(null);
     const [availableRoomsForFloor, setAvailableRoomsForFloor] = useState([]);
+
     const handleFloorChange = (floor) => {
         setSelectedFloor(floor);
         const roomsData = rooms
@@ -142,6 +180,7 @@ const AddTenantForm = ({ onFinish, onCancel, rooms }) => {
         setValue("roomNumber", undefined);
         setValue("price", undefined);
     };
+
     const handleRoomChange = (roomId) => {
         const room = availableRoomsForFloor.find((r) => r._id === roomId);
         if (room) {
@@ -150,6 +189,7 @@ const AddTenantForm = ({ onFinish, onCancel, rooms }) => {
             setValue("price", room.price);
         }
     };
+
     const availableFloors = [
         ...new Set(
             rooms
@@ -158,20 +198,32 @@ const AddTenantForm = ({ onFinish, onCancel, rooms }) => {
         ),
     ];
 
+    const optionsPrefix = [
+        { label: "นาย", value: "นาย" },
+        { label: "นาง", value: "นาง" },
+        { label: "นางสาว", value: "นางสาว" },
+        { label: "Mr.", value: "Mr." },
+        { label: "Ms.", value: "Ms." },
+    ];
+
+
+
     return (
         <Form layout="vertical" onFinish={handleSubmit(onFinish)}>
             <Divider orientation="left">ข้อมูลผู้เช่า</Divider>
-            <Row gutter={24}>
+            <Row gutter={isMobile ? [8, 0] : [24, 0]}>
                 <Col xs={24} sm={4}>
                     <Form.Item label="คำนำหน้า" required>
                         <Controller
                             name="prefix"
                             control={control}
                             render={({ field }) => (
-                                <Select {...field}>
-                                    <Option value="นาย">นาย</Option>
-                                    <Option value="นาง">นาง</Option>
-                                    <Option value="นางสาว">นางสาว</Option>
+                                <Select {...field} size={isMobile ? "small" : "middle"}>
+                                    {optionsPrefix.map((option) => (
+                                        <Option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </Option>
+                                    ))}
                                 </Select>
                             )}
                         />
@@ -188,7 +240,11 @@ const AddTenantForm = ({ onFinish, onCancel, rooms }) => {
                             name="firstName"
                             control={control}
                             render={({ field }) => (
-                                <Input {...field} prefix={<UserOutlined />} />
+                                <Input
+                                    {...field}
+                                    prefix={<UserOutlined />}
+                                    size={isMobile ? "small" : "middle"}
+                                />
                             )}
                         />
                     </Form.Item>
@@ -204,9 +260,36 @@ const AddTenantForm = ({ onFinish, onCancel, rooms }) => {
                             name="lastName"
                             control={control}
                             render={({ field }) => (
-                                <Input {...field} prefix={<UserOutlined />} />
+                                <Input
+                                    {...field}
+                                    prefix={<UserOutlined />}
+                                    size={isMobile ? "small" : "middle"}
+                                />
                             )}
                         />
+                    </Form.Item>
+                </Col>
+            </Row>
+            <Row gutter={isMobile ? [8, 0] : [24, 0]}>
+                <Col xs={24} sm={8}>
+                    <Form.Item label="ชื่อเล่น">
+                        <Controller name="nickName" control={control} render={({ field }) => (
+                            <Input {...field} size={isMobile ? 'small' : 'middle'} />
+                        )} />
+                    </Form.Item>
+                </Col>
+                <Col xs={24} sm={8}>
+                    <Form.Item label="หมายเลขบัตรประชาชน">
+                        <Controller name="nationalId" control={control} render={({ field }) => (
+                            <Input {...field} size={isMobile ? 'small' : 'middle'} />
+                        )} />
+                    </Form.Item>
+                </Col>
+                <Col xs={24} sm={8}>
+                    <Form.Item label="Line ID">
+                        <Controller name="lineId" control={control} render={({ field }) => (
+                            <Input {...field} size={isMobile ? 'small' : 'middle'} />
+                        )} />
                     </Form.Item>
                 </Col>
             </Row>
@@ -220,12 +303,119 @@ const AddTenantForm = ({ onFinish, onCancel, rooms }) => {
                     name="phoneNumber"
                     control={control}
                     render={({ field }) => (
-                        <Input {...field} prefix={<PhoneOutlined />} />
+                        <Input
+                            {...field}
+                            prefix={<PhoneOutlined />}
+                            size={isMobile ? "small" : "middle"}
+                        />
                     )}
                 />
             </Form.Item>
+            <Row gutter={isMobile ? [8, 0] : [24, 0]}>
+                <Col xs={24} sm={12}>
+                    <Form.Item label="Email" validateStatus={errors.email ? 'error' : ''} help={errors.email?.message}>
+                        <Controller name="email" control={control} render={({ field }) => (
+                            <Input {...field} size={isMobile ? 'small' : 'middle'} />
+                        )} />
+                    </Form.Item>
+                </Col>
+                <Col xs={24} sm={12}>
+                    <Form.Item label="Facebook">
+                        <Controller name="facebook" control={control} render={({ field }) => (
+                            <Input {...field} size={isMobile ? 'small' : 'middle'} />
+                        )} />
+                    </Form.Item>
+                </Col>
+            </Row>
+            <Form.Item label="ที่อยู่ตามทะเบียนบ้าน">
+                <Controller name="address" control={control} render={({ field }) => (
+                    <Input.TextArea {...field} rows={2} />
+                )} />
+            </Form.Item>
+            <Row gutter={isMobile ? [8, 0] : [24, 0]}>
+                <Col xs={24} sm={12}>
+                    <Form.Item label="สถาบันการศึกษา / สถานที่ทำงานปัจจุบัน">
+                        <Controller name="education" control={control} render={({ field }) => (
+                            <Input {...field} size={isMobile ? 'small' : 'middle'} />
+                        )} />
+                    </Form.Item>
+                </Col>
+                <Col xs={24} sm={12}>
+                    <Form.Item label="คณะ / แผนก">
+                        <Controller name="faculty" control={control} render={({ field }) => (
+                            <Input {...field} size={isMobile ? 'small' : 'middle'} />
+                        )} />
+                    </Form.Item>
+                </Col>
+            </Row>
+            <Row gutter={isMobile ? [8, 0] : [24, 0]}>
+                <Col xs={24} sm={12}>
+                    <Form.Item label="ภาควิชา">
+                        <Controller name="majorOrPosition" control={control} render={({ field }) => (
+                            <Input {...field} size={isMobile ? 'small' : 'middle'} />
+                        )} />
+                    </Form.Item>
+                </Col>
+                <Col xs={24} sm={12}>
+                    <Form.Item label="รหัสนักศึกษา / รหัสพนักงาน">
+                        <Controller name="studentOrEmployeeId" control={control} render={({ field }) => (
+                            <Input {...field} size={isMobile ? 'small' : 'middle'} />
+                        )} />
+                    </Form.Item>
+                </Col>
+            </Row>
+            <Row gutter={isMobile ? [8, 0] : [24, 0]}>
+                <Col xs={24} sm={8}>
+                    <Form.Item label="บุคคลที่ติดต่อในกรณีฉุกเฉิน">
+                        <Controller name="emergencyName" control={control} render={({ field }) => (
+                            <Input {...field} size={isMobile ? 'small' : 'middle'} />
+                        )} />
+                    </Form.Item>
+                </Col>
+                <Col xs={24} sm={8}>
+                    <Form.Item label="ความสัมพันธ์">
+                        <Controller name="emergencyRelation" control={control} render={({ field }) => (
+                            <Input {...field} size={isMobile ? 'small' : 'middle'} />
+                        )} />
+                    </Form.Item>
+                </Col>
+                <Col xs={24} sm={8}>
+                    <Form.Item label="เบอร์โทรผู้ติดต่อฉุกเฉิน">
+                        <Controller name="emergencyPhone" control={control} render={({ field }) => (
+                            <Input {...field} size={isMobile ? 'small' : 'middle'} />
+                        )} />
+                    </Form.Item>
+                </Col>
+            </Row>
+            <Divider orientation="left">ยานพาหนะ</Divider>
+            <Row gutter={isMobile ? [8, 0] : [24, 0]}>
+                <Col xs={24} sm={8}>
+                    <Form.Item label="ชนิด">
+                        <Controller name="vehicleType" control={control} render={({ field }) => (
+                            <Select {...field} size={isMobile ? 'small' : 'middle'}>
+                                <Option value="car">รถยนต์</Option>
+                                <Option value="motorcycle">รถจักรยานยนต์</Option>
+                            </Select>
+                        )} />
+                    </Form.Item>
+                </Col>
+                <Col xs={24} sm={8}>
+                    <Form.Item label="รายละเอียดรถ">
+                        <Controller name="vehicleDetail" control={control} render={({ field }) => (
+                            <Input {...field} size={isMobile ? 'small' : 'middle'} />
+                        )} />
+                    </Form.Item>
+                </Col>
+                <Col xs={24} sm={8}>
+                    <Form.Item label="ทะเบียน">
+                        <Controller name="vehiclePlate" control={control} render={({ field }) => (
+                            <Input {...field} size={isMobile ? 'small' : 'middle'} />
+                        )} />
+                    </Form.Item>
+                </Col>
+            </Row>
             <Divider orientation="left">ข้อมูลการเข้าพัก</Divider>
-            <Row gutter={24}>
+            <Row gutter={isMobile ? [8, 0] : [24, 0]}>
                 <Col xs={24} sm={8}>
                     <Form.Item
                         label="เลือกชั้น"
@@ -241,12 +431,16 @@ const AddTenantForm = ({ onFinish, onCancel, rooms }) => {
                                     {...field}
                                     placeholder="เลือกชั้น"
                                     onChange={handleFloorChange}
+                                    size={isMobile ? "small" : "middle"}
                                 >
-                                    {availableFloors.map((f) => (
-                                        <Option key={f} value={f}>
-                                            ชั้น {f}
-                                        </Option>
-                                    ))}
+                                    {availableFloors
+                                        .slice()
+                                        .sort((a, b) => a - b)
+                                        .map((f) => (
+                                            <Option key={f} value={f}>
+                                                ชั้น {f}
+                                            </Option>
+                                        ))}
                                 </Select>
                             )}
                         />
@@ -268,6 +462,7 @@ const AddTenantForm = ({ onFinish, onCancel, rooms }) => {
                                     placeholder="เลือกห้อง"
                                     disabled={!selectedFloor}
                                     onChange={handleRoomChange}
+                                    size={isMobile ? "small" : "middle"}
                                 >
                                     {availableRoomsForFloor.map((r) => (
                                         <Option key={r._id} value={r._id}>
@@ -284,12 +479,18 @@ const AddTenantForm = ({ onFinish, onCancel, rooms }) => {
                         <Controller
                             name="price"
                             control={control}
-                            render={({ field }) => <Input {...field} disabled />}
+                            render={({ field }) => (
+                                <Input
+                                    {...field}
+                                    disabled
+                                    size={isMobile ? "small" : "middle"}
+                                />
+                            )}
                         />
                     </Form.Item>
                 </Col>
             </Row>
-            <Row gutter={24}>
+            <Row gutter={isMobile ? [8, 0] : [24, 0]}>
                 <Col xs={24} sm={8}>
                     <Form.Item
                         label="ค่ามัดจำ (บาท)"
@@ -306,6 +507,7 @@ const AddTenantForm = ({ onFinish, onCancel, rooms }) => {
                                     {...field}
                                     style={{ width: "100%" }}
                                     prefix={<DollarCircleOutlined />}
+                                    size={isMobile ? "small" : "middle"}
                                 />
                             )}
                         />
@@ -327,6 +529,7 @@ const AddTenantForm = ({ onFinish, onCancel, rooms }) => {
                                     {...field}
                                     style={{ width: "100%" }}
                                     prefix={<FileDoneOutlined />}
+                                    size={isMobile ? "small" : "middle"}
                                 />
                             )}
                         />
@@ -350,6 +553,7 @@ const AddTenantForm = ({ onFinish, onCancel, rooms }) => {
                                     onChange={(date) =>
                                         field.onChange(date ? date.toDate() : null)
                                     }
+                                    size={isMobile ? "small" : "middle"}
                                 />
                             )}
                         />
@@ -357,34 +561,105 @@ const AddTenantForm = ({ onFinish, onCancel, rooms }) => {
                 </Col>
             </Row>
             <Divider orientation="left">แอคเคาท์เข้าระบบ</Divider>
-            <Form.Item
-                label="ไอดี"
-                required
-                validateStatus={errors.username ? "error" : ""}
-                help={errors.username?.message}
-            >
-                <Controller
-                    name="username"
-                    control={control}
-                    render={({ field }) => <Input {...field} prefix={<UserOutlined />} />}
-                />
+            <Row gutter={isMobile ? [8, 0] : [24, 0]}>
+                <Col xs={24} sm={12}>
+                    <Form.Item
+                        label="ไอดี"
+                        required
+                        validateStatus={errors.username ? "error" : ""}
+                        help={errors.username?.message}
+                    >
+                        <Controller
+                            name="username"
+                            control={control}
+                            render={({ field }) => (
+                                <Input
+                                    {...field}
+                                    prefix={<UserOutlined />}
+                                    size={isMobile ? "small" : "middle"}
+                                />
+                            )}
+                        />
+                    </Form.Item>
+                </Col>
+                <Col xs={24} sm={12}>
+                    <Form.Item
+                        label="รหัสผ่าน"
+                        required
+                        validateStatus={errors.password ? "error" : ""}
+                        help={errors.password?.message}
+                    >
+                        <Controller
+                            name="password"
+                            control={control}
+                            render={({ field }) => (
+                                <Input
+                                    {...field}
+                                    prefix={<LockOutlined />}
+                                    size={isMobile ? "small" : "middle"}
+                                />
+                            )}
+                        />
+                    </Form.Item>
+                </Col>
+            </Row>
+            <Divider orientation="left">ระบบ/รูปภาพ/หมายเหตุ</Divider>
+            <Row gutter={isMobile ? [8, 0] : [24, 0]}>
+                <Col xs={24} sm={12}>
+                    <Form.Item label="รหัส WiFi">
+                        <Controller name="wifiCode" control={control} render={({ field }) => (
+                            <Input {...field} size={isMobile ? 'small' : 'middle'} />
+                        )} />
+                    </Form.Item>
+                </Col>
+                <Col xs={24} sm={12}>
+                    <Form.Item label="รหัสอินเทอร์เน็ต">
+                        <Controller name="internetCode" control={control} render={({ field }) => (
+                            <Input {...field} size={isMobile ? 'small' : 'middle'} />
+                        )} />
+                    </Form.Item>
+                </Col>
+            </Row>
+            <Row gutter={isMobile ? [8, 0] : [24, 0]}>
+                <Col xs={24} sm={12}>
+                    <Form.Item label="แนบบัตรประชาชน/หลักฐาน">
+                        <Upload listType="picture-card" beforeUpload={() => false} multiple>
+                            <div>อัปโหลด</div>
+                        </Upload>
+                    </Form.Item>
+                </Col>
+                <Col xs={24} sm={12}>
+                    <Form.Item label="แนบรูปภาพเพิ่มเติม">
+                        <Upload listType="picture-card" beforeUpload={() => false} multiple>
+                            <div>อัปโหลด</div>
+                        </Upload>
+                    </Form.Item>
+                </Col>
+            </Row>
+            <Form.Item label="หมายเหตุ">
+                <Controller name="remarks" control={control} render={({ field }) => (
+                    <Input.TextArea {...field} rows={3} />
+                )} />
             </Form.Item>
-            <Form.Item
-                label="รหัสผ่าน"
-                required
-                validateStatus={errors.password ? "error" : ""}
-                help={errors.password?.message}
-            >
-                <Controller
-                    name="password"
-                    control={control}
-                    render={({ field }) => <Input {...field} prefix={<LockOutlined />} />}
-                />
-            </Form.Item>
-            <div style={{ textAlign: "right", marginTop: 24 }}>
-                <Space>
-                    <Button onClick={onCancel}>ยกเลิก</Button>
-                    <Button type="primary" htmlType="submit">
+            
+            <div style={{
+                textAlign: isMobile ? "center" : "right",
+                marginTop: 24
+            }}>
+                <Space direction={isMobile ? "vertical" : "horizontal"} style={{ width: isMobile ? "100%" : "auto" }}>
+                    <Button
+                        onClick={onCancel}
+                        size={isMobile ? "small" : "middle"}
+                        style={{ width: isMobile ? "100%" : "auto" }}
+                    >
+                        ยกเลิก
+                    </Button>
+                    <Button
+                        type="primary"
+                        htmlType="submit"
+                        size={isMobile ? "small" : "middle"}
+                        style={{ width: isMobile ? "100%" : "auto" }}
+                    >
                         บันทึก
                     </Button>
                 </Space>
@@ -402,6 +677,52 @@ const EditTenantDrawer = ({
     onUpdateServices,
     servicesData
 }) => {
+    console.log(`⩇⩇:⩇⩇🚨 ~ tenant :`, tenant);
+
+    const [isMobile, setIsMobile] = useState(false);
+    const [showPasswordReset, setShowPasswordReset] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+
+    // Handle edit account
+    const handleEditAccount = (account) => {
+        console.log('Edit account:', account);
+        // TODO: Implement edit account functionality
+        Modal.info({
+            title: 'แก้ไขบัญชีผู้ใช้งาน',
+            content: `กำลังแก้ไขบัญชี: ${account.username}`,
+        });
+    };
+
+    // Handle reset password
+    const handleResetPassword = () => {
+        if (!newPassword.trim()) {
+            Modal.error({
+                title: 'ข้อผิดพลาด',
+                content: 'กรุณากรอกรหัสผ่านใหม่',
+            });
+            return;
+        }
+        
+        console.log('Reset password for:', tenant.accountId.username, 'New password:', newPassword);
+        // TODO: Implement reset password API call
+        
+        Modal.success({
+            title: 'สำเร็จ',
+            content: 'รีเซ็ตรหัสผ่านเรียบร้อยแล้ว',
+        });
+        
+        setShowPasswordReset(false);
+        setNewPassword('');
+    };
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const {
         control,
@@ -437,17 +758,11 @@ const EditTenantDrawer = ({
     };
 
     const handleAddServices = () => {
-
         let action = 'add'
-
         onUpdateServices(tenant._id, selectedServices, action);
-
         setIsAddServiceModalOpen(false);
         setSelectedServices([]);
     };
-
-
-
 
     const handleRemoveService = (serviceId) => {
         let action = 'delete'
@@ -455,11 +770,8 @@ const EditTenantDrawer = ({
             tenant._id,
             serviceId,
             action
-
         );
     };
-
-
 
     const tenantServices = tenant?.serviceUsage
         .map((id) => servicesData.find((s) => s._id === id))
@@ -486,10 +798,8 @@ const EditTenantDrawer = ({
         const years = Math.floor(totalMonths / 12);
         const months = totalMonths % 12;
 
-        // หาวันที่เหลือหลังจากหักปีและเดือนออกแล้ว
         const intermediateDate = now.add(years, "year").add(months, "month");
         const days = endDate.diff(intermediateDate, "day");
-
 
         let displayText = "";
         if (years > 0) {
@@ -502,7 +812,6 @@ const EditTenantDrawer = ({
             displayText += `${days} วัน`;
         }
 
-        // ถ้าเหลือ 0 เดือน 0 วัน (เช่น เหลือแต่ปี หรือวันเดียว) ก็ยังโชว์ให้ครบ
         return <Text type="success">{displayText.trim()}</Text>;
     };
 
@@ -510,12 +819,18 @@ const EditTenantDrawer = ({
         <>
             <Drawer
                 title="รายละเอียดผู้เช่า"
-                width={720}
+                width={isMobile ? "100%" : 720}
                 onClose={onClose}
                 open={open}
                 styles={{ body: { paddingBottom: 80 } }}
             >
-                <Descriptions bordered column={1} size="small">
+                <Descriptions
+                    bordered
+                    column={isMobile ? 1 : 2}
+                    size={isMobile ? "small" : "default"}
+                    labelStyle={{ fontSize: isMobile ? '12px' : '14px' }}
+                    contentStyle={{ fontSize: isMobile ? '12px' : '14px' }}
+                >
                     <Descriptions.Item label="ชื่อ-นามสกุล">{`${tenant.prefix} ${tenant.firstName} ${tenant.lastName}`}</Descriptions.Item>
                     <Descriptions.Item label="เบอร์โทรศัพท์">
                         {tenant.phone}
@@ -541,24 +856,94 @@ const EditTenantDrawer = ({
                         </Descriptions.Item>
                     )}
                 </Descriptions>
+                <Divider orientation="left">บัญชีผู้ใช้งาน</Divider>
+                <Descriptions bordered column={isMobile ? 1 : 2} size={isMobile ? "small" : "default"} labelStyle={{ fontSize: isMobile ? '12px' : '14px' }} contentStyle={{ fontSize: isMobile ? '12px' : '14px' }}>
+                    <Descriptions.Item label="ชื่อผู้ใช้งาน">
+                        {tenant.accountId.username}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="สถานะ">
+                        <Tag color={tenant.accountId.enabled ? "green" : "red"}>
+                            {tenant.accountId.enabled ? "เปิดใช้งาน" : "ปิดใช้งาน"}
+                        </Tag>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="เข้าสู่ระบบล่าสุด">
+                        {dayjs(tenant.accountId.lastLogin).format("DD MMMM YYYY HH:mm")}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="วันที่สร้าง">
+                        {dayjs(tenant.accountId.createdAt).format("DD MMMM YYYY HH:mm")}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="การจัดการ">
+                        <Space direction="vertical" style={{ width: '100%' }}>
+                            <Space>
+                               
+                                <Button 
+                                    type="default" 
+                                    size="small" 
+                                    icon={<KeyOutlined />}
+                                    onClick={() => setShowPasswordReset(!showPasswordReset)}
+                                >
+                                    รีเซ็ตรหัสผ่าน
+                                </Button>
+                            </Space>
+                            
+                            {showPasswordReset && (
+                                <div style={{ 
+                                    marginTop: 8, 
+                                    padding: 12, 
+                                    background: '#f5f5f5', 
+                                    borderRadius: 6,
+                                    border: '1px solid #d9d9d9'
+                                }}>
+                                    <div style={{ marginBottom: 8, fontWeight: 500 }}>
+                                        รหัสผ่านใหม่สำหรับ {tenant.accountId.username}:
+                                    </div>
+                                    <Space.Compact style={{ width: '100%' }}>
+                                        <Input.Password
+                                            placeholder="กรอกรหัสผ่านใหม่"
+                                            value={newPassword}
+                                            onChange={(e) => setNewPassword(e.target.value)}
+                                            style={{ flex: 1 }}
+                                        />
+                                        <Button 
+                                            type="primary" 
+                                            onClick={handleResetPassword}
+                                            disabled={!newPassword.trim()}
+                                        >
+                                            ตกลง
+                                        </Button>
+                                        <Button 
+                                            onClick={() => {
+                                                setShowPasswordReset(false);
+                                                setNewPassword('');
+                                            }}
+                                        >
+                                            ยกเลิก
+                                        </Button>
+                                    </Space.Compact>
+                                </div>
+                            )}
+                        </Space>
+                    </Descriptions.Item>
+                </Descriptions>
                 <Divider orientation="left">ค่าบริการเพิ่มเติม</Divider>
                 <List
-                    size="small"
+                    size={isMobile ? "small" : "default"}
                     dataSource={tenantServices}
                     renderItem={(item) => (
                         <List.Item
                             actions={[
-                                <Button
-                                    type="text"
-                                    danger
-                                    icon={<DeleteOutlined />}
-                                    onClick={() => handleRemoveService(item._id)}
-                                />,
+                                // <Button
+                                //     type="text"
+                                //     danger
+                                //     icon={<DeleteOutlined />}
+                                //     onClick={() => handleRemoveService(item._id)}
+                                //     size={isMobile ? "small" : "middle"}
+                                // />,
                             ]}
                         >
                             <List.Item.Meta
-                                title={item.name}
-                                description={`${item.price.toLocaleString()} บาท / ${item.type === "monthly" ? "เดือน" : "ครั้ง"}`}
+                                title={<span style={{ fontSize: isMobile ? '12px' : '14px' }}>{item.name}</span>}
+                                description={<span style={{ fontSize: isMobile ? '11px' : '12px' }}>{`${item.price.toLocaleString()} บาท / ${item.type === "monthly" ? "เดือน" : "ครั้ง"}`}</span>}
                             />
                         </List.Item>
                     )}
@@ -576,6 +961,7 @@ const EditTenantDrawer = ({
                     icon={<PlusOutlined />}
                     style={{ width: "100%", marginTop: "16px" }}
                     onClick={() => setIsAddServiceModalOpen(true)}
+                    size={isMobile ? "small" : "middle"}
                 >
                     เพิ่มบริการ
                 </Button>
@@ -586,14 +972,13 @@ const EditTenantDrawer = ({
                             name="tenancyStatus"
                             control={control}
                             render={({ field }) => (
-                                <Select {...field}>
+                                <Select {...field} size={isMobile ? "small" : "middle"}>
                                     <Option value="renting">กำลังเช่า</Option>
                                     <Option value="moved">ย้ายออก</Option>
                                 </Select>
                             )}
                         />
                     </Form.Item>
-
 
                     {tenancyStatus === "moved" && (
                         <>
@@ -615,6 +1000,7 @@ const EditTenantDrawer = ({
                                                 field.onChange(date ? date.toDate() : null)
                                             }
                                             placeholder="เลือกวันที่ย้ายออก"
+                                            size={isMobile ? "small" : "middle"}
                                         />
                                     )}
                                 />
@@ -622,15 +1008,14 @@ const EditTenantDrawer = ({
 
                             <Form.Item label="ปิดการใช้งาน account" required>
                                 <Controller
-                                    name="disableAccount" // แก้ไข typo จาก disableAccuont
+                                    name="disableAccount"
                                     control={control}
                                     render={({ field }) => (
                                         <Radio.Group
-                                            {...field} // ส่ง props ทั้งหมดจาก field
-                                            // แปลงค่า boolean เป็น string 'yes'/'no' สำหรับ Radio.Group
+                                            {...field}
                                             value={field.value ? 'yes' : 'no'}
-                                            // เมื่อมีการเปลี่ยนแปลง ให้แปลงค่า string กลับเป็น boolean
                                             onChange={(e) => field.onChange(e.target.value === 'yes')}
+                                            size={isMobile ? "small" : "middle"}
                                         >
                                             <Radio value={'yes'}>ใช่</Radio>
                                             <Radio value={'no'}>ไม่ใช่</Radio>
@@ -640,10 +1025,24 @@ const EditTenantDrawer = ({
                             </Form.Item>
                         </>
                     )}
-                    <div style={{ textAlign: "right", marginTop: 24 }}>
-                        <Space>
-                            <Button onClick={onClose}>ยกเลิก</Button>
-                            <Button type="primary" htmlType="submit">
+                    <div style={{
+                        textAlign: isMobile ? "center" : "right",
+                        marginTop: 24
+                    }}>
+                        <Space direction={isMobile ? "vertical" : "horizontal"} style={{ width: isMobile ? "100%" : "auto" }}>
+                            <Button
+                                onClick={onClose}
+                                size={isMobile ? "small" : "middle"}
+                                style={{ width: isMobile ? "100%" : "auto" }}
+                            >
+                                ยกเลิก
+                            </Button>
+                            <Button
+                                type="primary"
+                                htmlType="submit"
+                                size={isMobile ? "small" : "middle"}
+                                style={{ width: isMobile ? "100%" : "auto" }}
+                            >
                                 อัปเดตสถานะ
                             </Button>
                         </Space>
@@ -657,7 +1056,14 @@ const EditTenantDrawer = ({
                 onCancel={() => setIsAddServiceModalOpen(false)}
                 okText="เพิ่มบริการที่เลือก"
                 cancelText="ยกเลิก"
-                okButtonProps={{ disabled: selectedServices.length === 0 }}
+                okButtonProps={{
+                    disabled: selectedServices.length === 0,
+                    size: isMobile ? "small" : "middle"
+                }}
+                cancelButtonProps={{
+                    size: isMobile ? "small" : "middle"
+                }}
+                width={isMobile ? "90%" : 520}
             >
                 <Checkbox.Group
                     style={{ width: "100%" }}
@@ -667,10 +1073,12 @@ const EditTenantDrawer = ({
                         {availableServicesToAdd.length > 0 ? (
                             availableServicesToAdd.map((service, index) => (
                                 <Checkbox key={service._id} value={service._id}>
-                                    {service.name}{" "}
-                                    <Text type="secondary">
-                                        ({service.price.toLocaleString()} บาท)
-                                    </Text>
+                                    <span style={{ fontSize: isMobile ? '12px' : '14px' }}>
+                                        {service.name}{" "}
+                                        <Text type="secondary">
+                                            ({service.price.toLocaleString()} บาท)
+                                        </Text>
+                                    </span>
                                 </Checkbox>
                             ))
                         ) : (
@@ -687,18 +1095,28 @@ const EditTenantDrawer = ({
  * หน้าสำหรับจัดการข้อมูลผู้เช่าทั้งหมด
  */
 const TenantManagementPage = () => {
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+
+    useEffect(() => {
+        const handleResize = () => {
+            const width = window.innerWidth;
+            setIsMobile(width < 768);
+            setIsTablet(width >= 768 && width < 1024);
+        };
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const [filterStatus, setFilterStatus] = useState("renting");
     const [addDrawerVisible, setAddDrawerVisible] = useState(false);
     const [editDrawerVisible, setEditDrawerVisible] = useState(false);
     const [selectedTenant, setSelectedTenant] = useState(null);
 
-
-
     const { user } = persistMiddleware();
     const authtoken = user?.token;
     const profileId = user?.userPayLoad?.user?.id;
-
-
 
     const { data: roomData, isLoading: isLoadingRooms } = useQuery({
         queryKey: ["listRoom", profileId],
@@ -726,14 +1144,8 @@ const TenantManagementPage = () => {
         enabled: !!profileId,
     });
 
-
-
-
-
-
     const rooms = roomData?.result || [];
     const tenants = tenantData?.result?.result || [];
-
 
     const handleAddNewTenant = async (values) => {
         const newTenantPayload = {
@@ -750,15 +1162,12 @@ const TenantManagementPage = () => {
     };
 
     const handleViewDetails = (tenant) => {
-
-
         setSelectedTenant(tenant);
         setEditDrawerVisible(true);
     };
 
     const handleUpdateTenant = async (tenantId, updatedValues) => {
         try {
-            // This logic should be adapted for your actual API
             const value = {
                 tenantId,
                 ...updatedValues
@@ -770,7 +1179,7 @@ const TenantManagementPage = () => {
 
             message.success("อัปเดตสถานะสำเร็จ (จำลอง)");
 
-            refetchTenants(); // Refetch data after update
+            refetchTenants();
             setEditDrawerVisible(false);
         } catch (error) {
             console.error("Failed to update tenant status", error);
@@ -779,19 +1188,12 @@ const TenantManagementPage = () => {
     };
 
     const handleUpdateTenantServices = async (tenantId, serviceUsageId, action) => {
-
-
-        // This should be an API call in a real application
-
         if (action === 'add') {
             const value = {
                 newServiceIds: serviceUsageId
             }
             const res = await addServiceUsageTenant(tenantId, value)
             console.log(`⩇⩇:⩇⩇🚨 ~ handleUpdateTenantServices ~ res :`, res);
-
-
-
         } else if (action === 'delete') {
             const value = {
                 tenantId,
@@ -800,69 +1202,76 @@ const TenantManagementPage = () => {
             console.log(`⩇⩇:⩇⩇🚨 ~ handleUpdateTenantServices ~ value :`, value);
             const res = await deleteServiceUsage(value)
             console.log(`⩇⩇:⩇⩇🚨 ~ handleUpdateTenantServices ~ res :`, res);
-
-
-
         } else {
             message.info("ไม่พบ actions");
         }
 
-
-
         message.success("อัปเดตบริการเพิ่มเติมสำเร็จ (จำลอง)");
-        refetchTenants(); // Refetch to get the latest tenant data
-
+        refetchTenants();
     };
 
     const filteredTenants = tenants.filter(
         (t) => t.tenancyStatus === filterStatus
     ).sort((a, b) => {
-        // เรียงตามชั้นก่อน (floor)
         if (a.room?.floor !== b.room?.floor) {
             return (a.room?.floor || 0) - (b.room?.floor || 0);
         }
-        // ถ้าชั้นเท่ากัน ให้เรียงตามเลขห้อง (roomNumber)
-        // สมมติ roomNumber เป็นเลข (ถ้าเป็น string อาจต้องแปลง)
         const roomA = Number(a.room?.roomNumber) || 0;
         const roomB = Number(b.room?.roomNumber) || 0;
         return roomA - roomB;
     })
 
     useEffect(() => {
-        // ถ้ามี tenant ที่ถูกเลือกอยู่ และมีข้อมูล tenantData ใหม่เข้ามา
         if (selectedTenant && tenantData) {
-            // ค้นหาข้อมูลล่าสุดของ tenant คนนั้นจาก list ใหม่
             const updatedTenant = tenants.find(t => t._id === selectedTenant._id);
             if (updatedTenant) {
-                // อัปเดต state ด้วยข้อมูลใหม่
                 setSelectedTenant(updatedTenant);
             }
         }
-    }, [tenantData]); // ให้ useEffect นี้ทำงานทุกครั้งที่ tenantData เปลี่ยนแปลง
+    }, [tenantData]);
+
+    const containerStyle = {
+        maxWidth: 1200,
+        margin: "auto",
+        padding: isMobile ? "16px 8px" : "32px 16px",
+        background: "#f0f2f5",
+    };
+
+    const cardTitleStyle = {
+        fontSize: isMobile ? '16px' : '18px',
+        fontWeight: 'bold'
+    };
 
     return (
-        <div
-            style={{
-                maxWidth: 1200,
-                margin: "auto",
-                padding: "32px 16px",
-                background: "#f0f2f5",
-            }}
-        >
-            <Title level={2} style={{ marginBottom: 32 }}>
-                จัดการข้อมูลผู้เช่า
-            </Title>
+        <div style={containerStyle}>
+            <PageHeader
+                title="จัดการข้อมูลผู้เช่า"
+                subtitle="จัดการข้อมูลผู้เช่าและบริการเพิ่มเติม"
+                icon="👥"
+            />
             <Card
                 loading={isLoadingTenants || isLoadingRooms}
                 variant="borderless"
-                style={{ borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}
-                title="รายชื่อผู้เช่า"
+                style={{
+                    borderRadius: 12,
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+                    margin: isMobile ? '0 -8px' : '0'
+                }}
+                title={<span style={cardTitleStyle}>รายชื่อผู้เช่า</span>}
                 extra={
-                    <Space>
+                    <Space
+                        direction={isMobile ? "vertical" : "horizontal"}
+                        size={isMobile ? "small" : "middle"}
+                        style={{
+                            width: isMobile ? '100%' : 'auto',
+                            alignItems: isMobile ? 'stretch' : 'center'
+                        }}
+                    >
                         <Select
                             value={filterStatus}
-                            style={{ width: 150 }}
+                            style={{ width: isMobile ? '100%' : 150 }}
                             onChange={(value) => setFilterStatus(value)}
+                            size={isMobile ? "small" : "middle"}
                         >
                             <Option value="renting">
                                 <Tag color="success" style={{ margin: 0 }}>
@@ -879,8 +1288,13 @@ const TenantManagementPage = () => {
                             type="primary"
                             icon={<UserAddOutlined />}
                             onClick={() => setAddDrawerVisible(true)}
+                            size={isMobile ? "small" : "middle"}
+                            style={{
+                                width: isMobile ? '100%' : 'auto',
+                                fontSize: isMobile ? '12px' : '14px'
+                            }}
                         >
-                            เพิ่มผู้เช่าใหม่
+                            {isMobile ? 'เพิ่มผู้เช่า' : 'เพิ่มผู้เช่าใหม่'}
                         </Button>
                     </Space>
                 }
@@ -888,35 +1302,61 @@ const TenantManagementPage = () => {
                 <List
                     itemLayout="horizontal"
                     dataSource={filteredTenants}
+                    size={isMobile ? "small" : "default"}
                     renderItem={(item) => (
                         <List.Item
                             actions={[
-                                <Button
-                                    type="link"
-                                    icon={<RightOutlined />}
-                                    onClick={() => handleViewDetails(item)}
-                                >
-                                    ดูรายละเอียด
-                                </Button>,
+                                // <Button
+                                //     type="link"
+                                //     icon={<RightOutlined />}
+                                //     onClick={() => handleViewDetails(item)}
+                                //     size={isMobile ? "small" : "middle"}
+                                //     style={{
+                                //         fontSize: isMobile ? '12px' : '14px',
+                                //         padding: isMobile ? '4px 8px' : undefined
+                                //     }}
+                                // >
+                                //     {isMobile ? 'ดู' : 'ดูรายละเอียด'}
+                                // </Button>,
                             ]}
                         >
                             <List.Item.Meta
-                                avatar={<Avatar size="large" icon={<UserOutlined />} />}
-                                title={
-                                    <a href="#">{`${item.prefix} ${item.firstName} ${item.lastName}`}</a>
+                                avatar={
+                                    <Avatar
+                                        size={isMobile ? "default" : "large"}
+                                        icon={<UserOutlined />}
+                                    />
                                 }
-                                description={`ชั้น ${item.room?.floor}, ห้อง ${item.room?.roomNumber}`}
+                                title={
+                                    <a
+                                        href="#"
+                                        style={{
+                                            fontSize: isMobile ? '14px' : '16px',
+                                            fontWeight: isMobile ? 'normal' : 'bold'
+                                        }}
+                                    >
+                                        {`${item.prefix} ${item.firstName} ${item.lastName}`}
+                                    </a>
+                                }
+                                description={
+                                    <span style={{ fontSize: isMobile ? '12px' : '14px' }}>
+                                        {`ชั้น ${item.room?.floor}, ห้อง ${item.room?.roomNumber}`}
+                                    </span>
+                                }
                             />
                         </List.Item>
                     )}
                 />
             </Card>
-            <Drawer
+            <Modal
                 title="เพิ่มข้อมูลผู้เช่าใหม่"
-                width={720}
-                onClose={() => setAddDrawerVisible(false)}
                 open={addDrawerVisible}
-                styles={{ body: { paddingBottom: 80 } }}
+                onCancel={() => setAddDrawerVisible(false)}
+                footer={null}
+                width={isMobile ? '100%' : 980}
+                style={{ top: 24 }}
+                bodyStyle={{ paddingBottom: 0, maxHeight: 'calc(100vh - 160px)', overflowY: 'auto' }}
+                destroyOnClose
             >
                 {rooms.length > 0 ? (
                     <AddTenantForm
@@ -927,7 +1367,7 @@ const TenantManagementPage = () => {
                 ) : (
                     <Empty description="ไม่สามารถเพิ่มผู้เช่าได้ เนื่องจากไม่มีห้องว่าง" />
                 )}
-            </Drawer>
+            </Modal>
             <EditTenantDrawer
                 tenant={selectedTenant}
                 open={editDrawerVisible}

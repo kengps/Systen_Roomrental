@@ -1,7 +1,7 @@
 const express = require('express');
 const { createRoom, addRentDetails, listRentDetails, listRoom, collectRent, addTenetRoom, updatePrice, apartmant, apartmantData } = require('../../../adapters/controllers/roomController');
 const { Hono } = require('hono');
-const { UploadFiles } = require('../../../adapters/controllers/uploadFilesController');
+const { UploadFiles ,DeleteFiles} = require('../../../adapters/controllers/uploadFilesController');
 
 
 const appUploads = new Hono()
@@ -19,8 +19,6 @@ appUploads.post('/upload', async (c) => {
     // ถ้าไม่รู้ว่า key คืออะไร
     const file = body.file ?? Object.values(body)[0]; // ใช้ key แรกถ้าไม่มี 'file'
 
-
-
     if (!file || typeof file === 'string') {
         return c.json({ error: 'File not found or invalid' }, 400);
     }
@@ -29,6 +27,24 @@ appUploads.post('/upload', async (c) => {
     // ดำเนินการต่อ...
     return c.json({
         result
+    });
+
+});
+
+appUploads.delete('/upload/file', async (c) => {
+
+    const { key } = await c.req.query()
+    // // ถ้าไม่รู้ว่า key คืออะไร
+    // const file = body.file ?? Object.values(body)[0]; // ใช้ key แรกถ้าไม่มี 'file'
+
+    // if (!file || typeof file === 'string') {
+    //     return c.json({ error: 'File not found or invalid' }, 400);
+    // }
+
+    const result = await DeleteFiles(key)
+    // // ดำเนินการต่อ...
+    return c.json({
+        result: 'df'
     });
 
 });

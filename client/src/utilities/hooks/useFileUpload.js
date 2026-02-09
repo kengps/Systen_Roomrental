@@ -8,6 +8,8 @@ export const useFileUpload = () => {
         useFileUploadContext();
 
     const uploadFileToS3 = async (file) => {
+
+
         setUploading(true);
         setUploadError(null);
 
@@ -28,6 +30,8 @@ export const useFileUpload = () => {
         } finally {
             setUploading(false);
         }
+
+
     };
 
     return {

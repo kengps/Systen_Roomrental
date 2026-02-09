@@ -37,11 +37,25 @@ function sendError(word = "เกิดข้อผิดพลาด", keyError
         error.status = 403;
         error.type = "UNAUTHORIZED";
         throw error;
-    } else if (word.includes("ไม่ถูกต้อง")) {
+    } else if (word.includes("คำนวณ")) {
+        message = `${keyError} is incorrect`;
+        const error = new Error(message);
+        error.status = 403;
+        error.type = "UNAUTHORIZED";
+        throw error;
+    }
+    else if (word.includes("ไม่ถูกต้อง")) {
         message = `${keyError} is invalid`;
         const error = new Error(message);
         error.status = 422;
         error.type = "VALIDATION";
+        throw error;
+    }
+    else if (word.includes("หมดอายุ")) {
+        message = `${keyError}`
+        const error = new Error(message);
+        error.status = 1003;
+        error.type = "EXPIRE";
         throw error;
     } else {
         message = "General error occurred";

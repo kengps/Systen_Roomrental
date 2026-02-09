@@ -1,7 +1,12 @@
 const mongoose = require('mongoose');
 
 const slipUploadSchema = new mongoose.Schema({
-    tenantRef: { // อ้างอิงผู้เช่าหรือผู้จ่าย
+    apartment: { // อ้างอิงผู้เช่าหรือผู้จ่าย
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Apartment', // สมมติมี collection Tenant
+        required: true,
+    },
+    tenant: { // อ้างอิงผู้เช่าหรือผู้จ่าย
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Tenant', // สมมติมี collection Tenant
         required: true,
@@ -68,4 +73,9 @@ const slipUploadSchema = new mongoose.Schema({
     timestamps: true,
 });
 
+
+slipUploadSchema.index({ transRef: 1 });
+
 module.exports = mongoose.model('SlipUpload', slipUploadSchema);
+
+

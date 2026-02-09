@@ -3,6 +3,7 @@ import persistMiddleware from '../service/zustand/middleware/persistMiddleware';
 import { useEffect, useState } from 'react';
 import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner';
 import { currentAdmin } from '../service/api/login_register';
+import LoadingComponent from '../components/LoadingSpinner/LoadingComponent';
 
 const RoleBasedRoute = () => {
     const { user } = persistMiddleware();
@@ -33,8 +34,16 @@ const RoleBasedRoute = () => {
         checkRole();
     }, [user]);
 
-    if (loading) return <LoadingSpinner />;
-    return ok ? <Outlet /> : <LoadingSpinner />;
+    if (loading) return <LoadingComponent
+        text="กำลังโหลด"
+        variant="spinner"
+        size="md"
+    />;
+    return ok ? <Outlet /> : <LoadingComponent
+        text="กำลังโหลด"
+        variant="spinner"
+        size="md"
+    />;
 };
 
 export default RoleBasedRoute;

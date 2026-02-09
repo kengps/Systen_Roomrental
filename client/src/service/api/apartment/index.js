@@ -1,5 +1,29 @@
 import axios from "axios";
 
+/**
+ * ดึง token จาก localStorage
+ * ลองดึงจาก localStorage.getItem('token') ก่อน
+ * ถ้าไม่มี ให้ลองดึงจาก auth-storage (zustand persist)
+ */
+const getToken = () => {
+    // ลองดึงจาก localStorage.getItem('token') ก่อน
+    let token = localStorage.getItem('token');
+
+    // ถ้าไม่มี token ใน localStorage ให้ลองดึงจาก auth-storage (zustand persist)
+    if (!token) {
+        try {
+            const authStorage = localStorage.getItem('auth-storage');
+            if (authStorage) {
+                const parsed = JSON.parse(authStorage);
+                token = parsed?.state?.token;
+            }
+        } catch (error) {
+            console.error('Error parsing auth-storage:', error);
+        }
+    }
+
+    return token;
+};
 
 export const addressApartmant = async (value) => {
 
@@ -117,5 +141,29 @@ export const deleteBankAccount = async (bankId) => {
 
     const re = await axios.delete(`${import.meta.env.VITE_REACT_APP_API}/bank-account/${bankId}`,)
 
+    return re.data
+}
+export const checkSlip = async (values) => {
+
+    const re = await axios.post(`${import.meta.env.VITE_REACT_APP_API}/checkslip`, values)
+
+    return re.data
+}
+
+export const getImageLogo = async (domainName) => {
+    const re = await axios.post(`${import.meta.env.VITE_REACT_APP_API}/image-logo`, { domainName })
+    return re.data
+}
+
+export const sendMessage = async (data) => {
+    // ดึง token จาก function
+    const token = getToken();
+
+    const re = await axios.post(`${import.meta.env.VITE_REACT_APP_API}/send-message`, data, {
+        withCredentials: true, // ส่ง cookie (refreshToken) อัตโนมัติ
+        headers: {
+            ...(token && { 'Authorization': `Bearer ${token}` }) // ส่ง Bearer token ใน header
+        }
+    })
     return re.data
 }

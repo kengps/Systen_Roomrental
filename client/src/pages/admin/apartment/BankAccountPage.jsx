@@ -2,6 +2,7 @@ import { CheckOutlined, CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined
 import { useQuery } from '@tanstack/react-query';
 import { Avatar, Button, Card, Empty, List, message, Modal, Popconfirm, Space, Tooltip, Typography } from 'antd';
 import { useEffect, useState } from 'react';
+import PageHeader from '../../../components/common/PageHeader';
 const { Title, Text } = Typography;
 
 import allThaiBanks from '../../../../bank.json';
@@ -31,7 +32,7 @@ const BankAccountForm = () => {
 
 
     const { user } = persistMiddleware()
-    const accId = user.userPayLoad.user.id
+    const accId = user?.userPayLoad?.user?.id
 
 
 
@@ -44,8 +45,8 @@ const BankAccountForm = () => {
 
 
     useEffect(() => {
-        if (data?.result) {
-            setUserBanks(data.result)
+        if (data?.result?.banks) {
+            setUserBanks(data.result.banks)
         }
     }, [data])
 
@@ -73,8 +74,7 @@ const BankAccountForm = () => {
 
     // ✨ CHANGE: ฟังก์ชันสำหรับบันทึกข้อมูล (รองรับทั้งเพิ่มและแก้ไข)
     const handleSaveBank = async (values) => {
-        console.log(`⩇⩇:⩇⩇🚨 ~ handleSaveBank ~ values :`, values);
-
+       
         if (editingBank) {
             // โหมดแก้ไข
             setUserBanks(userBanks.map(bank =>
@@ -92,10 +92,12 @@ const BankAccountForm = () => {
                 bankKey: values.bank,
                 accountNumber: values.accountNumber,
                 accountName: values.accountName,
+                API_KEY: values.API_KEY,
+                BRANCH_ID: values.BRANCH_ID,
             };
             console.log(`⩇⩇:⩇⩇🚨 ~ handleSaveBank ~ newBank :`, newBank);
-            const data = await createBankAccount(newBank)
-            console.log(`⩇⩇:⩇⩇🚨 ~ handleSaveBank ~ data :`, data);
+            // const data = await createBankAccount(newBank)
+            // console.log(`⩇⩇:⩇⩇🚨 ~ handleSaveBank ~ data :`, data);
 
 
 
@@ -108,8 +110,8 @@ const BankAccountForm = () => {
 
     const handleDeleteBank = async (id) => {
 
-       const ss = await deleteBankAccount(id)
-       console.log(`⩇⩇:⩇⩇🚨 ~ handleDeleteBank ~ ss :`, ss);
+        const ss = await deleteBankAccount(id)
+        console.log(`⩇⩇:⩇⩇🚨 ~ handleDeleteBank ~ ss :`, ss);
 
 
     };
@@ -135,8 +137,13 @@ const BankAccountForm = () => {
     };
     return (
         <div style={{ background: '#f5f5f5', padding: '40px 24px' }}>
+            <PageHeader
+                title="บัญชีธนาคารของฉัน"
+                subtitle="จัดการบัญชีธนาคารสำหรับรับชำระเงิน"
+                icon="🏦"
+            />
+            
             <Card
-                title={<Title level={4} style={{ margin: 0 }}>บัญชีธนาคารของฉัน</Title>}
                 extra={<Button type="primary" icon={<PlusOutlined />} onClick={handleShowAddModal}>เพิ่มบัญชีใหม่</Button>}
                 style={{ maxWidth: 800, margin: '0 auto', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}
             >
@@ -194,60 +201,6 @@ const BankAccountForm = () => {
                 />
             </Modal>
 
-
-
-            {/* //// คัดลอกเลขบัญชี */}
-            <div style={{ background: '#f5f5f5', padding: '40px 24px' }}>
-                <Card
-                    title={<Title level={4} style={{ margin: 0 }}>บัญชีธนาคารของฉัน</Title>}
-                    extra={<Button type="primary" icon={<PlusOutlined />} onClick={handleShowAddModal}>เพิ่มบัญชีใหม่</Button>}
-                    style={{ maxWidth: 800, margin: '0 auto', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}
-                >
-                    <List
-                        itemLayout="horizontal"
-                        dataSource={userBanks}
-                        locale={{ emptyText: <Empty description="ยังไม่มีบัญชีธนาคาร" /> }}
-                        renderItem={(item) => {
-                            const bankInfo = banksMap.get(item.bankKey);
-                            return (
-                                <List.Item
-                                    actions={[
-                                        <Tooltip title="แก้ไข" key="edit"><Button type="text" icon={<EditOutlined />} onClick={() => handleShowEditModal(item)} /></Tooltip>,
-                                        <Tooltip title="ลบ" key="delete">
-                                            <Popconfirm title="ยืนยันการลบบัญชี?" onConfirm={() => handleDeleteBank(item._id)} okText="ยืนยัน" cancelText="ยกเลิก">
-                                                <Button type="text" danger icon={<DeleteOutlined />} />
-                                            </Popconfirm>
-                                        </Tooltip>
-                                    ]}
-                                >
-                                    <List.Item.Meta
-                                        avatar={<Avatar src={`/icons/banks/${bankInfo.key.toUpperCase()}.png`} size="large" />}
-                                        title={<Text strong>{bankInfo.thai_name}</Text>}
-                                        // ✨ 3. ปรับปรุงการแสดงผลให้มีไอคอนคัดลอก
-                                        description={
-                                            <Space>
-                                                <Text type="secondary">{`${item.accountName} - ${item.accountNumber}`}</Text>
-                                                <Tooltip title="คัดลอกเลขบัญชี">
-                                                    {copiedId === item._id ? (
-                                                        <CheckOutlined style={{ color: '#52c41a' }} />
-                                                    ) : (
-                                                        <CopyOutlined
-                                                            style={{ cursor: 'pointer' }}
-                                                            onClick={() => handleCopy(item.accountNumber, item._id)}
-                                                        />
-                                                    )}
-                                                </Tooltip>
-                                            </Space>
-                                        }
-                                    />
-                                </List.Item>
-                            );
-                        }}
-                    />
-                </Card>
-
-
-            </div>
         </div>
     );
 };

@@ -29,6 +29,8 @@ const FileUploadPreviewModal = ({
     isPreview = true,
     errors,
     clearErrors,
+    fileList,
+    setFileList
 }) => {
     const {
         file,
@@ -45,19 +47,29 @@ const FileUploadPreviewModal = ({
     const [openModal, setOpenModal] = useState(false);
 
     const handleFileChange = async (info) => {
+        const selected = info.fileList[0]?.originFileObj;
 
+        // 🔥 เคลียร์ blob URL เดิม
+        if (previewUrl && previewUrl.startsWith("blob:")) {
+            URL.revokeObjectURL(previewUrl);
+        }
 
+        // เคลียร์ state
+        setPreviewUrl(null);
+        setUploadedFileKey(null);
+        setFileList([]); // เคลียร์ fileList
 
-
-
-        const selected = info.fileList[0].originFileObj;
-
-
-        setFile(selected);
+        // ตั้งค่าใหม่
         if (selected) {
+            const tempPreviewUrl = URL.createObjectURL(selected);
+            setPreviewUrl(tempPreviewUrl);
+            setFile(selected);
+            setFileList([info.fileList[0]]); // อัปเดต fileList ใหม่ให้ Upload
             await uploadFileToS3(selected);
         }
     };
+
+
 
     useEffect(() => {
 
@@ -67,23 +79,36 @@ const FileUploadPreviewModal = ({
         }
     }, [uploadedFileKey]);
 
+
+    useEffect(() => {
+        return () => {
+            if (previewUrl && previewUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
+
     const clearFile = async () => {
+        if (previewUrl && previewUrl.startsWith("blob:")) {
+            URL.revokeObjectURL(previewUrl);
+        }
+
         setFile(null);
         setPreviewUrl(null);
-
+        setUploadedFileKey(null);
+        setFileList([]); // 👈 สำคัญ!
         if (uploadedFileKey) {
             try {
-                await axios.delete(
-                    `${import.meta.env.VITE_REACT_APP_API}/upload/file?key=${uploadedFileKey}`
-                );
-                setUploadedFileKey(null);
+                await axios.delete(`${import.meta.env.VITE_REACT_APP_API}/upload/file?key=${uploadedFileKey}`);
                 onCleared?.();
             } catch (err) {
-                console.error("Delete failed:", err);
                 message.error("ลบไฟล์ไม่สำเร็จ");
             }
+        } else {
+            onCleared?.();
         }
     };
+
 
     return (
         <Card
@@ -93,6 +118,7 @@ const FileUploadPreviewModal = ({
             <Upload
                 showUploadList={false}
                 beforeUpload={() => false} // ไม่ให้ antd อัปโหลดเอง
+                fileList={fileList} // 👈 ควบคุมเอง
                 onChange={handleFileChange}
                 accept="image/png,image/jpeg,image/gif"
                 disabled={uploading || display}

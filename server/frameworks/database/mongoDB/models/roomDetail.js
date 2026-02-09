@@ -16,7 +16,7 @@ const roomSchema = new Schema({
     // rentalDate: { type: Date },
     // tenant: { type: Schema.Types.ObjectId, ref: 'memberUser' }, // อ้างอิงไปยังผู้เช่า
     status: { type: String, default: 'available' },
-    meter: {
+    unitMeter: {
         water: { type: Number, default: 0 },
         electric: { type: Number, default: 0 },
     },

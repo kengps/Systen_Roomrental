@@ -17,15 +17,16 @@ const { Sider, Content, Header, Footer } = Layout;
 const FormMember = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { Logout, user } = persistMiddleware();
+    const { Logout, user, apartmentData } = persistMiddleware();
+  
 
     const [collapsed, setCollapsed] = useState(false);
     const [openKeys, setOpenKeys] = useState([]);
     const { token: { colorBgContainer, borderRadiusLG } } = theme.useToken();
     const userId = user?.userPayLoad?.user?.id
-    console.log(`⩇⩇:⩇⩇🚨 ~ FormMember ~ userId :`, userId);
 
-    
+
+
     useEffect(() => {
         if (location.pathname === '/member') {
             navigate('/member/homepage');
@@ -34,11 +35,22 @@ const FormMember = () => {
 
     const handleMenuClick = async (e) => {
         const key = e.key;
+        
+        // ตรวจสอบ logout ก่อน
         if (key === 'logout') {
-            const confirm = await sweetalert.fire({ title: 'ออกจากระบบ?', showCancelButton: true });
-            if (confirm.isConfirmed) Logout(userId);
+            const confirm = await sweetalert.fire({ 
+                title: 'ออกจากระบบ?', 
+                showCancelButton: true,
+                icon: "question"
+            });
+            if (confirm.isConfirmed) {
+                Logout(userId);
+                navigate('/auth/login'); // เปลี่ยนไปยังหน้า login
+            }
+            return; // ออกจาก function ทันทีหลังจาก logout
         }
 
+        // ฟังก์ชันค้นหาเส้นทางจาก menuItems (เฉพาะเมื่อไม่ใช่ logout)
         const findPath = (items) => {
             for (const item of items) {
                 if (item.key === key) return item.path;
@@ -51,9 +63,6 @@ const FormMember = () => {
         };
 
         const path = findPath(menuItemsUser);
-
-
-
         if (path) navigate(path);
     };
 
@@ -75,7 +84,7 @@ const FormMember = () => {
                         user={user}
                     />
                     <Layout>
-                        <AppHeader setCollapsed={setCollapsed} collapsed={collapsed} colorBg={colorBgContainer} />
+                        <AppHeader setCollapsed={setCollapsed} collapsed={collapsed} colorBg={colorBgContainer} apartmentData={apartmentData} />
                         <AppContent colorBg={colorBgContainer} borderLG={borderRadiusLG} />
                         <AppFooter />
                     </Layout>

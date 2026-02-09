@@ -135,6 +135,11 @@ const EditTenantDrawer = ({
                             {getRemainingContract()}
                         </Descriptions.Item>
                     )}
+                    {/* {tenant.tenancyStatus === "renting" && (
+                        <Descriptions.Item label="สัญญาคงเหลือ2">
+                            {getRemainingContract()}
+                        </Descriptions.Item>
+                    )} */}
                     {tenant.moveOutDate && (
                         <Descriptions.Item label="วันที่ย้ายออก">
                             {dayjs(tenant.moveOutDate).format("DD MMMM YYYY")}

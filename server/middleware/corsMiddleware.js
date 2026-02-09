@@ -12,7 +12,7 @@ const appCors = new Hono()
 
 
 appCors.use('*', cors({
-  origin: 'http://localhost:8001', // ✅ ระบุ origin ของ frontend
+  origin: ['http://localhost:8001'], // ✅ ระบุ origin ของ frontend
   credentials: true,               // ✅ อนุญาตส่ง cookie
   allowHeaders: ['Content-Type', 'Authorization'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

@@ -160,19 +160,25 @@ const BillingForm = ({ handleNotifyPayment,
     }
     const discountColumns = [
         {
-            title: "รายการส่วนลด",
+            title: "รายการ",
             dataIndex: "description",
             key: "description",
             render: (text, record, index) => (
                 <Controller
                     control={control}
                     name={`discounts.${index}.description`}
-                    render={({ field }) => <Input {...field} variant="borderless" />}
+                    render={({ field }) => (
+                        <Input
+                            {...field}
+                            placeholder="ระบุรายการส่วนลด"
+                            variant="borderless"
+                        />
+                    )}
                 />
             ),
         },
         {
-            title: "จำนวนเงิน (ส่วนลด)",
+            title: "จำนวนเงิน",
             dataIndex: "amount",
             key: "amount",
             width: "180px",
@@ -185,28 +191,15 @@ const BillingForm = ({ handleNotifyPayment,
                             {...field}
                             prefix="฿"
                             style={{ width: "100%" }}
-                            variant="borderless"
+                            placeholder="0"
+                        // ลบ variant="borderless" ออก
                         />
                     )}
                 />
             ),
         },
-        {
-            title: "ดำเนินการ",
-            key: "action",
-            width: "100px",
-            align: "center",
-            render: (_, record) => (
-                <Button
-                    type="text"
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={() => removeDiscount(record.id)}
-                />
-            ),
-        },
+        // ส่วน action เหมือนเดิม
     ];
-
 
     return (
         <div
@@ -218,6 +211,7 @@ const BillingForm = ({ handleNotifyPayment,
         >
             <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
                 {renderServiceSelectionModal()}
+
                 <Card
                     style={{
                         marginBottom: "24px",
@@ -227,39 +221,49 @@ const BillingForm = ({ handleNotifyPayment,
                         color: "white",
                     }}
                 >
-                    <div
-                        style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                        }}
+                    <Row
+                        align="middle"
+                        justify="space-between"
+                        gutter={[16, 16]}
+                        style={{ flexWrap: "wrap" }}
                     >
-                        <Space align="center" size="middle">
-                            <HomeOutlined style={{ fontSize: "2rem", color: "white" }} />
-                            <div>
-                                <Title level={3} style={{ marginBottom: 0, color: "white" }}>
-                                    ระบบแจ้งชำระเงิน
-                                </Title>
-                                <Text style={{ color: "#e9ecef" }}>
-                                    สร้างและแจ้งยอดบิลค่าเช่าสำหรับอพาร์ทเมนท์
-                                </Text>
-                            </div>
-                        </Space>
-                        <Button
-                            icon={<CopyOutlined />}
-                            size="large"
-                            onClick={handleNotifyPayment}
-                            style={{
-                                background: "rgba(255, 255, 255, 0.9)",
-                                color: primaryColor,
-                                border: "none",
-                                fontWeight: "bold",
-                                boxShadow: "0 1px 2px 0 rgba(0,0,0,0.05)",
-                            }}
+                        <Col xs={24} md={18}>
+                            <Space align="center">
+                                <HomeOutlined style={{ fontSize: "2rem", color: "white" }} />
+                                <div>
+                                    <Title level={3} style={{ marginBottom: 0, color: "white" }}>
+                                        ระบบแจ้งชำระเงิน
+                                    </Title>
+                                    <Text style={{ color: "#e9ecef" }}>
+                                        สร้างและแจ้งยอดบิลค่าเช่าสำหรับอพาร์ทเมนท์
+                                    </Text>
+                                </div>
+                            </Space>
+                        </Col>
+                        <Col
+                            xs={24}
+                            md="auto"
+                            style={{ textAlign: "right", display: "flex", justifyContent: "flex-end" }}
                         >
-                            คัดลอก & แจ้งชำระเงิน
-                        </Button>
-                    </div>
+                            <Button
+                                icon={<CopyOutlined />}
+                                size="large"
+                                onClick={handleNotifyPayment}
+                                style={{
+                                    background: "rgba(255, 255, 255, 0.9)",
+                                    color: primaryColor,
+                                    border: "none",
+                                    fontWeight: "bold",
+                                    boxShadow: "0 1px 2px 0 rgba(0,0,0,0.05)",
+                                    width: "100%",
+                                    maxWidth: "220px",
+                                }}
+                                block
+                            >
+                                คัดลอก
+                            </Button>
+                        </Col>
+                    </Row>
                 </Card>
 
 
@@ -273,36 +277,6 @@ const BillingForm = ({ handleNotifyPayment,
                                 size="large"
                                 style={{ width: "100%" }}
                             >
-
-                                <Card
-                                    styles={{
-                                        header: {
-                                            borderLeft: "5px solid #82e0aa",
-                                            backgroundColor: "#eafaf1",
-                                        },
-                                    }}
-                                    title={
-                                        <>
-                                            <CalendarOutlined /> ประจำเดือน
-                                        </>
-                                    }
-                                    style={{ boxShadow: "0 1px 2px 0 rgba(0,0,0,0.05)" }}
-                                >
-                                    <Row gutter={[16, 16]}>
-                                        <Col xs={24} sm={12}>
-                                            <Title level={4} style={{ margin: 0, color: "#343a40" }}>
-                                                {formData.billingPeriod.month}
-                                            </Title>
-                                        </Col>
-                                        <Col xs={24} sm={12}>
-                                            <Title level={4} style={{ margin: 0, color: "#343a40" }}>
-                                                {formData.billingPeriod.year}
-                                            </Title>
-                                        </Col>
-                                    </Row>
-                                </Card>
-
-
                                 <Card
                                     styles={{
                                         header: {
@@ -318,25 +292,7 @@ const BillingForm = ({ handleNotifyPayment,
                                     style={{ boxShadow: "0 1px 2px 0 rgba(0,0,0,0.05)" }}
                                 >
                                     <Row gutter={[16, 16]}>
-                                        {/* <Col xs={24} sm={12}>
-                                            <Controller
-                                                name="tenantId"
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <Select
-                                                        {...field}
-                                                        placeholder="เลือกห้อง"
-                                                        style={{ width: "100%" }}
-                                                    >
-                                                        {tenantDataForUI?.map((tenant) => (
-                                                            <Option key={tenant.id} value={tenant.id}>
-                                                                ห้อง {tenant.roomNumber} - {tenant.name}
-                                                            </Option>
-                                                        ))}
-                                                    </Select>
-                                                )}
-                                            />
-                                        </Col> */}
+
                                         <Col xs={24} sm={12}>
                                             <Controller
                                                 name="tenantId"
@@ -374,54 +330,7 @@ const BillingForm = ({ handleNotifyPayment,
                                                 )}
                                             />
                                         </Col>
-                                        {/* <Card
-                                            styles={{
-                                                header: {
-                                                    borderLeft: "5px solid #82e0aa",
-                                                    backgroundColor: "#eafaf1",
-                                                },
-                                            }}
-                                            title={
-                                                <>
-                                                    <CalculatorOutlined /> ค่าห้อง
-                                                </>
-                                            }
-                                            style={{ boxShadow: "0 1px 2px 0 rgba(0,0,0,0.05)" }}
-                                        >
-                                            <Row gutter={[16, 16]}>
-                                                <Col xs={12}>
-                                                    <Controller
-                                                        name="roomCharges.monthlyRent"
-                                                        control={control}
-                                                        render={({ field }) => (
-                                                            <InputNumber
 
-                                                                readOnly
-                                                                // addonBefore="ค่าเช่า"
-                                                                {...field}
-                                                                style={{ width: "100%" }}
-                                                                prefix="฿"
-                                                            />
-                                                        )}
-                                                    />
-                                                </Col>
-
-                                            </Row>
-                                        </Card> */}
-
-                                        {/* <Col xs={24} sm={12}>
-                                            <Controller
-                                                name="tenantInfo.phone"
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <Input
-                                                        {...field}
-                                                        placeholder="เบอร์โทรศัพท์"
-                                                        readOnly
-                                                    />
-                                                )}
-                                            />
-                                        </Col> */}
                                         <Col xs={12}>
                                             <Controller
                                                 name="roomCharges.monthlyRent"
@@ -441,7 +350,8 @@ const BillingForm = ({ handleNotifyPayment,
                                     </Row>
                                 </Card>
 
-                                {/* <Card
+
+                                <Card
                                     styles={{
                                         header: {
                                             borderLeft: "5px solid #82e0aa",
@@ -457,9 +367,34 @@ const BillingForm = ({ handleNotifyPayment,
                                 >
                                     <Row gutter={[16, 16]}>
                                         <Col xs={24} sm={12}>
-                                            <Title level={4} style={{ margin: 0, color: "#343a40" }}>
-                                                {formData.billingPeriod.month}
-                                            </Title>
+                                            <Space direction="vertical" style={{ width: '100%' }}>
+
+                                                <Controller
+                                                    name="billingPeriod.month"
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <Select
+                                                            {...field}
+                                                            style={{ width: '100%' }}
+                                                            placeholder="เลือกเดือน"
+                                                            disabled={isFormDisabled}
+                                                        >
+                                                            <Option value="มกราคม">มกราคม</Option>
+                                                            <Option value="กุมภาพันธ์">กุมภาพันธ์</Option>
+                                                            <Option value="มีนาคม">มีนาคม</Option>
+                                                            <Option value="เมษายน">เมษายน</Option>
+                                                            <Option value="พฤษภาคม">พฤษภาคม</Option>
+                                                            <Option value="มิถุนายน">มิถุนายน</Option>
+                                                            <Option value="กรกฎาคม">กรกฎาคม</Option>
+                                                            <Option value="สิงหาคม">สิงหาคม</Option>
+                                                            <Option value="กันยายน">กันยายน</Option>
+                                                            <Option value="ตุลาคม">ตุลาคม</Option>
+                                                            <Option value="พฤศจิกายน">พฤศจิกายน</Option>
+                                                            <Option value="ธันวาคม">ธันวาคม</Option>
+                                                        </Select>
+                                                    )}
+                                                />
+                                            </Space>
                                         </Col>
                                         <Col xs={24} sm={12}>
                                             <Title level={4} style={{ margin: 0, color: "#343a40" }}>
@@ -467,42 +402,10 @@ const BillingForm = ({ handleNotifyPayment,
                                             </Title>
                                         </Col>
                                     </Row>
-                                </Card> */}
+                                </Card>
 
-                                {/* <Card
-                                        styles={{
-                                            header: {
-                                                borderLeft: "5px solid #82e0aa",
-                                                backgroundColor: "#eafaf1",
-                                            },
-                                        }}
-                                        title={
-                                            <>
-                                                <CalculatorOutlined /> ค่าห้อง
-                                            </>
-                                        }
-                                        style={{ boxShadow: "0 1px 2px 0 rgba(0,0,0,0.05)" }}
-                                    >
-                                        <Row gutter={[16, 16]}>
-                                            <Col xs={12}>
-                                                <Controller
-                                                    name="roomCharges.monthlyRent"
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <InputNumber
 
-                                                            readOnly
-                                                            // addonBefore="ค่าเช่า"
-                                                            {...field}
-                                                            style={{ width: "100%" }}
-                                                            prefix="฿"
-                                                        />
-                                                    )}
-                                                />
-                                            </Col>
 
-                                        </Row>
-                                    </Card> */}
 
                                 <Row gutter={[16, 16]}>
 
@@ -587,6 +490,7 @@ const BillingForm = ({ handleNotifyPayment,
                                                                                     style={{ width: '100%' }}
                                                                                     placeholder="เลขเดิม"
                                                                                     disabled={isFormDisabled} // <--- เพิ่มตรงนี้
+                                                                                    readOnly
                                                                                 />
                                                                             )}
                                                                         />
@@ -613,6 +517,7 @@ const BillingForm = ({ handleNotifyPayment,
                                                                                         // เพิ่ม status='error' เพื่อให้ InputNumber เป็นสีแดง
                                                                                         status={error ? 'error' : ''}
                                                                                         disabled={isFormDisabled} // <--- เพิ่มตรงนี้
+                                                                                        min={Number(getValues('utilities.waterPrevious')) || 0}
                                                                                     />
                                                                                     {/* 👇 และตรวจสอบว่ามีส่วนนี้สำหรับแสดงข้อความ */}
                                                                                     {error && <Text type="danger" style={{ fontSize: 12 }}>{error.message}</Text>}
@@ -738,6 +643,7 @@ const BillingForm = ({ handleNotifyPayment,
                                                                                     disabled={isFormDisabled} // <--- เพิ่มตรงนี้
                                                                                     style={{ width: '100%' }}
                                                                                     placeholder="เลขเดิม"
+                                                                                    readOnly
                                                                                 />
                                                                             )}
                                                                         />
@@ -764,6 +670,7 @@ const BillingForm = ({ handleNotifyPayment,
                                                                                         // เพิ่ม status='error' เพื่อให้ InputNumber เป็นสีแดง
                                                                                         status={error ? 'error' : ''}
                                                                                         disabled={isFormDisabled} // <--- เพิ่มตรงนี้
+                                                                                        min={Number(getValues('utilities.electricPrevious')) || 0}
                                                                                     />
                                                                                     {/* 👇 และตรวจสอบว่ามีส่วนนี้สำหรับแสดงข้อความ */}
                                                                                     {error && <Text type="danger" style={{ fontSize: 12 }}>{error.message}</Text>}
@@ -809,7 +716,7 @@ const BillingForm = ({ handleNotifyPayment,
 
                                 </Row>
 
-                                <Card
+                                {/* <Card
                                     title="ค่าใช้จ่ายอื่นๆ"
                                     style={{ boxShadow: "0 1px 2px 0 rgba(0,0,0,0.05)" }}
                                     styles={{
@@ -867,30 +774,157 @@ const BillingForm = ({ handleNotifyPayment,
                                     >
                                         เพิ่มรายการส่วนลด
                                     </Button>
-                                </Card>
+                                </Card> */}
+
+
+                                <Row gutter={[16, 16]} wrap>
+                                    <Col xs={24} md={12}>
+                                        <Card
+                                            title="ค่าใช้จ่ายอื่นๆ"
+                                            style={{ boxShadow: "0 1px 2px 0 rgba(0,0,0,0.05)" }}
+                                            styles={{
+                                                header: {
+                                                    borderLeft: "5px solid #bb8fce",
+                                                    backgroundColor: "#f4ecf7",
+                                                },
+                                            }}
+                                        >
+                                            <Table
+                                                columns={additionalChargeColumns}
+                                                dataSource={formData.additionalCharges}
+                                                pagination={false}
+                                                rowKey="id"
+                                                size="small"
+                                                scroll={{ x: '100%' }} // 👈 สำคัญ!
+                                            />
+                                            <Button
+                                                type="dashed"
+                                                onClick={() => setIsServiceModalVisible(true)}
+                                                style={{ marginTop: "16px", width: "100%" }}
+                                                disabled={isFormDisabled}
+                                            >
+                                                เพิ่มค่าใช้จ่าย
+                                            </Button>
+                                        </Card>
+                                    </Col>
+
+                                    <Col xs={24} md={12}>
+                                        <Card
+                                            title="ส่วนลด"
+                                            styles={{
+                                                header: {
+                                                    borderLeft: "5px solid #28a745",
+                                                    backgroundColor: "#eafaf1",
+                                                },
+                                            }}
+                                        >
+                                            <Table
+                                                columns={discountColumns}
+                                                dataSource={formData.discounts}
+                                                pagination={false}
+                                                rowKey="id"
+                                                // size="small"
+                                                scroll={{ x: '100%' }} // 👈 สำคัญ!
+                                            />
+                                            <Button
+                                                type="dashed"
+
+                                                onClick={addDiscount}
+                                                style={{
+                                                    marginTop: "16px",
+                                                    width: "100%",
+                                                    color: "#28a745",
+                                                    borderColor: "#28a745",
+                                                }}
+                                                disabled={isFormDisabled}
+                                            >
+                                                เพิ่มส่วนลด
+                                            </Button>
+                                        </Card>
+                                    </Col>
+                                </Row>
                             </Space>
                         </Col>
 
-                        <Col xs={24} lg={10}>
-                            <div style={{ position: "sticky", top: "24px" }}>
+                        <Col
+                            xs={24}
+                            sm={24}
+                            md={24}
+                            lg={14}
+                            xl={12}
+                            xxl={10}
+                            style={{
+                                padding: '0 8px',
+                                '@media (maxWidth: 576px)': {
+                                    padding: '0 4px'
+                                }
+                            }}
+                        >
+                            <div style={{
+                                position: "sticky",
+                                top: "24px",
+                                '@media (maxWidth: 768px)': {
+                                    position: 'static'
+                                }
+                            }}>
                                 <div ref={printRef}>
                                     <Card
                                         style={{
-                                            boxShadow:
-                                                "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)",
+                                            boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)",
                                             border: "2px solid #e5e7eb",
+                                            margin: '0 auto',
+                                            maxWidth: '100%',
+                                            '@media (maxWidth: 576px)': {
+                                                margin: '0',
+                                                border: '1px solid #e5e7eb',
+                                                boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+                                            }
                                         }}
+                                        styles={{ body: { padding: window.innerWidth < 576 ? '16px 12px' : '24px' } }}
+                                    // bodyStyle={{
+                                    //     padding: window.innerWidth < 576 ? '16px 12px' : '24px'
+                                    // }}
                                     >
-                                        <div style={{ textAlign: "center", marginBottom: "16px" }}>
-                                            <Title level={4} style={{ marginBottom: "4px" }}>
+                                        {/* Header Section */}
+                                        <div style={{
+                                            textAlign: "center",
+                                            marginBottom: "16px",
+                                            '@media (maxWidth: 576px)': {
+                                                marginBottom: '12px'
+                                            }
+                                        }}>
+                                            <Title
+                                                level={window.innerWidth < 576 ? 5 : 4}
+                                                style={{
+                                                    marginBottom: "4px",
+                                                    fontSize: window.innerWidth < 576 ? '16px' : 'inherit',
+                                                    lineHeight: '1.4'
+                                                }}
+                                            >
                                                 {apartmentInfoForUI.name}
                                             </Title>
-                                            <Text type="secondary" style={{ fontSize: "12px" }}>
+                                            <Text
+                                                type="secondary"
+                                                style={{
+                                                    fontSize: window.innerWidth < 576 ? "10px" : "12px",
+                                                    display: 'block',
+                                                    lineHeight: '1.4',
+                                                    wordBreak: 'break-word'
+                                                }}
+                                            >
                                                 {apartmentInfoForUI.address}
                                             </Text>
                                             <br />
                                             {phones && phones.length > 0 ? (
-                                                <Text type="secondary" style={{ fontSize: "12px" }}>
+                                                <Text
+                                                    type="secondary"
+                                                    style={{
+                                                        fontSize: window.innerWidth < 576 ? "10px" : "12px",
+                                                        display: 'block',
+                                                        lineHeight: '1.4',
+                                                        wordBreak: 'break-word'
+                                                    }}
+                                                >
                                                     {phones
                                                         .filter((item) => item.number)
                                                         .map((item) => {
@@ -904,229 +938,396 @@ const BillingForm = ({ handleNotifyPayment,
                                                             }
                                                             return `${label} ${item.number}`;
                                                         })
-                                                        .join(" • ")}
+                                                        .join(window.innerWidth < 576 ? " | " : " • ")}
                                                 </Text>
                                             ) : (
-                                                <Text type="secondary" style={{ fontSize: "12px" }}>
+                                                <Text
+                                                    type="secondary"
+                                                    style={{
+                                                        fontSize: window.innerWidth < 576 ? "10px" : "12px"
+                                                    }}
+                                                >
                                                     ไม่มีเบอร์โทร
                                                 </Text>
                                             )}
-
                                         </div>
-                                        <Divider />
-                                        <div style={{ textAlign: "center", marginBottom: "24px" }}>
-                                            <Title level={3} style={{ color: primaryColor }}>
+
+                                        <Divider style={{ margin: window.innerWidth < 576 ? '12px 0' : '16px 0' }} />
+
+                                        {/* Bill Title */}
+                                        <div style={{
+                                            textAlign: "center",
+                                            marginBottom: window.innerWidth < 576 ? "16px" : "24px"
+                                        }}>
+                                            <Title
+                                                level={window.innerWidth < 576 ? 4 : 3}
+                                                style={{
+                                                    color: primaryColor,
+                                                    fontSize: window.innerWidth < 576 ? '18px' : 'inherit',
+                                                    marginBottom: '8px'
+                                                }}
+                                            >
                                                 ใบแจ้งยอดค่าบริการ
                                             </Title>
-                                            <Text>วันที่ออก: {dayjs().format("D MMMM BBBB")}</Text>
+                                            <Text style={{
+                                                fontSize: window.innerWidth < 576 ? '12px' : '14px'
+                                            }}>
+                                                วันที่ออก: {dayjs().format("D MMMM BBBB")}
+                                            </Text>
                                         </div>
+
+                                        {/* Tenant Info Card */}
                                         <Card
                                             size="small"
                                             style={{
                                                 marginBottom: "16px",
                                                 backgroundColor: "#f8f9fa",
                                             }}
+                                            // bodyStyle={{
+                                            //     padding: window.innerWidth < 576 ? '8px 12px' : '12px 16px'
+                                            // }}
+                                            styles={{ body: { padding: window.innerWidth < 576 ? '8px 12px' : '12px 16px' } }}
                                         >
-                                            <Text strong>ชื่อ:</Text>{" "}
-                                            {formData.tenantInfo.name || "-"}
-                                            <br />
-                                            <Text strong>ห้อง:</Text>{" "}
-                                            {formData.tenantInfo.roomNumber || "-"}{" "}
-                                            {formData.tenantInfo.floor &&
-                                                `ชั้น ${formData.tenantInfo.floor}`}
-                                            <br />
-                                            <Text strong>ประจำเดือน:</Text>{" "}
-                                            {formData.billingPeriod.month}{" "}
-                                            {formData.billingPeriod.year}
+                                            <div style={{
+                                                fontSize: window.innerWidth < 576 ? '12px' : '14px',
+                                                lineHeight: '1.6'
+                                            }}>
+                                                <div style={{ marginBottom: '4px' }}>
+                                                    <Text strong style={{ minWidth: window.innerWidth < 576 ? '40px' : '50px', display: 'inline-block' }}>
+                                                        ชื่อ:
+                                                    </Text>{" "}
+                                                    <span style={{ wordBreak: 'break-word' }}>
+                                                        {formData.tenantInfo.name || "-"}
+                                                    </span>
+                                                </div>
+                                                <div style={{ marginBottom: '4px' }}>
+                                                    <Text strong style={{ minWidth: window.innerWidth < 576 ? '40px' : '50px', display: 'inline-block' }}>
+                                                        ห้อง:
+                                                    </Text>{" "}
+                                                    {formData.tenantInfo.roomNumber || "-"}{" "}
+                                                    {formData.tenantInfo.floor && `ชั้น ${formData.tenantInfo.floor}`}
+                                                </div>
+                                                <div>
+                                                    <Text strong style={{ minWidth: window.innerWidth < 576 ? '40px' : '50px', display: 'inline-block' }}>
+                                                        ประจำเดือน:
+                                                    </Text>{" "}
+                                                    {formData.billingPeriod.month} {formData.billingPeriod.year}
+                                                </div>
+                                            </div>
                                         </Card>
+
+                                        {/* Billing Details */}
                                         <Space
                                             direction="vertical"
                                             style={{ width: "100%" }}
-                                            size="small"
+                                            size={window.innerWidth < 576 ? "small" : "small"}
                                         >
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    justifyContent: "space-between",
-                                                }}
-                                            >
-                                                <Text>ค่าห้อง</Text>
-                                                <Text>
+                                            {/* Room charges */}
+                                            <div style={{
+                                                display: "flex",
+                                                justifyContent: "space-between",
+                                                alignItems: 'center',
+                                                flexWrap: window.innerWidth < 400 ? 'wrap' : 'nowrap',
+                                                gap: window.innerWidth < 400 ? '4px' : '8px'
+                                            }}>
+                                                <Text style={{
+                                                    fontSize: window.innerWidth < 576 ? '12px' : '14px',
+                                                    flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
+                                                }}>
+                                                    ค่าห้อง
+                                                </Text>
+                                                <Text style={{
+                                                    fontSize: window.innerWidth < 576 ? '12px' : '14px',
+                                                    fontWeight: '500',
+                                                    textAlign: window.innerWidth < 400 ? 'right' : 'inherit',
+                                                    flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
+                                                }}>
                                                     ฿{formData.roomCharges.monthlyRent.toLocaleString()}
                                                 </Text>
                                             </div>
-                                            {/* <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <Text>ค่าอินเทอร์เน็ต</Text>
-                        <Text>
-                          ฿{formData.roomCharges.internetFee.toLocaleString()}
-                        </Text>
-                      </div> */}
+
                                             <Divider style={{ margin: "4px 0" }} />
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    justifyContent: "space-between",
-                                                }}
-                                            >
+
+                                            {/* Electric charges */}
+                                            <div style={{
+                                                display: "flex",
+                                                justifyContent: "space-between",
+                                                alignItems: 'center',
+                                                flexWrap: window.innerWidth < 400 ? 'wrap' : 'nowrap',
+                                                gap: window.innerWidth < 400 ? '4px' : '8px'
+                                            }}>
                                                 {electricMeter?.billingType === "perUnit" ? (
                                                     <>
-                                                        <Text>ค่าไฟฟ้า ({electricUsage} หน่วย)</Text>
-                                                        <Text>฿{electricCost.toLocaleString()}</Text>
-                                                    </>) : (<>
-                                                        <Text>ค่าไฟฟ้า (เหมาจ่าย)</Text>
-                                                        <Text>฿{electricCost.toLocaleString()}</Text>
-                                                    </>)}
-
+                                                        <Text style={{
+                                                            fontSize: window.innerWidth < 576 ? '12px' : '14px',
+                                                            flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
+                                                        }}>
+                                                            ค่าไฟฟ้า ({electricUsage} หน่วย)
+                                                        </Text>
+                                                        <Text style={{
+                                                            fontSize: window.innerWidth < 576 ? '12px' : '14px',
+                                                            fontWeight: '500',
+                                                            textAlign: window.innerWidth < 400 ? 'right' : 'inherit',
+                                                            flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
+                                                        }}>
+                                                            ฿{electricCost.toLocaleString()}
+                                                        </Text>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Text style={{
+                                                            fontSize: window.innerWidth < 576 ? '12px' : '14px',
+                                                            flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
+                                                        }}>
+                                                            ค่าไฟฟ้า (เหมาจ่าย)
+                                                        </Text>
+                                                        <Text style={{
+                                                            fontSize: window.innerWidth < 576 ? '12px' : '14px',
+                                                            fontWeight: '500',
+                                                            textAlign: window.innerWidth < 400 ? 'right' : 'inherit',
+                                                            flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
+                                                        }}>
+                                                            ฿{electricCost.toLocaleString()}
+                                                        </Text>
+                                                    </>
+                                                )}
                                             </div>
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    justifyContent: "space-between",
-                                                }}
-                                            >
+
+                                            {/* Water charges */}
+                                            <div style={{
+                                                display: "flex",
+                                                justifyContent: "space-between",
+                                                alignItems: 'center',
+                                                flexWrap: window.innerWidth < 400 ? 'wrap' : 'nowrap',
+                                                gap: window.innerWidth < 400 ? '4px' : '8px'
+                                            }}>
                                                 {renderWaterBill()}
-
                                             </div>
+
                                             <Divider style={{ margin: "4px 0" }} />
+
+                                            {/* Additional charges */}
                                             {formData.additionalCharges.map((charge) => (
                                                 <div
                                                     key={charge.id}
                                                     style={{
                                                         display: "flex",
                                                         justifyContent: "space-between",
+                                                        alignItems: 'center',
+                                                        flexWrap: window.innerWidth < 400 ? 'wrap' : 'nowrap',
+                                                        gap: window.innerWidth < 400 ? '4px' : '8px'
                                                     }}
                                                 >
-                                                    <Text>{charge.description}</Text>
-                                                    <Text>฿{(charge.amount || 0).toLocaleString()}</Text>
+                                                    <Text style={{
+                                                        fontSize: window.innerWidth < 576 ? '12px' : '14px',
+                                                        flex: window.innerWidth < 400 ? '1 1 100%' : 'none',
+                                                        wordBreak: 'break-word'
+                                                    }}>
+                                                        {charge.description}
+                                                    </Text>
+                                                    <Text style={{
+                                                        fontSize: window.innerWidth < 576 ? '12px' : '14px',
+                                                        fontWeight: '500',
+                                                        textAlign: window.innerWidth < 400 ? 'right' : 'inherit',
+                                                        flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
+                                                    }}>
+                                                        ฿{(charge.amount || 0).toLocaleString()}
+                                                    </Text>
                                                 </div>
                                             ))}
+
                                             {formData.additionalCharges.length > 0 && (
                                                 <Divider style={{ margin: "4px 0" }} />
                                             )}
+
+                                            {/* Previous balance */}
                                             {formData.roomCharges.previousBalance > 0 && (
-                                                <div
-                                                    style={{
-                                                        display: "flex",
-                                                        justifyContent: "space-between",
-                                                    }}
-                                                >
-                                                    <Text type="danger">ค้างชำระ</Text>
-                                                    <Text type="danger">
-                                                        ฿
-                                                        {formData.roomCharges.previousBalance.toLocaleString()}
+                                                <div style={{
+                                                    display: "flex",
+                                                    justifyContent: "space-between",
+                                                    alignItems: 'center',
+                                                    flexWrap: window.innerWidth < 400 ? 'wrap' : 'nowrap',
+                                                    gap: window.innerWidth < 400 ? '4px' : '8px'
+                                                }}>
+                                                    <Text
+                                                        type="danger"
+                                                        style={{
+                                                            fontSize: window.innerWidth < 576 ? '12px' : '14px',
+                                                            flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
+                                                        }}
+                                                    >
+                                                        ค้างชำระ
+                                                    </Text>
+                                                    <Text
+                                                        type="danger"
+                                                        style={{
+                                                            fontSize: window.innerWidth < 576 ? '12px' : '14px',
+                                                            fontWeight: '500',
+                                                            textAlign: window.innerWidth < 400 ? 'right' : 'inherit',
+                                                            flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
+                                                        }}
+                                                    >
+                                                        ฿{formData.roomCharges.previousBalance.toLocaleString()}
                                                     </Text>
                                                 </div>
                                             )}
+
+                                            {/* Deposit deduction */}
                                             {formData.roomCharges.deposit > 0 && (
-                                                <div
-                                                    style={{
-                                                        display: "flex",
-                                                        justifyContent: "space-between",
-                                                    }}
-                                                >
-                                                    <Text type="success">หักมัดจำ</Text>
-                                                    <Text type="success">
+                                                <div style={{
+                                                    display: "flex",
+                                                    justifyContent: "space-between",
+                                                    alignItems: 'center',
+                                                    flexWrap: window.innerWidth < 400 ? 'wrap' : 'nowrap',
+                                                    gap: window.innerWidth < 400 ? '4px' : '8px'
+                                                }}>
+                                                    <Text
+                                                        type="success"
+                                                        style={{
+                                                            fontSize: window.innerWidth < 576 ? '12px' : '14px',
+                                                            flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
+                                                        }}
+                                                    >
+                                                        หักมัดจำ
+                                                    </Text>
+                                                    <Text
+                                                        type="success"
+                                                        style={{
+                                                            fontSize: window.innerWidth < 576 ? '12px' : '14px',
+                                                            fontWeight: '500',
+                                                            textAlign: window.innerWidth < 400 ? 'right' : 'inherit',
+                                                            flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
+                                                        }}
+                                                    >
                                                         -฿{formData.roomCharges.deposit.toLocaleString()}
                                                     </Text>
                                                 </div>
                                             )}
-                                            {/* <Divider style={{ margin: "4px 0" }} /> */}
+
+                                            {/* Discounts */}
                                             {formData.discounts.map((discount) => (
                                                 <div
                                                     key={discount.id}
-                                                    style={{ display: "flex", justifyContent: "space-between" }}
+                                                    style={{
+                                                        display: "flex",
+                                                        justifyContent: "space-between",
+                                                        alignItems: 'center',
+                                                        flexWrap: window.innerWidth < 400 ? 'wrap' : 'nowrap',
+                                                        gap: window.innerWidth < 400 ? '4px' : '8px'
+                                                    }}
                                                 >
-                                                    <Text type="success">{discount.description}</Text>
-                                                    <Text type="success">
+                                                    <Text
+                                                        type="success"
+                                                        style={{
+                                                            fontSize: window.innerWidth < 576 ? '12px' : '14px',
+                                                            flex: window.innerWidth < 400 ? '1 1 100%' : 'none',
+                                                            wordBreak: 'break-word'
+                                                        }}
+                                                    >
+                                                        {discount.description}
+                                                    </Text>
+                                                    <Text
+                                                        type="success"
+                                                        style={{
+                                                            fontSize: window.innerWidth < 576 ? '12px' : '14px',
+                                                            fontWeight: '500',
+                                                            textAlign: window.innerWidth < 400 ? 'right' : 'inherit',
+                                                            flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
+                                                        }}
+                                                    >
                                                         -฿{(discount.amount || 0).toLocaleString()}
                                                     </Text>
                                                 </div>
                                             ))}
-                                            {formData.roomCharges.deposit > 0 && (
-                                                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                                                    <Text type="success">หักเงินมัดจำ</Text>
-                                                    <Text type="success">
-                                                        -฿{(formData.roomCharges.deposit || 0).toLocaleString()}
-                                                    </Text>
-                                                </div>
-                                            )}
 
-
-                                            {/* === ยอดรวม === */}
+                                            {/* Total Section */}
                                             <Divider style={{ margin: "8px 0" }} dashed />
                                             <div
                                                 style={{
                                                     display: "flex",
                                                     justifyContent: "space-between",
                                                     alignItems: "center",
-                                                    padding: "12px",
+                                                    padding: window.innerWidth < 576 ? "8px" : "12px",
                                                     borderRadius: "8px",
                                                     background: total >= 0 ? "#FFFBE6" : "#F6FFED",
                                                     border: `1px solid ${total >= 0 ? "#FFE58F" : "#B7EB8F"}`,
+                                                    flexDirection: window.innerWidth < 400 ? 'column' : 'row',
+                                                    gap: window.innerWidth < 400 ? '8px' : '16px'
                                                 }}
                                             >
-                                                {/* 👇 จัดกลุ่มข้อความฝั่งซ้ายเข้าด้วยกัน */}
-                                                <div>
-                                                    <Title level={4} style={{ marginBottom: 0 }}>
+                                                <div style={{
+                                                    textAlign: window.innerWidth < 400 ? 'center' : 'left',
+                                                    flex: 1
+                                                }}>
+                                                    <Title
+                                                        level={window.innerWidth < 576 ? 5 : 4}
+                                                        style={{
+                                                            marginBottom: 0,
+                                                            fontSize: window.innerWidth < 576 ? '14px' : 'inherit'
+                                                        }}
+                                                    >
                                                         ยอดชำระรวม
                                                     </Title>
-                                                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                                                    <Text
+                                                        type="secondary"
+                                                        style={{
+                                                            fontSize: window.innerWidth < 576 ? '10px' : '12px',
+                                                            display: 'block',
+                                                            textAlign: window.innerWidth < 400 ? 'center' : 'left'
+                                                        }}
+                                                    >
                                                         {total >= 0 ? "(ยอดเงินที่ต้องได้รับ)" : "(ยอดเงินที่ต้องชำระเพิ่มเติม)"}
                                                     </Text>
                                                 </div>
 
-                                                {/* ยอดเงินฝั่งขวา */}
                                                 <Title
-                                                    level={3}
+                                                    level={window.innerWidth < 576 ? 4 : 3}
                                                     style={{
                                                         marginBottom: 0,
                                                         color: total >= 0 ? "#D46B08" : "#389E0D",
+                                                        fontSize: window.innerWidth < 576 ? '18px' : 'inherit',
+                                                        textAlign: 'right',
+                                                        flex: window.innerWidth < 400 ? 'none' : 'none'
                                                     }}
                                                 >
-                                                    ฿
-                                                    {Math.abs(total).toLocaleString(undefined, {
+                                                    ฿{Math.abs(total).toLocaleString(undefined, {
                                                         minimumFractionDigits: 2,
                                                     })}
                                                 </Title>
                                             </div>
+
+                                            {/* Save Button */}
                                             <div
                                                 style={{
                                                     display: "flex",
-                                                    justifyContent: "flex-end", // ให้ไปขวา
+                                                    justifyContent: "center",
                                                     alignItems: "center",
-                                                    // background: "#f8f9fa",
-                                                    padding: "0.2rem",           // เพิ่ม padding ให้ดูโปร่ง
-                                                    borderRadius: "0.5rem",    // มุมโค้ง
-                                                    marginTop: "0.5rem", // ✅ ระยะห่างด้านบน
+                                                    padding: "0.2rem",
+                                                    borderRadius: "0.5rem",
+                                                    marginTop: "0.5rem",
                                                 }}
                                             >
                                                 <Button
-                                                    size="large"
+                                                    size={window.innerWidth < 576 ? "middle" : "large"}
                                                     onClick={handleOkBilling}
-                                                    //className="bg-red-500"
-                                                    color="primary" variant="solid"
+                                                    color="primary"
+                                                    variant="solid"
                                                     style={{
-                                                        // background: "#237804",
-                                                        // color: "#fff",
                                                         border: "none",
                                                         fontWeight: "bold",
-                                                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)", // เพิ่มเงา
-                                                        borderRadius: "0.375rem",                  // มุมโค้ง
-                                                        padding: "0 2rem",                         // ขยายด้านข้าง
+                                                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+                                                        borderRadius: "0.375rem",
+                                                        padding: window.innerWidth < 576 ? "0 1.5rem" : "0 2rem",
+                                                        width: window.innerWidth < 576 ? "100%" : "auto",
+                                                        minHeight: window.innerWidth < 576 ? "40px" : "auto"
                                                     }}
-                                                    disabled={!isValid || isFormDisabled} // <--- เพิ่มตรงนี้
+                                                    disabled={!isValid || isFormDisabled}
                                                 >
                                                     บันทึก
                                                 </Button>
                                             </div>
                                         </Space>
                                     </Card>
-
                                 </div>
                             </div>
                         </Col>

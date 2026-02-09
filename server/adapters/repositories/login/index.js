@@ -11,6 +11,7 @@ exports.findeToken = async (token) => {
 
     return existingToken
 }
+
 exports.createTokenLogin = async (userId, token, expiresAt) => {
 
     const tokenData = new tokenModel({

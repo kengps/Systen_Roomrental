@@ -101,6 +101,18 @@ const ApartmentSchema = new Schema(
                 }
             }
         ],
+        isSlipCheckEnabled: {
+            type: Boolean,
+            default: false
+        },
+        img: {
+            type: String,
+            default: ""
+        },
+        domain: {
+            type: String,
+            default: ""
+        },
 
         createdAt: {
             type: Date,

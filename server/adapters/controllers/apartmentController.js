@@ -57,16 +57,6 @@ const addTanets = handleRequestError(async (c) => {
         }
 
 
-        // // 3. หา tenant ที่ owner อยู่ในสาย
-        // const tenants = await Tenant.find({
-        //     owner: { $in: ownerIds }
-        // }).populate('owner', 'username role')
-
-        //     .populate('room')
-        //     .populate('createdBy', 'username');
-
-        // console.log(`⩇⩇:⩇⩇🚨 tenants :`, tenants);
-
 
         const ownerId = await findOwner(profileId)
 
@@ -84,6 +74,16 @@ const addTanets = handleRequestError(async (c) => {
 
         await session.commitTransaction();
         session.endSession();
+
+
+        await SubmitLogs(
+            {
+                ipAddress: 0 || '',
+                action: "addTanets",
+                actor: profileId,
+                details: { tenant, newUser }
+            }
+        )
 
         return c.json({
             message: 'Create new Tenant successfully',
@@ -142,6 +142,14 @@ const updateTenancy = handleRequestError(async (c) => {
     // update status ห้อง
     const update = await updateStatusRoom(data.room, tenancyStatus)
 
+    await SubmitLogs(
+        {
+            ipAddress: 0 || '',
+            action: "updateTenancy",
+            actor: tenantId,
+            details: update
+        }
+    )
 
 
     return c.json({ message: "update data tenant successfully" })
@@ -154,7 +162,6 @@ const addBankAccount = handleRequestError(async (c) => {
 
     const { accountId, accountName, accountNumber, bankKey } = await c.req.json()
 
-    console.log(`⩇⩇:⩇⩇🚨 ~ addBankAccount ~ await c.req.json() :`, await c.req.json());
 
 
     let ownerId = await findOwner(accountId)
@@ -168,6 +175,14 @@ const addBankAccount = handleRequestError(async (c) => {
 
     const db = await BankAccount(ownerId, bankKey, accountNumber, accountName)
 
+    await SubmitLogs(
+        {
+            ipAddress: 0 || '',
+            action: "addBankAccount",
+            actor: accountId,
+            details: db
+        }
+    )
 
 
     return sendResponseHono(c, 201, "save account bank successfully", db);
@@ -203,7 +218,18 @@ const deleteBanksAccount = handleRequestError(async (c) => {
 
     const { bankId } = await c.req.param()
 
-     await deleteBankAccountId(bankId)
+    await deleteBankAccountId(bankId)
+
+    await SubmitLogs(
+        {
+            ipAddress: 0 || '',
+            action: "addBankAccount",
+            actor: "accountId",
+            details: bankId
+        }
+    )
+
+
 
     return c.json({ message: "delete bank account successfully" })
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 import LoginForm from '../../components/form/login/LoginForm';
 
@@ -10,17 +10,23 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import persistMiddleware from '../../service/zustand/middleware/persistMiddleware';
 
-
+import room_bg from '../../img/room.jpeg'
+import bg from '../../img/pattern_h.png'
+import { getImageLogo } from '../../service/api/apartment';
 
 const IndexForm = () => {
     const navigate = useNavigate();
     // const { Login } = storeAuth();
     const Login2 = persistMiddleware((state) => state.Login)
     const { Login, isAuthenticated, user, GetDataApartment } = persistMiddleware();
-    console.log(`⩇⩇:⩇⩇🚨 ~ IndexForm ~ user :`, user);
+
+    const domainNaame = window.location.hostname
+    const origin = window.location.origin
+
 
 
     const [loadings, setLoadings] = useState(false)
+    const [imgBg, setImgBg] = useState(room_bg)
 
 
     const userId = user?.userPayLoad?.user?.id
@@ -40,6 +46,28 @@ const IndexForm = () => {
 
     }
 
+    const hasFetchedLogo = useRef(false)
+    useEffect(() => {
+        if (hasFetchedLogo.current) return; // guard StrictMode double-invoke
+        hasFetchedLogo.current = true;
+
+        const cacheKey = `logo:${domainNaame}`
+        const cachedImg = sessionStorage.getItem(cacheKey)
+        if (cachedImg) {
+            setImgBg(cachedImg)
+            return
+        }
+
+        const fetchImageLogo = async () => {
+            const response = await getImageLogo(domainNaame)
+            if (response && response.img) {
+                setImgBg(response.img)
+                sessionStorage.setItem(cacheKey, response.img)
+            }
+        }
+        fetchImageLogo()
+    }, [domainNaame])
+
     //0 check Status Login
     useEffect(() => {
         if (user) {
@@ -47,6 +75,7 @@ const IndexForm = () => {
             GetDataApartment(userId)
         }
     }, [user])
+
 
     //1 login โดยการใช้ useForm
     const { register, handleSubmit, formState: { errors }, } = useForm();
@@ -56,8 +85,6 @@ const IndexForm = () => {
 
     //2 ทำการตรวจสอบ Role
     const checkLevelRole = async (data) => {
-
-
 
 
         try {
@@ -85,6 +112,7 @@ const IndexForm = () => {
         try {
 
             const response = await Login(value);
+            console.log(`⩇⩇:⩇⩇🚨 ~ response :`, response);
 
 
             toast.success(response.messages)
@@ -121,7 +149,7 @@ const IndexForm = () => {
     }
 
     return (
-        <LoginForm register={register} handleSubmit={handleSubmit} onSubmit={onSubmit} errors={errors} loadings={loadings} />
+        <LoginForm register={register} handleSubmit={handleSubmit} onSubmit={onSubmit} errors={errors} loadings={loadings} imgBg={imgBg} />
     );
 };
 

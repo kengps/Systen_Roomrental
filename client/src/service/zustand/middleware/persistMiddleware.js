@@ -33,8 +33,6 @@ const persistMiddleware = create(
             apartmentData: '',
             Login: async (value) => {
                 const response = await logged(value);
-                console.log(`⩇⩇:⩇⩇🚨 ~ Login: ~ response :`, response);
-
 
                 const token = response.data.token; // Assuming your API returns a token
                 const expiresIn = 2 * 60 * 60 * 1000; // 1 hour in milliseconds
@@ -46,7 +44,7 @@ const persistMiddleware = create(
                     token: token,
                     expirationTime: expirationTime
                 });
-
+                localStorage.setItem('userId', response.data.userPayLoad.user.id)
                 // Set timeout to automatically logout after token expires
                 setTimeout(() => {
                     get().Logout();

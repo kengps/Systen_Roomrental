@@ -15,7 +15,7 @@ const room = require('./frameworks/webserver/routes/room');
 const register = require('./frameworks/webserver/routes/registerRoutes');
 const apartment = require('./frameworks/webserver/routes/apartmentRoutes');
 
-const { connectDatabases } = require('./frameworks/database/mongoDB/connectMongoose');
+const {connectDatabases} = require('./frameworks/database/mongoDB/connectMongoose');
 
 // //app.use(cors());
 // app.use(morgan("dev"));
@@ -36,9 +36,6 @@ const { connectDatabases } = require('./frameworks/database/mongoDB/connectMongo
 // app.use(`/${process.env.MY_API}`, register)
 
 
-
-
-
 app.post('/asdf', (req, res) => {
     console.log(`⩇⩇:⩇⩇🚨  file: server.js:28  req :`, req.body);
 
@@ -51,8 +48,6 @@ app.get('/test', (req, res) => {
 })
 
 
-
-
 // app.use('/img', express.static('Frameworks/uploads'));
 //connext server my port
 // const server = http.createServer(app);
@@ -63,13 +58,16 @@ app.get('/test', (req, res) => {
 
 
 //hono
-const { Hono } = require('hono')
-const { logger } = require('hono/logger')
-const { etag } = require('hono/etag')
-const { cors } = require('hono/cors')
-const { serve } = require('@hono/node-server');
+// server.js หรือ app.js
+const {Hono} = require('hono');
+const {logger} = require('hono/logger');
+const {etag} = require('hono/etag');
+const {cors} = require('hono/cors');
+const {serve} = require('@hono/node-server');
+const {createNodeWebSocket} = require('@hono/node-ws');
+const {serveStatic} = require('@hono/node-server/serve-static');
 
-const { serveStatic } = require('@hono/node-server/serve-static');
+// Import routes
 const appHonoTest = require('./frameworks/webserver/routes/hono/test');
 const appLogin = require('./frameworks/webserver/routes/login');
 const appApartment = require('./frameworks/webserver/routes/apartmentRoutes');
@@ -81,47 +79,92 @@ const appHelmet = require('./middleware/helmetMiddleware');
 const appCompression = require('./middleware/compressionMiddleware');
 const appMeter = require('./frameworks/webserver/routes/meterRoutes');
 const appUploads = require('./frameworks/webserver/routes/uploads');
+const {Readable} = require('stream');
+const {setupWebSocket} = require('./config/wsConfig');
+const appNotifications = require('./frameworks/webserver/routes/notificationRoutes');
 
+// Import WebSocket configuration
 
-const appHono = new Hono()
+const appHono = new Hono();
 
-// appHono.use(`/${process.env.MY_API}/*`, cors())
-//app.use('*', (c, next) => appCors.handle(c.req, c.res).then(() => next()))
-appHono.route('*', appCors)
-// ใช้ helmet
-app.use('*', (c, next) => appHelmet.handle(c.req, c.res).then(() => next()))
-// ใช้ compression
-app.use('*', (c, next) => appCompression.handle(c.req, c.res).then(() => next()))
+// WebSocket setup
+const {injectWebSocket, upgradeWebSocket} = createNodeWebSocket({app: appHono});
 
-appHono.use(etag(), logger())
+// Apply middleware
+appHono.route('*', appCors);
+// appHono.use('*', (c, next) => appHelmet.handle(c.req, c.res).then(() => next()));
+// appHono.use('*', (c, next) => appCompression.handle(c.req, c.res).then(() => next()));
+appHono.use(etag(), logger());
+
 // Static files
-appHono.use('/img/*', serveStatic({ root: './Frameworks/uploads' }))
+appHono.use('/img/*', serveStatic({root: '../server/frameworks/upload'}));
+
+// Apply API routes
+appHono.route('/hono', appHonoTest);
+appHono.route(`/${process.env.MY_API}`, appLogin);
+appHono.route(`/${process.env.MY_API}`, appApartment);
+appHono.route(`/${process.env.MY_API}`, appMeter);
+appHono.route(`/${process.env.MY_API}`, appAccount);
+appHono.route(`/${process.env.MY_API}`, appRooms);
+appHono.route(`/${process.env.MY_API}`, appRegister);
+appHono.route(`/${process.env.MY_API}`, appUploads);
+appHono.route(`/${process.env.MY_API}`, appNotifications);
 
 
-
-appHono.route('/hono', appHonoTest)
-appHono.route(`/${process.env.MY_API}`, appLogin)
-appHono.route(`/${process.env.MY_API}`, appApartment)
-appHono.route(`/${process.env.MY_API}`, appMeter)
-appHono.route(`/${process.env.MY_API}`, appAccount)
-appHono.route(`/${process.env.MY_API}`, appRooms)
-appHono.route(`/${process.env.MY_API}`, appRegister)
-appHono.route(`/${process.env.MY_API}`, appUploads)
-appHono.get('/hono', (c) => c.text('Hono!'))
-
-
-
+// Basic route
+appHono.get('/', (c) => c.text('Server is running!'));
+appHono.get('/hono', (c) => c.text('Hono!'));
 
 
 async function start() {
-    await connectDatabases()
-    console.log('Database connected!')
-    console.log(`Server is starting on port ${PORT}...`)
+    try {
+        await connectDatabases();
+        console.log('✅ Database connected!');
+        console.log(`🚀 Server is starting on port ${PORT}...`);
 
-    serve({
-        fetch: appHono.fetch,
-        port: PORT,
-    })
+        const server = http.createServer(async (req, res) => {
+            const url = `http://${req.headers.host}${req.url}`;
+            const request = new Request(url, {
+                method: req.method,
+                headers: req.headers,
+                body: req.method !== 'GET' && req.method !== 'HEAD' ? req : null,
+                duplex: 'half',
+            });
+
+            const response = await appHono.fetch(request);
+            response.headers.forEach((value, key) => res.setHeader(key, value));
+            res.statusCode = response.status;
+
+            if (response.body) {
+                Readable.fromWeb(response.body).pipe(res);
+            } else {
+                res.end();
+            }
+        });
+
+        setupWebSocket(server)
+
+        server.listen(PORT, () => {
+            console.log(`✅ Server running on port ${PORT}`);
+            console.log(`🔌 WebSocket server ready at ws://localhost:${PORT}`);
+        });
+
+        return server;
+    } catch (error) {
+        console.error('❌ Failed to start server:', error);
+        process.exit(1);
+    }
 }
 
-start()
+// Handle graceful shutdown
+process.on('SIGTERM', () => {
+    console.log('🛑 Received SIGTERM, shutting down gracefully...');
+    process.exit(0);
+});
+
+process.on('SIGINT', () => {
+    console.log('🛑 Received SIGINT, shutting down gracefully...');
+    process.exit(0);
+});
+
+start();

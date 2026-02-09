@@ -1,7 +1,10 @@
 
+const { NotificationService } = require("../../frameworks/database/mongoDB/models/apartments/notifications")
 const { handleRequestError } = require("../../frameworks/webserver/utils/HOCHandelRequest")
 const { getDataBillingRepo, BillingCategory, BillSave, updateMeter, updateMeterHistory } = require("../repositories/billing/billingRepo")
-const { ListBill } = require("../repositories/billing/billingRepoII")
+const { ListBill, getListPayments, confirmBillAndPayment, cancelPayment } = require("../repositories/billing/billingRepoII")
+const { SubmitLogs } = require("../repositories/logactions/logactionsRepository")
+const { NotificationsRepository } = require("../repositories/noti")
 const { findOwner } = require("../repositories/register")
 
 
@@ -25,6 +28,7 @@ exports.addBilling = handleRequestError(async (c) => {
     const {
         accountId,
         tenantId,
+        roomNumber,
         apartmentId,
         billingPeriod,
         issueDate,
@@ -50,6 +54,8 @@ exports.addBilling = handleRequestError(async (c) => {
         const saveBillCategory = await BillingCategory(ownerId, tenantId, roomCharge, otherCharges);
 
 
+
+
         if (!saveBillCategory.success) {
             return c.json({
                 success: false,
@@ -63,6 +69,7 @@ exports.addBilling = handleRequestError(async (c) => {
             accountId,
             ownerId,
             tenantId,
+            roomNumber,
             apartmentId,
             billingPeriod,
             issueDate,
@@ -81,6 +88,21 @@ exports.addBilling = handleRequestError(async (c) => {
         await updateMeter(accountId, tenantId, billingPeriod, utilityCharges);
 
         //await updateMeterHistory(ownerId,accountId, tenantId, billingPeriod,utilityCharges);
+
+        const populatedBill = await saveBill.populate(['apartment', 'tenant'])
+
+
+        await NotificationService.billingWaiting(populatedBill)
+
+        await SubmitLogs(
+            {
+                ipAddress: 0 || '',
+                action: "addBilling",
+                actor: accountId,
+                details: saveBill
+            }
+        )
+
 
 
 
@@ -116,5 +138,76 @@ exports.Billing = handleRequestError(async (c) => {
     const data = await ListBill(ownerId, month, year)
 
     return c.json({ data })
+
+});
+exports.ListPayments = handleRequestError(async (c) => {
+    const { accountId } = await c.req.param()
+    const { page, limit, from } = await c.req.query()
+
+
+
+
+    let ownerId = await findOwner(accountId);
+
+    if (!ownerId || (Array.isArray(ownerId) && ownerId.length === 0)) {
+        ownerId = accountId;
+    }
+
+    const data = await getListPayments(ownerId, page, limit, from)
+
+    return c.json({ status: 200, message: 'get payment successfully', data })
+
+});
+exports.confirmPayments = handleRequestError(async (c) => {
+    const { accountId, newRemainingAmount, newPaidAmount, isFullPayment, tenant, paymentId, billNumber, billId, description, reference, paymentMethod, paymentAmount } = await c.req.json()
+
+
+    // ตรวจสอบ transRef ก่อน ว่ามี slipUpload แล้วหรือยัง ถ้ามีค่อย update
+
+    const result = await confirmBillAndPayment(accountId, newRemainingAmount, newPaidAmount, isFullPayment, tenant, paymentId, billNumber, billId, description, reference, paymentMethod, paymentAmount)
+
+
+    await NotificationService.paymentConfirmed(result, paymentAmount)
+    await SubmitLogs(
+        {
+            ipAddress: 0 || '',
+            action: "confirmPayments",
+            actor: accountId,
+            details: result
+        }
+    )
+
+
+
+    return c.json(result)
+
+});
+
+
+exports.canclePayments = handleRequestError(async (c) => {
+    const { accountId, tenant, billNumber, billId, description, reason, customNote, timestamp } = await c.req.json()
+    const { paymentId } = await c.req.param()
+
+
+
+    // ตรวจสอบ transRef ก่อน ว่ามี slipUpload แล้วหรือยัง ถ้ามีค่อย update
+
+    const result = await cancelPayment(accountId, tenant, billNumber, billId, description, reason, customNote, timestamp, paymentId)
+
+
+    await NotificationService.paymentRejected(result, description)
+
+    await SubmitLogs(
+        {
+            ipAddress: 0 || '',
+            action: "canclePayments",
+            actor: accountId,
+            details: result
+        }
+    )
+
+
+
+    return c.json(result)
 
 }); 

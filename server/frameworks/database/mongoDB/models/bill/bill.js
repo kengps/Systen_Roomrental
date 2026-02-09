@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { boolean } = require('zod');
 const { Schema } = mongoose;
 
 
@@ -53,6 +54,11 @@ const BillSchema = new Schema({
         ref: 'Apartment',
         required: true,
     },
+    slip: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'SlipUpload',
+        // required: true,
+    },
     billId: {
         type: String,
         required: true,
@@ -68,6 +74,7 @@ const BillSchema = new Schema({
         ref: 'Tenant',
         required: true
     },
+    roomNumber: Number,
     fiscalYear: {
         type: Number,
         // required: true,
@@ -156,6 +163,20 @@ const BillSchema = new Schema({
         }
     }],
 
+    paymentHistory: [{
+        updatedAt: Date,
+        updatedBy: String, // ผู้ให้เช่า
+        paymentDate: Date,
+        amount: Number,
+        paymentId: String,
+        paymentMethod: String,
+        reference: String,
+        paidBy: String, // ผู้ชำระ
+        confirmedBy: String, // ผู้ confirm
+        note: String,
+        remainingAmount: Number
+        // ข้อมูลหลักที่ต้องใช้บ่อย
+    }],
     // จำนวนเงิน
     totalAmount: {
         type: Number,
@@ -167,18 +188,32 @@ const BillSchema = new Schema({
         default: 0,
         // min: 0
     },
+    penaltyAmount: {
+        type: Number,
+        default: 0,
+        min: 0
+    },
     remainingAmount: {
         type: Number,
         default: function () {
-            return this.totalAmount - this.paidAmount;
+            return (this.totalAmount + this.penaltyAmount) - this.paidAmount;
         }
     },
+    excess: {
+        type: Number,
+        default: 0,
 
+    },
     // สถานะ
     status: {
         type: String,
-        enum: ['pending', 'partial', 'paid', 'overdue', 'cancelled', 'unpaid'],
+        enum: ['pending', 'waiting', 'outstanding ', 'partial', 'paid', 'overdue', 'cancelled', 'unpaid', 'rejected'],
         default: 'pending'
+    },
+    isCheckPayment: {
+        type: String,
+        enum: ['noting', 'waiting'],
+        default: 'noting'
     },
 
     // ข้อมูลเพิ่มเติม
@@ -186,9 +221,9 @@ const BillSchema = new Schema({
         type: String,
         trim: true
     },
-    attachments: [{
+    attachments: {
         type: String // URLs ของไฟล์แนบ
-    }],
+    },
 
     // Audit fields
     createdBy: {
@@ -216,6 +251,11 @@ const PaymentSchema = new Schema({
         unique: true,
         trim: true
     },
+    apartment: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Apartment',
+        required: true,
+    },
     bill: {
         type: mongoose.Schema.ObjectId,
         ref: 'Bill',
@@ -238,6 +278,22 @@ const PaymentSchema = new Schema({
         required: true,
         min: 0
     },
+    penaltyAmount: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    totalAmount: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    // ข้อมูลเพิ่มเติม
+    paidAmount: {
+        type: Number,
+        default: 0,
+        // min: 0
+    },
     paymentMethod: {
         type: String,
         enum: ['cash', 'transfer', 'card', 'cheque'],
@@ -245,7 +301,7 @@ const PaymentSchema = new Schema({
     },
     paymentStatus: {
         type: String,
-        enum: ['pending', 'completed', 'failed', 'refunded'],
+        enum: ['pending', 'waiting', 'outstanding ', 'rejected', 'cancelled', 'completed', 'failed', 'refunded'],
         default: 'completed'
     },
 
@@ -258,6 +314,7 @@ const PaymentSchema = new Schema({
         type: String,
         trim: true // เลขที่อ้างอิง สำหรับ transfer
     },
+    // ประวัติการชำระเพิ่มเติม (สำหรับแบ่งจ่าย)
 
     // การชำระแต่ละรายการ
     paidItems: [{
@@ -272,18 +329,21 @@ const PaymentSchema = new Schema({
         paidAmount: {
             type: Number,
             required: true,
-            min: 0
+            // min: 0
         }
     }],
 
-    // ข้อมูลเพิ่มเติม
     notes: {
         type: String,
         trim: true
     },
-    attachments: [{
+    attachments: {
         type: String // ใบเสร็จ, slip การโอน
-    }],
+    },
+    isConfirm: {
+        type: Boolean,
+        default: false
+    },
 
     // Audit fields
     createdBy: {
@@ -463,14 +523,16 @@ SequenceSchema.index({ sequenceType: 1, year: 1 });
 // Pre-save middleware สำหรับ Bill
 BillSchema.pre('save', function (next) {
     // คำนวณ remainingAmount
-    this.remainingAmount = this.totalAmount - this.paidAmount;
+    this.remainingAmount = (this.totalAmount + this.penaltyAmount) - this.paidAmount;
 
     // อัพเดท status ตามยอดเงิน
+    const totalDue = this.totalAmount + this.penaltyAmount;
+
     if (this.paidAmount === 0) {
         this.status = 'pending';
-    } else if (this.paidAmount < this.totalAmount) {
+    } else if (this.paidAmount < totalDue) {
         this.status = 'partial';
-    } else if (this.paidAmount >= this.totalAmount) {
+    } else if (this.paidAmount >= totalDue) {
         this.status = 'paid';
     }
 
@@ -478,6 +540,62 @@ BillSchema.pre('save', function (next) {
     if (this.status !== 'paid' && new Date() > this.dueDate) {
         this.status = 'overdue';
     }
+
+    next();
+});
+// BillSchema.pre(['findOneAndUpdate', 'updateOne', 'updateMany'], function (next) {
+//     const update = this.getUpdate();
+
+//     // ถ้าไม่ใช่ pipeline (ยังเป็น {} อยู่)
+//     if (!Array.isArray(update)) {
+//         const $set = update.$set || {};
+
+//         const needsCalc =
+//             $set.penaltyAmount !== undefined ||
+//             $set.paidAmount !== undefined ||
+//             $set.totalAmount !== undefined;
+
+//         if (needsCalc) {
+//             this.setUpdate([
+//                 {
+//                     $set: {
+//                         ...$set,
+//                         remainingAmount: {
+//                             $subtract: [
+//                                 { $add: ['$totalAmount', '$penaltyAmount'] },
+//                                 '$paidAmount'
+//                             ]
+//                         }
+//                     }
+//                 }
+//             ]);
+//         }
+//     }
+
+//     next();
+// });
+
+BillSchema.pre(['findOneAndUpdate', 'updateOne', 'updateMany'], async function (next) {
+    const update = this.getUpdate();
+    if (Array.isArray(update)) return next(); // pipeline → ข้าม
+
+    const $set = update.$set || {};
+    const query = this.getQuery();
+    const bill = await this.model.findOne(query);
+
+    const totalAmount = $set.totalAmount ?? bill.totalAmount ?? 0;
+    const penaltyAmount = $set.penaltyAmount ?? bill.penaltyAmount ?? 0;
+    const paidAmount = $set.paidAmount ?? bill.paidAmount ?? 0;
+
+    const remainingAmount = totalAmount + penaltyAmount - paidAmount;
+
+    this.setUpdate({
+        ...update,
+        $set: {
+            ...$set,
+            remainingAmount
+        }
+    });
 
     next();
 });
@@ -507,6 +625,7 @@ BillSchema.virtual('isOverdue').get(function () {
 BillSchema.virtual('paymentPercentage').get(function () {
     return this.totalAmount > 0 ? (this.paidAmount / this.totalAmount) * 100 : 0;
 });
+
 
 // Virtual สำหรับ Payment
 PaymentSchema.virtual('isPending').get(function () {
