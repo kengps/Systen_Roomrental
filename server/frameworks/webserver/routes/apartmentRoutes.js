@@ -1,19 +1,26 @@
 const express = require('express')
-const { addTanets, getTenantParent, updateTenancy, addBankAccount, getBanksAccount, deleteBanksAccount } = require('../../../adapters/controllers/apartmentController')
-const { Hono } = require('hono')
-const { auth } = require('../middleware/auth')
-const { apartmant, apartmantData, addServices, getServices, assignServicesTenant, deleteServicesTenant, ImageLogo } = require('../../../adapters/controllers/roomController')
-const { getDataBilling, addBilling, Billing, ListPayments, confirmPayments, canclePayments } = require('../../../adapters/controllers/billingController')
-const { informationApartmentForTenant, BillingTenant, PayMentsTenant } = require('../../../adapters/controllers/forTenantController')
-const { saveSlip, checkSlip, fullkey, getNotifications } = require('../../../adapters/controllers/slipuploadController')
-const { checkBotUpdate, addSocialAccount, sendMessage } = require('../../../adapters/controllers/checkBotUpdate')
-const { listBots, createBot, updateBot, deleteBot } = require('../../../adapters/controllers/botTelegramController')
-
+const {
+    addTenants, editTenants, getTenantParent, updateTenancy, addBankAccount, getBanksAccount, deleteBanksAccount
+} = require('../../../adapters/controllers/apartmentController')
+const {Hono} = require('hono')
+const {auth} = require('../middleware/auth')
+const {
+    apartmant, apartmantData, addServices, getServices, assignServicesTenant, deleteServicesTenant, ImageLogo
+} = require('../../../adapters/controllers/roomController')
+const {
+    getDataBilling, addBilling, Billing, ListPayments, confirmPayments, canclePayments
+} = require('../../../adapters/controllers/billingController')
+const {
+    informationApartmentForTenant, BillingTenant, PayMentsTenant
+} = require('../../../adapters/controllers/forTenantController')
+const {saveSlip, checkSlip, fullkey, getNotifications} = require('../../../adapters/controllers/slipuploadController')
+const {checkBotUpdate, addSocialAccount, sendMessage} = require('../../../adapters/controllers/checkBotUpdate')
+const {listBots, createBot, updateBot, deleteBot} = require('../../../adapters/controllers/botTelegramController')
 
 
 const appApartment = new Hono()
 //เพิ่มหอ
-appApartment.post('/apartment-address', apartmant);
+appApartment.post('/apartment-address', auth, apartmant);
 
 appApartment.post('/image-logo', ImageLogo);
 
@@ -29,7 +36,9 @@ appApartment.post('/tenants/:tenantId/services', assignServicesTenant);
 appApartment.patch('/tenants/:tenantId/serviceUsage/:serviceUsageId', deleteServicesTenant);
 
 //เพิ่มข้อมูลผู้เช่าใหม่ พร้อมสร้าง username
-appApartment.post('/add-tenant', addTanets)
+appApartment.post('/add-tenant', addTenants)
+
+appApartment.post('/edit-tenant', auth, editTenants)
 
 appApartment.get('/get-tenant', getTenantParent)
 
@@ -61,11 +70,6 @@ appApartment.get('/tenant/billing/:accountId', BillingTenant);
 appApartment.post('/tenant/payments', PayMentsTenant);
 
 
-
-
-
-
-
 appApartment.get('/key', fullkey);
 
 appApartment.post('/checkBotUpdate', checkBotUpdate);
@@ -80,7 +84,6 @@ appApartment.delete('/bots/:id', deleteBot);
 
 
 // appApartment.get('/notifications',auth ,getNotifications);
-
 
 
 module.exports = appApartment

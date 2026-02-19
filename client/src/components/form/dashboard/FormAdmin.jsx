@@ -1,6 +1,6 @@
 import {Box} from "@mui/material";
-import {Layout, theme} from 'antd';
-import React, {useEffect, useState} from 'react';
+import {Button, Layout, Modal, Space, theme, Typography} from 'antd';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {useMobile} from '../../../contexts/MobileContext';
 
@@ -15,6 +15,7 @@ import AppSidebar from './elements/antd/AppSidebar';
 import {toast} from 'react-toastify';
 import sweetalert from 'sweetalert2';
 import {menuItems} from './utilities/menuItems';
+import {ExclamationCircleFilled, SettingOutlined} from "@ant-design/icons";
 
 const {Sider, Content, Header, Footer} = Layout;
 
@@ -52,6 +53,11 @@ const FormAdmin = () => {
                 setMobileMenuOpen(false);
             }
 
+            if (missingApartment && key !== 'apartment_setting' && key !== 'logout') {
+                setOpenModal(true);
+                navigate('/apartment/setting', {replace: true});
+                return;
+            }
             // ตรวจสอบ logout ก่อน
             if (key === 'logout') {
                 const confirm = await sweetalert.fire({
@@ -104,8 +110,106 @@ const FormAdmin = () => {
         setOpenKeys(latestOpenKey ? [latestOpenKey] : []); // Set only the latest key as open, closing others
     };
 
+
+    const missingApartment = useMemo(() => !apartmentData?.result, [apartmentData]);
+
+    // ✅ กัน modal เด้งซ้ำ / กัน data กระพริบ
+    const shownRef = useRef(false);
+    const [openModal, setOpenModal] = useState(false);
+
+    useEffect(() => {
+        if (missingApartment) {
+            // ถ้าขาดจริง → เปิด (แต่กันเปิดซ้ำ)
+            if (!shownRef.current) {
+                shownRef.current = true;
+                setOpenModal(true);
+            } else {
+                setOpenModal(true);
+            }
+        } else {
+            // ถ้ามีค่าแล้ว → ปิด และรีเซ็ตให้พร้อมครั้งหน้า
+            setOpenModal(false);
+            shownRef.current = false;
+        }
+    }, [missingApartment]);
+
+    const goSetting = () => {
+        setOpenModal(false);
+        navigate('/apartment/setting');
+    };
+
+    useEffect(() => {
+        if (!missingApartment) return;
+
+        // ✅ อนุญาตให้เข้าได้เฉพาะหน้า setting
+        const allowPaths = ['/apartment/setting'];
+
+        // (ถ้าจะ allow หน้าอื่นเพิ่ม ก็ใส่ตรงนี้ เช่น profile/help)
+        // const allowPaths = ['/apartment/setting', '/admin/help'];
+
+        const isAllowed = allowPaths.some((p) => location.pathname.startsWith(p));
+
+        if (!isAllowed) {
+            navigate('/apartment/setting', {replace: true});
+        }
+    }, [missingApartment, location.pathname, navigate]);
+
+
     return (
         <Box sx={{display: "flex", flexDirection: "column", minHeight: "100vh"}}>
+
+            <Modal
+                open={openModal}
+                centered
+                closable={false}
+                footer={null}
+                width={520}
+                maskClosable={false}
+                className="apartment-modal"
+                maskStyle={{
+                    background: 'rgba(10, 10, 20, 0.45)',
+                    backdropFilter: 'blur(8px)',
+                }}
+            >
+                <div className="apartment-modal__wrap">
+                    <div className="apartment-modal__top">
+                        <div className="apartment-modal__icon">
+                            <ExclamationCircleFilled style={{fontSize: 22, color: '#fff'}}/>
+                        </div>
+
+                        <div style={{flex: 1}}>
+                            <Typography.Title level={4} style={{margin: 0, fontWeight: 900}}>
+                                ยังไม่ได้ตั้งค่าอพาร์ทเมนต์
+                            </Typography.Title>
+                            <Typography.Text type="secondary" style={{fontSize: 14}}>
+                                กรุณาตั้งค่าอพาร์ทเมนต์ของคุณก่อนใช้งานระบบ
+                            </Typography.Text>
+                        </div>
+                    </div>
+
+                    <div className="apartment-modal__divider"/>
+
+                    <div className="apartment-modal__hint">
+                        <Typography.Text style={{fontSize: 14}}>
+                            หลังตั้งค่าเสร็จ คุณจะเห็นชื่ออพาร์ทเมนต์บนแถบด้านบน และใช้งานเมนูทั้งหมดได้ตามปกติ
+                        </Typography.Text>
+                    </div>
+
+                    <Space style={{marginTop: 18, width: '100%', justifyContent: 'flex-end'}}>
+                        <Button
+                            type="primary"
+                            size="large"
+                            icon={<SettingOutlined/>}
+                            className="apartment-modal__btn"
+                            onClick={goSetting}
+                        >
+                            ไปตั้งค่า
+                        </Button>
+                    </Space>
+                </div>
+            </Modal>
+
+
             {isMobile ? (
                 // Mobile Layout: Menu on top
                 <Box sx={{display: "flex", flexDirection: "column", flexGrow: 1}}>

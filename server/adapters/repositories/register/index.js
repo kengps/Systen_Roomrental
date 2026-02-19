@@ -1,15 +1,15 @@
-const { ROLE_LEVELS, Role } = require("../../../frameworks/database/mongoDB/models/roleModel")
+const {ROLE_LEVELS, Role} = require("../../../frameworks/database/mongoDB/models/roleModel")
 
 const Profile = require("../../../frameworks/database/mongoDB/models/profile")
 
 const bcrypt = require('bcryptjs');
-const { sendError } = require("../../../frameworks/webserver/utils/responseMessage");
-const { Types } = require("mongoose");
+const {sendError} = require("../../../frameworks/webserver/utils/responseMessage");
+const {Types} = require("mongoose");
 
 
 exports.findParentByProfileId = async (id) => {
 
-    const user = await Profile.findOne({ _id: id })
+    const user = await Profile.findOne({_id: id})
         .select('-password')
         .populate('role', 'name');
 
@@ -50,7 +50,7 @@ exports.hasAnyUser = async () => {
 }
 exports.ensureUsernameUnique = async (username) => {
 
-    const usernameIsExist = await Profile.findOne({ username })
+    const usernameIsExist = await Profile.findOne({username})
 
 
     if (usernameIsExist) {
@@ -63,11 +63,11 @@ exports.ensureUsernameUnique = async (username) => {
 
 exports.ensureRoleUnique = async (role) => {
 
-    let roleIsExist = await Role.findOne({ name: role }); // ค้นหาจาก 'name'
+    let roleIsExist = await Role.findOne({name: role}); // ค้นหาจาก 'name'
 
 
     if (!roleIsExist) {
-        roleIsExist = new Role({ name: role }); // ตั้งค่า name แทน role
+        roleIsExist = new Role({name: role}); // ตั้งค่า name แทน role
         await roleIsExist.save();
     }
 
@@ -87,7 +87,7 @@ exports.hashPassword = async (password, cfPassword) => {
 }
 
 exports.registerUser = async (profiles) => {
-    const { username, password, role, enable, parent, lineage } = profiles
+    const {username, password, role, enable, parent, lineage} = profiles
 
     const data = new Profile({
         username,
@@ -101,11 +101,10 @@ exports.registerUser = async (profiles) => {
 }
 
 exports.findOwner = async (accountId) => {
- 
+
 
     try {
-        const account = await Profile.findById({ _id: accountId }).populate('lineage')
-      
+        const account = await Profile.findById({_id: accountId}).populate('lineage')
 
 
         if (!account) {
@@ -115,15 +114,14 @@ exports.findOwner = async (accountId) => {
         }
 
         const ownersInLineage = await Profile.find({
-            _id: { $in: account.lineage }
+            _id: {$in: account.lineage}
         }).select('_id');
-       
+
 
         const ownerIds = ownersInLineage.map(owner => owner._id);
 
-     
 
-        return ownerIds[0]?.toString() || null;
+        return ownerIds[0]?.toString() || accountId;
 
     } catch (error) {
         throw error
@@ -132,13 +130,12 @@ exports.findOwner = async (accountId) => {
 }
 
 
-
 exports.diableAccountId = async (accountId) => {
     try {
         const data = await Profile.findOneAndUpdate(
-            { _id: accountId },
-            { $set: { enabled: false } },
-            { new: true }
+            {_id: accountId},
+            {$set: {enabled: false}},
+            {new: true}
         )
 
         return data

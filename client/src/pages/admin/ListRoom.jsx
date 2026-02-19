@@ -1,16 +1,18 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Button, Checkbox, Collapse, Divider, Empty, Flex, Input, message, Spin, Typography } from 'antd';
-import { useState, useEffect } from 'react';
-import { updatePrice } from '../../service/api/rooms';
-import { useListRoom } from '../../hooks/useListRoom';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
+import {Button, Checkbox, Collapse, Divider, Empty, Flex, Input, message, Spin, Typography} from 'antd';
+import {useState, useEffect} from 'react';
+import {updatePrice} from '../../service/api/rooms';
+import {useListRoom} from '../../hooks/useListRoom';
 import RoomCard from './components/rooms/RoomCard';
 import PageHeader from '../../components/common/PageHeader';
+import persistMiddleware from "../../service/zustand/middleware/persistMiddleware.js";
 
-const { Title, Text } = Typography;
+const {Title, Text} = Typography;
 
 const ListRoom = () => {
     const queryClient = useQueryClient();
-    
+    const {user} = persistMiddleware();
+    const profileId = user?.userPayLoad?.user?.id
     // State for screen size detection
     const [isMobile, setIsMobile] = useState(false);
     const [isTablet, setIsTablet] = useState(false);
@@ -33,8 +35,8 @@ const ListRoom = () => {
     const [globalPriceInput, setGlobalPriceInput] = useState('');
 
     // ใช้ utility hook แทน useQuery
-    const { data, isLoading, isError } = useListRoom();
- 
+    const {data, isLoading, isError} = useListRoom();
+
 
     // Mutation for updating the price
     const updatePriceMutation = useMutation({
@@ -59,7 +61,7 @@ const ListRoom = () => {
     const isIndeterminate = totalSelectedCount > 0 && totalSelectedCount < allRooms.length;
 
     const handleSelectAllRooms = (e) => {
-        const { checked } = e.target;
+        const {checked} = e.target;
         const newSelectedRooms = {};
         if (checked) {
             allRooms.forEach(room => {
@@ -85,11 +87,11 @@ const ListRoom = () => {
     };
 
     const handleToggleRoom = (roomId) => {
-        setSelectedRooms(prev => ({ ...prev, [roomId]: !prev[roomId] }));
+        setSelectedRooms(prev => ({...prev, [roomId]: !prev[roomId]}));
     };
 
     const handleSelectAllInFloor = (roomsInFloor, select = true) => {
-        const updated = { ...selectedRooms };
+        const updated = {...selectedRooms};
         roomsInFloor.forEach(room => {
             updated[room._id] = select;
         });
@@ -122,11 +124,11 @@ const ListRoom = () => {
     }, {});
 
     if (isLoading) {
-        return <Flex justify="center" align="center" style={{ minHeight: '50vh' }}><Spin size="large" /></Flex>;
+        return <Flex justify="center" align="center" style={{minHeight: '50vh'}}><Spin size="large"/></Flex>;
     }
 
     if (isError || !data?.result) {
-        return <Empty description="ไม่สามารถโหลดข้อมูลห้องได้" style={{ marginTop: 50 }} />;
+        return <Empty description="ไม่สามารถโหลดข้อมูลห้องได้" style={{marginTop: 50}}/>;
     }
 
     // Dynamic styles based on screen size
@@ -152,10 +154,10 @@ const ListRoom = () => {
 
     const roomGridStyle = {
         display: 'grid',
-        gridTemplateColumns: isMobile 
+        gridTemplateColumns: isMobile
             ? 'repeat(2, 1fr)'  // 2 columns on mobile
-            : isTablet 
-                ? 'repeat(auto-fill, minmax(160px, 1fr))' 
+            : isTablet
+                ? 'repeat(auto-fill, minmax(160px, 1fr))'
                 : 'repeat(auto-fill, minmax(140px, 1fr))',
         gap: isMobile ? '8px' : isTablet ? '10px' : '8px',
         width: '100%',
@@ -168,7 +170,7 @@ const ListRoom = () => {
     const collapseItems = Object.keys(groupedByFloor).map((floor) => {
         const rooms = groupedByFloor[floor];
         const selectedInThisFloor = rooms.filter(room => selectedRooms[room._id]);
-        
+
         return {
             key: floor,
             label: (
@@ -179,14 +181,14 @@ const ListRoom = () => {
                     padding: '8px 0',
                     width: '100%'
                 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
                         <div style={{
                             width: '8px',
                             height: '8px',
                             borderRadius: '50%',
                             backgroundColor: '#667eea',
                             boxShadow: '0 0 8px rgba(102, 126, 234, 0.5)'
-                        }} />
+                        }}/>
                         <span style={{
                             fontSize: '16px',
                             fontWeight: '600',
@@ -230,23 +232,23 @@ const ListRoom = () => {
                         background: 'linear-gradient(45deg, #667eea, #764ba2)',
                         borderRadius: '50%',
                         opacity: 0.1
-                    }} />
-                    
+                    }}/>
+
                     {/* Action Bar */}
-                    <div style={{ position: 'relative', zIndex: 1 }}>
-                        <Flex 
-                            justify="space-between" 
+                    <div style={{position: 'relative', zIndex: 1}}>
+                        <Flex
+                            justify="space-between"
                             align={isMobile ? "flex-start" : "center"}
-                            wrap="wrap" 
+                            wrap="wrap"
                             gap={isMobile ? "12px" : "16px"}
                             vertical={isMobile}
-                            style={{ marginBottom: isMobile ? '16px' : '20px' }}
+                            style={{marginBottom: isMobile ? '16px' : '20px'}}
                         >
                             <Flex gap={isMobile ? "8px" : "12px"} wrap="wrap">
-                                <Button 
+                                <Button
                                     size={isMobile ? "small" : "middle"}
                                     onClick={() => handleSelectAllInFloor(rooms, true)}
-                                    style={{ 
+                                    style={{
                                         fontSize: isMobile ? '12px' : '14px',
                                         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                                         border: 'none',
@@ -257,11 +259,11 @@ const ListRoom = () => {
                                 >
                                     เลือกทั้งชั้น
                                 </Button>
-                                <Button 
-                                    danger 
+                                <Button
+                                    danger
                                     size={isMobile ? "small" : "middle"}
                                     onClick={() => handleSelectAllInFloor(rooms, false)}
-                                    style={{ 
+                                    style={{
                                         fontSize: isMobile ? '12px' : '14px',
                                         borderRadius: '8px',
                                         fontWeight: '600',
@@ -272,11 +274,11 @@ const ListRoom = () => {
                                 </Button>
                             </Flex>
                         </Flex>
-                        
-                        <Divider style={{ 
+
+                        <Divider style={{
                             margin: isMobile ? '12px 0' : '16px 0',
                             borderColor: '#e9ecef'
-                        }} />
+                        }}/>
 
                         {/* Room Grid */}
                         <div style={roomGridStyle}>
@@ -322,31 +324,31 @@ const ListRoom = () => {
                         onChange={handleSelectAllRooms}
                         checked={isAllSelected}
                     >
-                        <Text strong style={{ fontSize: isMobile ? '14px' : '16px' }}>
+                        <Text strong style={{fontSize: isMobile ? '14px' : '16px'}}>
                             เลือกทั้งหมด
                         </Text>
                     </Checkbox>
 
                     {totalSelectedCount > 0 && (
-                        <Flex 
+                        <Flex
                             align={isMobile ? "flex-start" : "center"}
                             gap={isMobile ? "8px" : "12px"}
                             wrap="wrap"
                             vertical={isMobile}
-                            style={{ width: isMobile ? '100%' : 'auto' }}
+                            style={{width: isMobile ? '100%' : 'auto'}}
                         >
-                            <Text 
-                                type="secondary" 
+                            <Text
+                                type="secondary"
                                 strong
-                                style={{ fontSize: isMobile ? '12px' : '14px' }}
+                                style={{fontSize: isMobile ? '12px' : '14px'}}
                             >
                                 {totalSelectedCount} ห้องที่เลือก
                             </Text>
-                            
-                            <Flex 
-                                gap={isMobile ? "8px" : "12px"} 
+
+                            <Flex
+                                gap={isMobile ? "8px" : "12px"}
                                 wrap="wrap"
-                                style={{ width: isMobile ? '100%' : 'auto' }}
+                                style={{width: isMobile ? '100%' : 'auto'}}
                             >
                                 <Input
                                     type="number"
@@ -354,7 +356,7 @@ const ListRoom = () => {
                                     placeholder="กำหนดราคารวม"
                                     value={globalPriceInput}
                                     onChange={(e) => setGlobalPriceInput(e.target.value)}
-                                    style={{ 
+                                    style={{
                                         width: isMobile ? '100%' : '180px',
                                         minWidth: isMobile ? 'auto' : '150px'
                                     }}
@@ -365,7 +367,7 @@ const ListRoom = () => {
                                     onClick={handleSubmitAllSelected}
                                     loading={updatePriceMutation.isPending}
                                     size={isMobile ? "small" : "middle"}
-                                    style={{ 
+                                    style={{
                                         width: isMobile ? '100%' : 'auto',
                                         fontSize: isMobile ? '12px' : '14px'
                                     }}
@@ -379,9 +381,9 @@ const ListRoom = () => {
             </div>
 
             {/* Collapse */}
-            <Collapse 
-                items={collapseItems} 
-                style={{ 
+            <Collapse
+                items={collapseItems}
+                style={{
                     marginTop: isMobile ? '12px' : '20px',
                     width: '100%',
                     maxWidth: '100%',
@@ -392,7 +394,7 @@ const ListRoom = () => {
                 }}
                 defaultActiveKey={collapseItems.map(item => item.key)}
                 size={isMobile ? "small" : "middle"}
-                expandIcon={({ isActive }) => (
+                expandIcon={({isActive}) => (
                     <div style={{
                         transform: isActive ? 'rotate(180deg)' : 'rotate(0deg)',
                         transition: 'transform 0.3s ease',

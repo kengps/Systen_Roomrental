@@ -15,7 +15,7 @@ export const menuItems = [
                     { key: 'r1', label: 'เพิ่มห้องพัก', path: '/admin/dashboard/addroom' },
                     { key: 'r2', label: 'ห้องพัก', path: '/admin/dashboard/listroom' },
                     { key: 'r3', label: 'เพิ่มผู้เช่า', path: '/admin/dashboard/tenantManagement' },
-                    { key: 'r4', label: 'stepper', path: '/admin/dashboard/stepper' },
+                    // { key: 'r4', label: 'stepper', path: '/admin/dashboard/stepper' },
                     // { key: '13', label: 'MainPage', path: '/admin/dashboard/create' },
                     // { key: '14', label: 'Option 4', path: '/admin/dashboard/option4' },
                 ],
@@ -29,7 +29,7 @@ export const menuItems = [
         children: [
             {
                 key: 'sub2',
-                label: 'Setting',
+                label: 'ตั้งค่า',
                 icon: <UserOutlined />,
                 children: [
                     { key: 'g1', label: 'เพิ่มผู้ใช้งาน', path: '/setting/addUser' },

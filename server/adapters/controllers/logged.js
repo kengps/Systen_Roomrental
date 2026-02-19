@@ -161,10 +161,6 @@ exports.logged = async (c) => {
     // สร้าง Token
     const token = jwt.sign(userPayLoad, process.env.JWT_SECRET, { expiresIn: "15m" });
     const refreshToken = jwt.sign(userPayLoad, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" });
-    console.log(`⩇⩇:⩇⩇🚨 ~ refreshToken :`, refreshToken);
-
-
-
 
 
 

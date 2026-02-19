@@ -1,22 +1,21 @@
 const jwt = require('jsonwebtoken');
-const { sendResponse, sendResponseHono } = require('../utils/responseMessage');
-const { findeToken } = require('../../../adapters/repositories/login');
-const { getCookie } = require('hono/cookie');
+const {sendResponse, sendResponseHono} = require('../utils/responseMessage');
+const {findeToken} = require('../../../adapters/repositories/login');
+const {getCookie} = require('hono/cookie');
 
 
 exports.auth = async (c, next) => {
     try {
-        const refreshToken = getCookie(c, 'refreshToken'); // ✅ ใช้ getCookie
-       
-        let bearer = await c.req.header('authorization');
-       
+        const refreshToken = getCookie(c, 'refreshToken');
 
-
-        if (!bearer || !bearer.startsWith('Bearer ')) {
-            return sendResponseHono(c, 401, 'Token not provided or invalid format');
-        }
-
-        const token = bearer.split(' ')[1];
+        // let bearer = await c.req.header('authorization');
+        //
+        //
+        //
+        // if (!bearer || !bearer.startsWith('Bearer ')) {
+        //     return sendResponseHono(c, 401, 'Token not provided or invalid format');
+        // }
+        // const token = bearer.split(' ')[1];
 
 
         const savedToken = await findeToken(refreshToken);
@@ -34,8 +33,6 @@ exports.auth = async (c, next) => {
         return await next();
     } catch (error) {
         console.log(`⩇⩇:⩇⩇🚨 ~ exports.auth= ~ error :`, error);
-
-
 
 
         return sendResponseHono(c, 401, error);

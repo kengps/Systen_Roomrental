@@ -1,43 +1,41 @@
-const { default: mongoose } = require("mongoose");
-const { ApartmentSchemaModel } = require("../../../frameworks/database/mongoDB/models/apartments/apartment");
-const { Room } = require("../../../frameworks/database/mongoDB/models/roomDetail");
-const { sendError } = require("../../../frameworks/webserver/utils/responseMessage");
+const {default: mongoose} = require("mongoose");
+const {ApartmentSchemaModel} = require("../../../frameworks/database/mongoDB/models/apartments/apartment");
+const {Room} = require("../../../frameworks/database/mongoDB/models/roomDetail");
+const {sendError} = require("../../../frameworks/webserver/utils/responseMessage");
 const banks = require("../../../frameworks/database/mongoDB/models/apartments/banks");
-
-
 
 
 exports.addressApartment = async (value) => {
     const {
+        apartmentName,
         zipCode,
         tambon,
         amphure,
         province,
         phones,
         addressLine,
-        profileId
+        profileId,
+        billingSettings,
     } = value
 
 
     try {
         const updated = await ApartmentSchemaModel.findOneAndUpdate(
-            { owner: profileId },
+            {owner: profileId},
             {
                 $set: {
-
+                    apartmentName,
                     addressLine,
                     province,
                     amphure,
                     tambon,
                     zipCode,
-
+                    billingSettings,
                     phones
                 }
             },
-            { new: true, upsert: true }
+            {new: true, upsert: true}
         );
-
-
 
 
         return updated
@@ -59,7 +57,6 @@ exports.apartmentData = async (profileId) => {
     }
 
 
-
     return data
 
 
@@ -67,7 +64,7 @@ exports.apartmentData = async (profileId) => {
 
 exports.findRoom = async (roomId, session) => {
     try {
-        const room = await Room.findOne({ _id: roomId }).session(session)
+        const room = await Room.findOne({_id: roomId}).session(session)
 
 
         return room
@@ -88,9 +85,9 @@ exports.updateStatusRoom = async (roomId, statusTenancy) => {
             status = 'unavailable' //ถ้าเข้า ให้ห้องเป็น สเตตัสไม่ว่าง
         }
         const room = await Room.findByIdAndUpdate(
-            { _id: roomId },
-            { $set: { status: status } },
-            { new: true }
+            {_id: roomId},
+            {$set: {status: status}},
+            {new: true}
         )
 
 
@@ -121,7 +118,6 @@ exports.addServicesInApartment = async (accountId, services) => {
         const existServiceName = await data.services.some(s => s.name === services.name)
 
 
-
         if (existServiceName) {
             // throw new Error("Service name already exists");
             sendError('ซ้ำ', 'Service name')
@@ -136,7 +132,6 @@ exports.addServicesInApartment = async (accountId, services) => {
         return await data.save();
 
 
-
     } catch (error) {
         throw error
     }
@@ -146,7 +141,7 @@ exports.getServicesInApartment = async (accountId) => {
 
     try {
 
-        const data = await ApartmentSchemaModel.findOne({ owner: accountId }).select('services -_id').exec();
+        const data = await ApartmentSchemaModel.findOne({owner: accountId}).select('services -_id').exec();
 
 
         if (!data) {
@@ -159,7 +154,6 @@ exports.getServicesInApartment = async (accountId) => {
         return data
 
 
-
     } catch (error) {
         throw error
     }
@@ -167,7 +161,7 @@ exports.getServicesInApartment = async (accountId) => {
 }
 exports.BankAccount = async (ownerId, bankKey, accountNumber, accountName) => {
     try {
-        const apartment = await ApartmentSchemaModel.findOne({ owner: ownerId }).select('_id');
+        const apartment = await ApartmentSchemaModel.findOne({owner: ownerId}).select('_id');
 
         if (!apartment) {
             return sendError('ไม่พบ', 'No apartments');
@@ -274,7 +268,7 @@ exports.getBankAccount = async (ownerId) => {
                     },
 
                     // เก็บข้อมูล apartment (เอาตัวแรกเพราะ apartmentId เหมือนกันหมด)
-                    apartmentData: { $first: '$apartmentData' }
+                    apartmentData: {$first: '$apartmentData'}
                 }
             },
 
@@ -310,12 +304,11 @@ exports.getBankAccount = async (ownerId) => {
 };
 
 
-
 exports.deleteBankAccountId = async (id) => {
 
     try {
 
-        return await banks.findOneAndDelete({ _id: id })
+        return await banks.findOneAndDelete({_id: id})
 
     } catch (error) {
         throw error
@@ -327,7 +320,7 @@ exports.findBankNumber = async (accountNumber) => {
 
     try {
 
-        return await banks.findOne({ accountNumber: accountNumber })
+        return await banks.findOne({accountNumber: accountNumber})
 
     } catch (error) {
         throw error
@@ -336,7 +329,7 @@ exports.findBankNumber = async (accountNumber) => {
 
 exports.getImageLogo = async (domain) => {
     try {
-        const logo = await ApartmentSchemaModel.findOne({ domain: domain })
+        const logo = await ApartmentSchemaModel.findOne({domain: domain})
 
         return {
             success: !!logo,

@@ -1,26 +1,39 @@
+const {default: mongoose} = require("mongoose");
+const {handleRequestError} = require("../../frameworks/webserver/utils/HOCHandelRequest");
+const {sendResponse, sendResponseHono} = require("../../frameworks/webserver/utils/responseMessage");
+const {
+    findRoom,
+    updateStatusRoom,
+    BankAccount,
+    getBankAccount,
+    deleteBankAccountId
+} = require("../repositories/apartment");
+const {RegistersWithTenant} = require("./registerController");
 
+const {createTenant, editTenant, getTeanantInParent, updateTenancys} = require("../repositories/tenant/tanantReposit");
 
-
-const { default: mongoose } = require("mongoose");
-const { handleRequestError } = require("../../frameworks/webserver/utils/HOCHandelRequest");
-const { sendResponse, sendResponseHono } = require("../../frameworks/webserver/utils/responseMessage");
-const { findRoom, updateStatusRoom, BankAccount, getBankAccount, deleteBankAccountId } = require("../repositories/apartment");
-const { RegistersWithTenant } = require("./registerController");
-
-const { createTenant, getTeanantInParent, updateTenancys } = require("../repositories/tenant/tanantReposit");
-
-const { findOwner, diableAccountId } = require("../repositories/register");
-
-
+const {findOwner, diableAccountId} = require("../repositories/register");
+const {SubmitLogs} = require("../repositories/logactions/logactionsRepository");
 
 
 // ฟังก์ชัน userRegister
-const addTanets = handleRequestError(async (c) => {
+const addTenants = handleRequestError(async (c) => {
 
     //tanant
 
-
-    const { prefix, firstName, lastName, deposit, phoneNumber, contractDuration, moveInDate, profileId, username, password, roomId } = await c.req.json()
+    const {
+        prefix,
+        firstName,
+        lastName,
+        deposit,
+        phoneNumber,
+        contractDuration,
+        moveInDate,
+        profileId,
+        username,
+        password,
+        roomId
+    } = await c.req.json()
 
 
     const session = await mongoose.startSession();
@@ -45,7 +58,7 @@ const addTanets = handleRequestError(async (c) => {
         }
         // ✅ จองห้องก่อน
         roomExits.status = 'unavailable';
-        await roomExits.save({ session });
+        await roomExits.save({session});
         //ลำดับแรก ทำการสมัคร username ก่อน
         let value = {
             profileId,
@@ -57,9 +70,7 @@ const addTanets = handleRequestError(async (c) => {
         }
 
 
-
         const ownerId = await findOwner(profileId)
-
 
 
         const newUser = await RegistersWithTenant(value)
@@ -68,7 +79,17 @@ const addTanets = handleRequestError(async (c) => {
 
 
         const valuesTenant = {
-            prefix, firstName, ownerId, lastName, roomIds, deposit, phoneNumber, contractDuration, moveInDate, newProfile, profileId
+            prefix,
+            firstName,
+            ownerId,
+            lastName,
+            roomIds,
+            deposit,
+            phoneNumber,
+            contractDuration,
+            moveInDate,
+            newProfile,
+            profileId
         }
         const tenant = await createTenant(valuesTenant);
 
@@ -81,7 +102,7 @@ const addTanets = handleRequestError(async (c) => {
                 ipAddress: 0 || '',
                 action: "addTanets",
                 actor: profileId,
-                details: { tenant, newUser }
+                details: {tenant, newUser}
             }
         )
 
@@ -99,16 +120,54 @@ const addTanets = handleRequestError(async (c) => {
 
 });
 
+// ฟังก์ชัน userRegister
+const editTenants = handleRequestError(async (c) => {
 
+
+    let data = await c.req.json()
+    const profileId = c.get('user')?.id
+
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    let ownerId = await findOwner(profileId)
+
+
+    // if (!ownerId || Array.isArray(ownerId) && ownerId.length === 0) {
+    //     ownerId = profileId
+    // }
+
+
+    try {
+
+        await session.commitTransaction();
+        session.endSession();
+
+
+        const tenant = await editTenant(data);
+
+        return c.json({
+            success: true,
+            message: 'update Tenant successfully',
+
+        })
+    } catch (error) {
+
+        await session.abortTransaction();
+        session.endSession();
+        throw error
+    }
+
+});
 
 
 const getTenantParent = handleRequestError(async (c) => {
 
 
-    const { accountId } = await c.req.query()
+    const {accountId} = await c.req.query()
 
     let ownerId = await findOwner(accountId)
-
 
 
     if (!ownerId || Array.isArray(ownerId) && ownerId.length === 0) {
@@ -128,8 +187,8 @@ const getTenantParent = handleRequestError(async (c) => {
 const updateTenancy = handleRequestError(async (c) => {
 
 
-    const { tenantId } = await c.req.param()
-    const { moveOutDate, tenancyStatus, disableAccuont } = await c.req.json()
+    const {tenantId} = await c.req.param()
+    const {moveOutDate, tenancyStatus, disableAccuont} = await c.req.json()
 
     const data = await updateTenancys(tenantId, tenancyStatus, moveOutDate)
 
@@ -152,20 +211,17 @@ const updateTenancy = handleRequestError(async (c) => {
     )
 
 
-    return c.json({ message: "update data tenant successfully" })
+    return c.json({message: "update data tenant successfully"})
 
 })
 
 
-
 const addBankAccount = handleRequestError(async (c) => {
 
-    const { accountId, accountName, accountNumber, bankKey } = await c.req.json()
-
+    const {accountId, accountName, accountNumber, bankKey} = await c.req.json()
 
 
     let ownerId = await findOwner(accountId)
-
 
 
     if (!ownerId || Array.isArray(ownerId) && ownerId.length === 0) {
@@ -191,12 +247,10 @@ const addBankAccount = handleRequestError(async (c) => {
 })
 const getBanksAccount = handleRequestError(async (c) => {
 
-    const { accountId } = await c.req.param()
-
+    const {accountId} = await c.req.param()
 
 
     let ownerId = await findOwner(accountId)
-
 
 
     if (!ownerId || Array.isArray(ownerId) && ownerId.length === 0) {
@@ -207,7 +261,6 @@ const getBanksAccount = handleRequestError(async (c) => {
     const db = await getBankAccount(ownerId)
 
 
-
     return sendResponseHono(c, 201, "save account bank successfully", db);
 
 
@@ -216,7 +269,7 @@ const getBanksAccount = handleRequestError(async (c) => {
 const deleteBanksAccount = handleRequestError(async (c) => {
 
 
-    const { bankId } = await c.req.param()
+    const {bankId} = await c.req.param()
 
     await deleteBankAccountId(bankId)
 
@@ -230,13 +283,11 @@ const deleteBanksAccount = handleRequestError(async (c) => {
     )
 
 
-
-    return c.json({ message: "delete bank account successfully" })
+    return c.json({message: "delete bank account successfully"})
 
 })
 
 
-
 module.exports = {
-    addTanets, getTenantParent, updateTenancy, addBankAccount, getBanksAccount, deleteBanksAccount
+    addTenants, editTenants, getTenantParent, updateTenancy, addBankAccount, getBanksAccount, deleteBanksAccount
 }

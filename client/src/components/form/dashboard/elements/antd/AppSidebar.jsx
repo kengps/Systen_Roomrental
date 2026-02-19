@@ -363,6 +363,38 @@ const AppSidebar = ({collapsed, handleMenuClick, menuItems, onOpenChange, openKe
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
     }
+    /* ===== submenu child only ===== */
+.ant-menu-submenu .ant-menu-item {
+    position: relative;
+    padding-left: 44px !important;
+}
+
+/* วงกลมโปร่ง */
+.ant-menu-submenu .ant-menu-item::before {
+    content: '';
+    position: absolute;
+    left: 22px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    border: 2px solid rgba(145, 85, 253, 0.45);
+    background: transparent;
+    transition: all 0.25s ease;
+}
+
+/* hover */
+.ant-menu-submenu .ant-menu-item:hover::before {
+    border-color: #9155FD;
+}
+
+/* active / selected */
+.ant-menu-submenu .ant-menu-item-selected::before {
+    background: linear-gradient(135deg, #9155FD, #D333FF);
+    border-color: #9155FD;
+}
+
   `;
 
     // --- Mobile Version ---

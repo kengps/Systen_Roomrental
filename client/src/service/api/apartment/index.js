@@ -27,15 +27,18 @@ const getToken = () => {
 
 export const addressApartmant = async (value) => {
 
-    return await axios.post(`${import.meta.env.VITE_REACT_APP_API}/apartment-address`, value)
+    return await axios.post(`${import.meta.env.VITE_REACT_APP_API}/apartment-address`, value, {
+        withCredentials: true, // ส่ง cookie (refreshToken) อัตโนมัติ
+    })
 
 
 }
+
 export const getDataApartment = async (profileId) => {
 
 
     const re = await axios.get(`${import.meta.env.VITE_REACT_APP_API}/apartment`, {
-        params: { profileId }
+        params: {profileId}
 
     })
 
@@ -46,7 +49,7 @@ export const getTenants = async (accountId) => {
 
 
     const re = await axios.get(`${import.meta.env.VITE_REACT_APP_API}/get-tenant`, {
-        params: { accountId }
+        params: {accountId}
 
     })
 
@@ -59,7 +62,6 @@ export const addMeters = async (value) => {
 
     const re = await axios.post(`${import.meta.env.VITE_REACT_APP_API}/add-meter`,
         value
-
     )
 
 
@@ -70,9 +72,8 @@ export const getMeters = async (accountId) => {
 
     const re = await axios.get(`${import.meta.env.VITE_REACT_APP_API}/get-meter`,
         {
-            params: { accountId }
+            params: {accountId}
         }
-
     )
 
 
@@ -84,7 +85,6 @@ export const addServices = async (value) => {
 
     const re = await axios.post(`${import.meta.env.VITE_REACT_APP_API}/add-services`,
         value
-
     )
 
 
@@ -94,9 +94,8 @@ export const getServices = async (accountId) => {
 
     const re = await axios.get(`${import.meta.env.VITE_REACT_APP_API}/get-services`,
         {
-            params: { accountId }
+            params: {accountId}
         }
-
     )
 
     return re.data
@@ -106,7 +105,6 @@ export const addServiceUsageTenant = async (tenantId, value) => {
 
     const re = await axios.post(`${import.meta.env.VITE_REACT_APP_API}/tenants/${tenantId}/services`,
         value
-
     )
 
     return re
@@ -114,13 +112,10 @@ export const addServiceUsageTenant = async (tenantId, value) => {
 export const deleteServiceUsage = async (value) => {
 
     const re = await axios.patch(`${import.meta.env.VITE_REACT_APP_API}/tenants/${value.tenantId}/serviceUsage/${value.serviceUsageId}`,
-
     )
 
     return re
 }
-
-
 
 
 export const createBankAccount = async (value) => {
@@ -151,7 +146,7 @@ export const checkSlip = async (values) => {
 }
 
 export const getImageLogo = async (domainName) => {
-    const re = await axios.post(`${import.meta.env.VITE_REACT_APP_API}/image-logo`, { domainName })
+    const re = await axios.post(`${import.meta.env.VITE_REACT_APP_API}/image-logo`, {domainName})
     return re.data
 }
 
@@ -162,7 +157,7 @@ export const sendMessage = async (data) => {
     const re = await axios.post(`${import.meta.env.VITE_REACT_APP_API}/send-message`, data, {
         withCredentials: true, // ส่ง cookie (refreshToken) อัตโนมัติ
         headers: {
-            ...(token && { 'Authorization': `Bearer ${token}` }) // ส่ง Bearer token ใน header
+            ...(token && {'Authorization': `Bearer ${token}`}) // ส่ง Bearer token ใน header
         }
     })
     return re.data

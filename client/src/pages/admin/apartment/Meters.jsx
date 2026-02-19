@@ -3,7 +3,7 @@ import Icon, {
     SaveOutlined,
     ThunderboltOutlined,
 } from '@ant-design/icons';
-import { useQuery } from '@tanstack/react-query';
+import {useQuery} from '@tanstack/react-query';
 import {
     Button,
     Card,
@@ -17,25 +17,27 @@ import {
     Spin,
     Typography,
 } from 'antd';
-import { useState } from 'react';
-import { Controller, useForm, useWatch } from 'react-hook-form';
-import { addMeters, getMeters } from '../../../service/api/apartment';
+import {useState, useEffect} from 'react';
+import {Controller, useForm, useWatch} from 'react-hook-form';
+import {addMeters, getMeters} from '../../../service/api/apartment';
 import persistMiddleware from '../../../service/zustand/middleware/persistMiddleware';
 import NumericInputControllerPage from '../components/ui/NumericInputControllerPage';
 import PageHeader from '../../../components/common/PageHeader';
 
-const { Title, Text, Paragraph } = Typography;
+const {Title, Text, Paragraph} = Typography;
 
 const WaterDropSvg = () => (
     <svg viewBox="0 0 1024 1024" fill="currentColor" width="1em" height="1em">
-        <path d="M512 960C335.3 960 192 816.7 192 640c0-170.7 176.7-347.3 320-515.7C655.3 292.7 832 469.3 832 640c0 176.7-143.3 320-320 320zM512 213.3c-106.7 124.3-234.7 262.2-234.7 426.7 0 129.4 105.3 234.7 234.7 234.7s234.7-105.3 234.7-234.7C746.7 475.5 618.7 337.6 512 213.3z" />
+        <path
+            d="M512 960C335.3 960 192 816.7 192 640c0-170.7 176.7-347.3 320-515.7C655.3 292.7 832 469.3 832 640c0 176.7-143.3 320-320 320zM512 213.3c-106.7 124.3-234.7 262.2-234.7 426.7 0 129.4 105.3 234.7 234.7 234.7s234.7-105.3 234.7-234.7C746.7 475.5 618.7 337.6 512 213.3z"/>
     </svg>
 );
 const WaterDropIcon = props => <Icon component={WaterDropSvg} {...props} />;
 
-const CalculationExample = ({ utilityType, billingType, rate, flatRate }) => {
+const CalculationExample = ({utilityType, billingType, rate, flatRate}) => {
     const isElectric = utilityType === 'electric';
-    const icon = isElectric ? <ThunderboltOutlined style={{ color: '#fadb14' }} /> : <WaterDropIcon style={{ color: '#1890ff' }} />;
+    const icon = isElectric ? <ThunderboltOutlined style={{color: '#fadb14'}}/> :
+        <WaterDropIcon style={{color: '#1890ff'}}/>;
     const unitName = isElectric ? 'หน่วย' : 'ยูนิต';
     const utilityName = isElectric ? 'ค่าไฟ' : 'ค่าน้ำ';
 
@@ -72,10 +74,10 @@ const CalculationExample = ({ utilityType, billingType, rate, flatRate }) => {
                             }}>
                                 {icon}
                             </div>
-                            <Text style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
+                            <Text style={{fontSize: 'clamp(12px, 2.5vw, 14px)'}}>
                                 ห้อง 101 ใช้ไป 5 {unitName}
-                            </Text><br />
-                            <Text strong style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
+                            </Text><br/>
+                            <Text strong style={{fontSize: 'clamp(12px, 2.5vw, 14px)'}}>
                                 คิดเป็น{utilityName}ที่ต้องจ่าย{' '}
                                 <span style={{
                                     fontSize: 'clamp(14px, 3vw, 18px)',
@@ -100,10 +102,10 @@ const CalculationExample = ({ utilityType, billingType, rate, flatRate }) => {
                             }}>
                                 {icon}
                             </div>
-                            <Text style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
+                            <Text style={{fontSize: 'clamp(12px, 2.5vw, 14px)'}}>
                                 ห้อง 202 ใช้ไป 20 {unitName}
-                            </Text><br />
-                            <Text strong style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
+                            </Text><br/>
+                            <Text strong style={{fontSize: 'clamp(12px, 2.5vw, 14px)'}}>
                                 คิดเป็น{utilityName}ที่ต้องจ่าย{' '}
                                 <span style={{
                                     fontSize: 'clamp(14px, 3vw, 18px)',
@@ -115,7 +117,7 @@ const CalculationExample = ({ utilityType, billingType, rate, flatRate }) => {
                         </div>
                     </Col>
                 </Row>
-                <Divider style={{ margin: '12px 0' }} />
+                <Divider style={{margin: '12px 0'}}/>
                 <Paragraph
                     strong
                     style={{
@@ -149,15 +151,16 @@ const CalculationExample = ({ utilityType, billingType, rate, flatRate }) => {
             >
                 ตัวอย่าง: การคิดค่าบริการตามการใช้งานจริง
             </Title>
-            <div style={{ textAlign: 'center', padding: '0 8px' }}>
+            <div style={{textAlign: 'center', padding: '0 8px'}}>
                 <div style={{
                     fontSize: 'clamp(1.5rem, 4vw, 2rem)',
                     marginBottom: '0.5rem'
                 }}>
                     {icon}
                 </div>
-                <Paragraph style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
-                    สมมติว่าห้อง 101 มีมิเตอร์ก่อนหน้า <b style={{ color: '#1890ff' }}>1000</b> และมิเตอร์ล่าสุด <b style={{ color: '#1890ff' }}>1025</b>
+                <Paragraph style={{fontSize: 'clamp(12px, 2.5vw, 14px)'}}>
+                    สมมติว่าห้อง 101 มีมิเตอร์ก่อนหน้า <b style={{color: '#1890ff'}}>1000</b> และมิเตอร์ล่าสุด <b
+                    style={{color: '#1890ff'}}>1025</b>
                 </Paragraph>
                 <Paragraph style={{
                     fontSize: 'clamp(12px, 2.2vw, 16px)',
@@ -171,14 +174,15 @@ const CalculationExample = ({ utilityType, billingType, rate, flatRate }) => {
                     textAlign: 'left',
                     border: '1px solid #f0f0f0'
                 }}>
-                    จำนวนที่ใช้: 1025 - 1000 = <b style={{ color: '#52c41a' }}>25 {unitName}</b><br />
-                    อัตราค่าบริการ: <b style={{ color: '#722ed1' }}>฿{rate || 0} / {unitName}</b><br />
-                    <Divider style={{ margin: '8px 0' }} />
+                    จำนวนที่ใช้: 1025 - 1000 = <b style={{color: '#52c41a'}}>25 {unitName}</b><br/>
+                    อัตราค่าบริการ: <b style={{color: '#722ed1'}}>฿{rate || 0} / {unitName}</b><br/>
+                    <Divider style={{margin: '8px 0'}}/>
                     <span style={{
                         fontWeight: 'bold',
                         fontSize: 'clamp(14px, 2.8vw, 20px)'
                     }}>
-                        รวมค่าบริการ: 25 * {rate || 0} = <span style={{ color: '#f5222d' }}>฿{(25 * (rate || 0)).toLocaleString()}</span>
+                        รวมค่าบริการ: 25 * {rate || 0} = <span
+                        style={{color: '#f5222d'}}>฿{(25 * (rate || 0)).toLocaleString()}</span>
                     </span>
                 </Paragraph>
             </div>
@@ -188,51 +192,98 @@ const CalculationExample = ({ utilityType, billingType, rate, flatRate }) => {
 
 export default function MetersPages() {
     const [activeUtility, setActiveUtility] = useState('electric');
-    const { user } = persistMiddleware();
+    const {user, apartMentData, GetDataApartment} = persistMiddleware();
     const accountId = user?.userPayLoad?.user?.id
 
-    const { control, handleSubmit, watch } = useForm({
+    // แยก form สำหรับแต่ละ utility - ไม่มี electric.billingType หรือ water.billingType
+    const {control, handleSubmit, reset, watch} = useForm({
         defaultValues: {
-            electric: { billingType: 'perUnit', rate: 0, flatRate: 0 },
-            water: { billingType: 'flatRate', rate: 0, flatRate: 0 },
+            billingType: 'perUnit',
+            rate: 0,
+            flatRate: 0,
         },
     });
 
-    const { data, isLoading } = useQuery({
+    const {data, isLoading, refetch} = useQuery({
         queryKey: ['listMeter'],
         queryFn: () => getMeters(accountId),
         enabled: !!accountId,
     });
 
-    const formValues = useWatch({ control });
-    const onFinish = async (data) => {
-        const processedData = {};
-        for (const key in data) {
-            const utility = data[key];
-            const { billingType, rate, flatRate } = utility;
-            processedData[key] = billingType === 'perUnit' ? { billingType, rate } : { billingType, flatRate };
+    // โหลดข้อมูลอพาร์ทเมนท์เมื่อ component mount
+    useEffect(() => {
+        if (accountId && !apartMentData) {
+            GetDataApartment(accountId);
         }
-        await addMeters({ accountId, ...processedData });
-        message.success('บันทึกการตั้งค่าสำเร็จ!');
+    }, [accountId, apartMentData, GetDataApartment]);
+
+    // เลือกใช้ข้อมูลจาก apartMentData.meters ก่อน ถ้าไม่มีค่อยใช้จาก data.meters
+    const metersData = apartMentData?.meters || data?.meters;
+
+    // โหลดค่าจาก API เมื่อสลับ tab
+    useEffect(() => {
+        if (metersData) {
+            const currentMeter = metersData.find(m => m.meterType === activeUtility);
+            if (currentMeter) {
+                reset({
+                    billingType: currentMeter.billingType,
+                    rate: currentMeter.rate || 0,
+                    flatRate: currentMeter.flatRate || 0,
+                });
+            } else {
+                // ถ้าไม่มีข้อมูล ให้ reset เป็นค่า default
+                reset({
+                    billingType: activeUtility === 'electric' ? 'perUnit' : 'flatRate',
+                    rate: 0,
+                    flatRate: 0,
+                });
+            }
+        }
+    }, [activeUtility, metersData, reset]);
+
+    const formValues = watch();
+
+    // บันทึกเฉพาะ utility ที่กำลังแก้ไข
+    const onFinish = async (formData) => {
+        console.log("🚀 ~ onFinish ~ formData: ", formData);
+
+        const {billingType, rate, flatRate} = formData;
+        const payload = {
+            accountId,
+            [activeUtility]: billingType === 'perUnit'
+                ? {billingType, rate}
+                : {billingType, flatRate}
+        };
+
+        console.log("🚀 ~ onFinish ~ payload: ", payload);
+
+        try {
+            await addMeters(payload);
+            await refetch(); // รีเฟรชข้อมูลจาก API
+            await GetDataApartment(accountId); // รีเฟรชข้อมูลอพาร์ทเมนท์
+            message.success(`บันทึกการตั้งค่า${activeUtility === 'electric' ? 'ค่าไฟฟ้า' : 'ค่าน้ำ'}สำเร็จ!`);
+        } catch (error) {
+            message.error('เกิดข้อผิดพลาดในการบันทึก');
+        }
     };
 
-    const selectedBillingType = formValues[activeUtility]?.billingType;
-    const currentRate = formValues[activeUtility]?.rate;
-    const currentFlatRate = formValues[activeUtility]?.flatRate;
-    const currentUtility = data?.meters?.find(m => m.meterType === activeUtility);
+    const selectedBillingType = formValues.billingType;
+    const currentRate = formValues.rate;
+    const currentFlatRate = formValues.flatRate;
+    const currentUtility = metersData?.find(m => m.meterType === activeUtility);
 
     const utilityConfig = {
         electric: {
             label: 'ค่าไฟฟ้า',
-            icon: <ThunderboltOutlined style={{ color: '#FFC107' }} />,
-            titleStyle: { color: '#d48806', fontWeight: 'bold' },
-            headerStyle: { borderLeft: '5px solid #FFC107', backgroundColor: '#fdebd0' },
+            icon: <ThunderboltOutlined style={{color: '#FFC107'}}/>,
+            titleStyle: {color: '#d48806', fontWeight: 'bold'},
+            headerStyle: {borderLeft: '5px solid #FFC107', backgroundColor: '#fdebd0'},
         },
         water: {
             label: 'ค่าน้ำ',
-            icon: <WaterDropIcon style={{ color: '#2196F3' }} />,
-            titleStyle: { color: '#1890ff', fontWeight: 'bold' },
-            headerStyle: { borderLeft: '5px solid #3498db', backgroundColor: '#ebf5fb' },
+            icon: <WaterDropIcon style={{color: '#2196F3'}}/>,
+            titleStyle: {color: '#1890ff', fontWeight: 'bold'},
+            headerStyle: {borderLeft: '5px solid #3498db', backgroundColor: '#ebf5fb'},
         },
     };
 
@@ -303,13 +354,13 @@ export default function MetersPages() {
                 </div>
 
                 {isLoading ? (
-                    <div style={{ textAlign: 'center', padding: '48px 0' }}>
-                        <Spin size="large" />
+                    <div style={{textAlign: 'center', padding: '48px 0'}}>
+                        <Spin size="large"/>
                     </div>
-                ) : !data?.meters?.length ? (
+                ) : !metersData?.length ? (
                     <Card
                         title={
-                            <span style={{ fontSize: 'clamp(14px, 2.5vw, 16px)' }}>
+                            <span style={{fontSize: 'clamp(14px, 2.5vw, 16px)'}}>
                                 ({activeUtility === 'electric' ? 'ค่าไฟฟ้า' : 'ค่าน้ำ'}) ปัจจุบันที่กำหนดไว้
                             </span>
                         }
@@ -319,14 +370,14 @@ export default function MetersPages() {
                             border: '1px solid #ffa39e'
                         }}
                     >
-                        <Text strong type="danger" style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
+                        <Text strong type="danger" style={{fontSize: 'clamp(12px, 2.5vw, 14px)'}}>
                             ❌ ยังไม่ได้กำหนดค่าใดๆ
                         </Text>
                     </Card>
                 ) : (
                     <Card
                         title={
-                            <span style={{ fontSize: 'clamp(14px, 2.5vw, 16px)' }}>
+                            <span style={{fontSize: 'clamp(14px, 2.5vw, 16px)'}}>
                                 📄 ค่าบริการที่ตั้งไว้ปัจจุบัน ({utilityConfig[activeUtility].label})
                             </span>
                         }
@@ -337,18 +388,19 @@ export default function MetersPages() {
                         }}
                     >
                         {currentUtility ? (
-                            <div style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
-                                <Text>วิธีคำนวณ: <Text strong>{currentUtility.billingType === 'perUnit' ? 'คิดตามหน่วยที่ใช้' : 'เหมาจ่ายรายเดือน'}</Text></Text><br />
+                            <div style={{fontSize: 'clamp(12px, 2.5vw, 14px)'}}>
+                                <Text>วิธีคำนวณ: <Text
+                                    strong>{currentUtility.billingType === 'perUnit' ? 'คิดตามหน่วยที่ใช้' : 'เหมาจ่ายรายเดือน'}</Text></Text><br/>
                                 <Text>
                                     อัตรา: <Text strong>
-                                        {currentUtility.billingType === 'perUnit'
-                                            ? `${currentUtility.rate} บาท / หน่วย`
-                                            : `${currentUtility.flatRate} บาท / เดือน`}
-                                    </Text>
+                                    {currentUtility.billingType === 'perUnit'
+                                        ? `${currentUtility.rate} บาท / หน่วย`
+                                        : `${currentUtility.flatRate} บาท / เดือน`}
+                                </Text>
                                 </Text>
                             </div>
                         ) : (
-                            <Text strong type="danger" style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
+                            <Text strong type="danger" style={{fontSize: 'clamp(12px, 2.5vw, 14px)'}}>
                                 ❌ ยังไม่ได้กำหนดค่านี้
                             </Text>
                         )}
@@ -392,12 +444,12 @@ export default function MetersPages() {
                                     เลือกวิธีการคำนวณ
                                 </Title>
                             }
-                            style={{ marginBottom: 'clamp(16px, 3vw, 24px)' }}
+                            style={{marginBottom: 'clamp(16px, 3vw, 24px)'}}
                         >
                             <Controller
-                                name={`${activeUtility}.billingType`}
+                                name="billingType"
                                 control={control}
-                                render={({ field }) => (
+                                render={({field}) => (
                                     <Segmented
                                         {...field}
                                         block
@@ -405,7 +457,7 @@ export default function MetersPages() {
                                         options={[
                                             {
                                                 label: (
-                                                    <span style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
+                                                    <span style={{fontSize: 'clamp(12px, 2.5vw, 14px)'}}>
                                                         คิดตามหน่วยที่ใช้
                                                     </span>
                                                 ),
@@ -413,7 +465,7 @@ export default function MetersPages() {
                                             },
                                             {
                                                 label: (
-                                                    <span style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
+                                                    <span style={{fontSize: 'clamp(12px, 2.5vw, 14px)'}}>
                                                         เหมาจ่ายรายเดือน
                                                     </span>
                                                 ),
@@ -428,20 +480,20 @@ export default function MetersPages() {
                         {selectedBillingType === 'perUnit' && (
                             <Form.Item
                                 label={
-                                    <span style={{ fontSize: 'clamp(14px, 2.5vw, 16px)' }}>
+                                    <span style={{fontSize: 'clamp(14px, 2.5vw, 16px)'}}>
                                         อัตราค่าบริการต่อหน่วย
                                     </span>
                                 }
-                                style={{ marginBottom: 'clamp(16px, 3vw, 24px)' }}
+                                style={{marginBottom: 'clamp(16px, 3vw, 24px)'}}
                             >
                                 <NumericInputControllerPage
                                     type="number"
-                                    controllerName={`${activeUtility}.rate`}
+                                    controllerName="rate"
                                     control={control}
                                     size="large"
                                     addonAfter="บาท / หน่วย"
                                     prefix="฿"
-                                    style={{ fontSize: 'clamp(14px, 2.5vw, 16px)' }}
+                                    style={{fontSize: 'clamp(14px, 2.5vw, 16px)'}}
                                 />
                             </Form.Item>
                         )}
@@ -449,28 +501,28 @@ export default function MetersPages() {
                         {selectedBillingType === 'flatRate' && (
                             <Form.Item
                                 label={
-                                    <span style={{ fontSize: 'clamp(14px, 2.5vw, 16px)' }}>
+                                    <span style={{fontSize: 'clamp(14px, 2.5vw, 16px)'}}>
                                         ค่าบริการเหมาจ่าย
                                     </span>
                                 }
-                                style={{ marginBottom: 'clamp(16px, 3vw, 24px)' }}
+                                style={{marginBottom: 'clamp(16px, 3vw, 24px)'}}
                             >
                                 <NumericInputControllerPage
                                     type="number"
-                                    controllerName={`${activeUtility}.flatRate`}
+                                    controllerName="flatRate"
                                     control={control}
                                     size="large"
                                     addonAfter="บาท / เดือน"
                                     prefix="฿"
-                                    style={{ fontSize: 'clamp(14px, 2.5vw, 16px)' }}
+                                    style={{fontSize: 'clamp(14px, 2.5vw, 16px)'}}
                                 />
                             </Form.Item>
                         )}
 
-                        <Divider style={{ margin: 'clamp(16px, 3vw, 24px) 0' }}>
+                        <Divider style={{margin: 'clamp(16px, 3vw, 24px) 0'}}>
                             <Space>
-                                <CalculatorOutlined />
-                                <span style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
+                                <CalculatorOutlined/>
+                                <span style={{fontSize: 'clamp(12px, 2.5vw, 14px)'}}>
                                     วิธีการคำนวณ
                                 </span>
                             </Space>
@@ -493,7 +545,7 @@ export default function MetersPages() {
                             type="primary"
                             htmlType="submit"
                             size="large"
-                            icon={<SaveOutlined />}
+                            icon={<SaveOutlined/>}
                             style={{
                                 maxWidth: '320px',
                                 width: '100%',
@@ -502,7 +554,7 @@ export default function MetersPages() {
                                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                             }}
                         >
-                            บันทึกการตั้งค่า
+                            บันทึกการตั้งค่า{utilityConfig[activeUtility].label}
                         </Button>
                     </div>
                 </Form>

@@ -1,27 +1,29 @@
+const {Room, RentDetails, AdditionalCharge} = require("../../frameworks/database/mongoDB/models/roomDetail");
+const {handleRequestError} = require("../../frameworks/webserver/utils/HOCHandelRequest");
+const {sendResponse, sendResponseHono} = require("../../frameworks/webserver/utils/responseMessage");
 
-const { Room, RentDetails, AdditionalCharge } = require("../../frameworks/database/mongoDB/models/roomDetail");
-const { handleRequestError } = require("../../frameworks/webserver/utils/HOCHandelRequest");
-const { sendResponse, sendResponseHono } = require("../../frameworks/webserver/utils/responseMessage");
-
-const { addressApartment, apartmentData, addServicesInApartment, getServicesInApartment, getImageLogo } = require("../repositories/apartment");
-const { SubmitLogs } = require("../repositories/logactions/logactionsRepository");
-const { findOwner } = require("../repositories/register");
-const { assignServices, deleteServices } = require("../repositories/tenant/tanantReposit");
+const {
+    addressApartment,
+    apartmentData,
+    addServicesInApartment,
+    getServicesInApartment,
+    getImageLogo
+} = require("../repositories/apartment");
+const {SubmitLogs} = require("../repositories/logactions/logactionsRepository");
+const {findOwner} = require("../repositories/register");
+const {assignServices, deleteServices} = require("../repositories/tenant/tanantReposit");
 
 const createRoom = handleRequestError(async (c) => {
-    const { value } = await c.req.json();
-    const { rooms, profileId } = value;
-
-
+    const {value} = await c.req.json();
+    const {rooms, profileId} = value;
 
 
     try {
         const profileOrConditions = [
-            { owner: profileId },
-            { owner: { $exists: false } },
-            { owner: null }
+            {owner: profileId},
+            {owner: {$exists: false}},
+            {owner: null}
         ];
-
 
 
         const conditions = rooms.map(room => ({
@@ -30,7 +32,7 @@ const createRoom = handleRequestError(async (c) => {
             $or: profileOrConditions
         }));
 
-        const existingRooms = await Room.find({ $or: conditions });
+        const existingRooms = await Room.find({$or: conditions});
 
 
         const existingSet = new Set(existingRooms.map(room => `${room.floor}-${room.roomNumber}`));
@@ -66,7 +68,7 @@ const createRoom = handleRequestError(async (c) => {
 
 
 const addTenetRoom = handleRequestError(async (c) => {
-    const { price, status, tenet } = await c.req.json()
+    const {price, status, tenet} = await c.req.json()
 
 
     try {
@@ -86,8 +88,8 @@ const addTenetRoom = handleRequestError(async (c) => {
         // const updateFields2 = {...req.body}
         await Room.bulkWrite([{
             updateOne: {
-                filter: { _id: req.body.id },
-                update: { $set: updateFields },
+                filter: {_id: req.body.id},
+                update: {$set: updateFields},
                 upsert: true
             }
         }]);
@@ -114,8 +116,6 @@ const collectRent = handleRequestError(async (c) => {
 })
 
 
-
-
 const addRentDetails = handleRequestError(async (c) => {
     try {
         const {
@@ -131,7 +131,7 @@ const addRentDetails = handleRequestError(async (c) => {
         // ตรวจสอบว่าห้องเช่านี้มีอยู่หรือไม่
         const room = await Room.findById(roomId);
         if (!room) {
-            return c.json({ message: 'Room not found' });
+            return c.json({message: 'Room not found'});
         }
 
         // สร้างรายละเอียดค่าเช่าใหม่
@@ -176,17 +176,17 @@ const addRentDetails = handleRequestError(async (c) => {
             await rentDetails.save(); // บันทึกการอัปเดตหลังเพิ่มค่าใช้จ่ายเพิ่มเติม
         }
 
-        return c.json({ message: 'Rent details added successfully', rentDetails });
+        return c.json({message: 'Rent details added successfully', rentDetails});
     } catch (error) {
         console.error(error);
-        c.json({ message: 'Server error' });
+        c.json({message: 'Server error'});
     }
 });
 
 
 const listRoom = handleRequestError(async (c) => {
 
-    const { profileId } = await c.req.query()
+    const {profileId} = await c.req.query()
 
     try {
 
@@ -198,7 +198,7 @@ const listRoom = handleRequestError(async (c) => {
         }
 
 
-        const listRoom = await Room.find({ owner: ownerId });
+        const listRoom = await Room.find({owner: ownerId});
 
 
         return sendResponseHono(c, 200, 'Get room success', listRoom, listRoom.length)
@@ -209,10 +209,9 @@ const listRoom = handleRequestError(async (c) => {
 })
 
 
-
 const listRentDetails = handleRequestError(async (c) => {
     try {
-        const getMsgContents = await RentDetails.find().populate({ path: 'room', select: { _id: 0, tenant: 1 } }).exec();
+        const getMsgContents = await RentDetails.find().populate({path: 'room', select: {_id: 0, tenant: 1}}).exec();
 
 
         const listRentDetails = await RentDetails.find();
@@ -227,15 +226,15 @@ const listRentDetails = handleRequestError(async (c) => {
 
 const updatePrice = handleRequestError(async (c) => {
 
-    const { value } = await c.req.json()
-    const { roomNumber, price, accountId } = value
+    const {value} = await c.req.json()
+    const {roomNumber, price, accountId} = value
 
 
     try {
         // ที่ไม่ใช้ id ผู้อัปเดตเพราะให้ส่ง id ของ ห้องนั้นๆมา
         await Room.updateMany(
-            { _id: { $in: roomNumber } },
-            { $set: { price: price } }
+            {_id: {$in: roomNumber}},
+            {$set: {price: price}}
         )
 
         return sendResponseHono(c, 200, 'update price success')
@@ -247,10 +246,9 @@ const updatePrice = handleRequestError(async (c) => {
 })
 const updateUnitMeter = handleRequestError(async (c) => {
 
-    const { value, accountId } = await c.req.json()
+    const {value, accountId} = await c.req.json()
 
-    const { roomNumber } = value
-
+    const {roomNumber} = value
 
 
     // หา meterType จาก value ดึง key ออกมา
@@ -266,8 +264,8 @@ const updateUnitMeter = handleRequestError(async (c) => {
     try {
         // ที่ไม่ใช้ id ผู้อัปเดตเพราะให้ส่ง id ของ ห้องนั้นๆมา
         await Room.updateMany(
-            { _id: { $in: roomNumber } },
-            { $set: { [`unitMeter.${meterType}`]: value[meterType] } } // อัปเดต unitMeter ตาม meterType ที่รับมาจาก value
+            {_id: {$in: roomNumber}},
+            {$set: {[`unitMeter.${meterType}`]: value[meterType]}} // อัปเดต unitMeter ตาม meterType ที่รับมาจาก value
         )
 
         return sendResponseHono(c, 200, `update price unit meters ${meterType} successfully`)
@@ -279,7 +277,7 @@ const updateUnitMeter = handleRequestError(async (c) => {
 
 
 const apartmant = handleRequestError(async (c) => {
-    const { profileId } = await c.req.json()
+    const {profileId} = await c.req.json()
     const result = await addressApartment(await c.req.json())
 
     await SubmitLogs(
@@ -291,16 +289,13 @@ const apartmant = handleRequestError(async (c) => {
         }
     )
 
-
-
-
-    return c.json({ message: 'save data apartment successfully', result })
+    return c.json({message: 'save data apartment successfully', result})
 })
 
 const apartmantData = handleRequestError(async (c) => {
 
 
-    const { profileId } = await c.req.query()
+    const {profileId} = await c.req.query()
 
 
     let ownerId = await findOwner(profileId)
@@ -311,21 +306,19 @@ const apartmantData = handleRequestError(async (c) => {
     }
 
 
-
     const result = await apartmentData(ownerId)
 
-    return c.json({ message: 'data', result })
+    return c.json({message: 'data', result})
 })
 
 
 const addServices = handleRequestError(async (c) => {
 
 
-    const { accountId, ...services } = await c.req.json()
+    const {accountId, ...services} = await c.req.json()
 
 
     let ownerId = await findOwner(accountId)
-
 
 
     if (!ownerId || Array.isArray(ownerId) && ownerId.length === 0) {
@@ -334,7 +327,6 @@ const addServices = handleRequestError(async (c) => {
 
 
     const data = await addServicesInApartment(ownerId, services);
-
 
 
     await SubmitLogs(
@@ -347,16 +339,15 @@ const addServices = handleRequestError(async (c) => {
     )
 
 
-    return c.json({ message: 'Save The service fee has been successfully', data })
+    return c.json({message: 'Save The service fee has been successfully', data})
 })
 const getServices = handleRequestError(async (c) => {
 
 
-    const { accountId } = await c.req.query()
+    const {accountId} = await c.req.query()
 
 
     let ownerId = await findOwner(accountId)
-
 
 
     if (!ownerId || Array.isArray(ownerId) && ownerId.length === 0) {
@@ -367,16 +358,14 @@ const getServices = handleRequestError(async (c) => {
     const data = await getServicesInApartment(ownerId);
 
 
-
-
     return sendResponseHono(c, 201, 'get data successfully', data.services)
     //return c.json({ message: 'Save The service fee has been successfully', data })
 })
 
 
 const assignServicesTenant = handleRequestError(async (c) => {
-    const { tenantId } = await c.req.param()
-    const { newServiceIds } = await c.req.json()
+    const {tenantId} = await c.req.param()
+    const {newServiceIds} = await c.req.json()
 
 
     const a = await assignServices(tenantId, newServiceIds)
@@ -390,15 +379,14 @@ const assignServicesTenant = handleRequestError(async (c) => {
         }
     )
 
-    return c.json({ message: a })
+    return c.json({message: a})
 })
 
 
 const deleteServicesTenant = handleRequestError(async (c) => {
 
 
-
-    const { tenantId, serviceUsageId } = await c.req.param();
+    const {tenantId, serviceUsageId} = await c.req.param();
 
 
     const a = await deleteServices(tenantId, serviceUsageId)
@@ -412,12 +400,12 @@ const deleteServicesTenant = handleRequestError(async (c) => {
         }
     )
 
-    return c.json({ message: a })
+    return c.json({message: a})
 })
 
 
 const ImageLogo = handleRequestError(async (c) => {
-    const { domainName } = await c.req.json();
+    const {domainName} = await c.req.json();
     console.log(`⩇⩇:⩇⩇🚨 ~ await c.req.json() :`, await c.req.json());
 
     console.log(`⩇⩇:⩇⩇🚨 ~ domainName :`, domainName);

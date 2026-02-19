@@ -1,21 +1,31 @@
-const { default: mongoose } = require("mongoose");
+const {default: mongoose} = require("mongoose");
 const Account = require("../../../frameworks/database/mongoDB/models/profile");
 const Tenant = require("../../../frameworks/database/mongoDB/models/tenant");
-const { Bill, Payment } = require("../../../frameworks/database/mongoDB/models/bill/bill");
+const {Bill, Payment} = require("../../../frameworks/database/mongoDB/models/bill/bill");
 const banks = require("../../../frameworks/database/mongoDB/models/apartments/banks");
-const { sendError } = require("../../../frameworks/webserver/utils/responseMessage");
-const { calculateFine } = require("../../../frameworks/webserver/utils/calculateFine");
+const {sendError} = require("../../../frameworks/webserver/utils/responseMessage");
+const {calculateFine} = require("../../../frameworks/webserver/utils/calculateFine");
 const dayjs = require("dayjs");
-const { checkSlipOK } = require("../../../frameworks/services/checkSlipOK");
-const { saveSlip } = require("../../controllers/slipuploadController");
-const { generateKey } = require("../../../frameworks/services/generateKey");
-const { uploadPaymentSlip } = require("../../controllers/notificationController");
-
+const {checkSlipOK} = require("../../../frameworks/services/checkSlipOK");
+const {saveSlip} = require("../../controllers/slipuploadController");
+const {generateKey} = require("../../../frameworks/services/generateKey");
+const {uploadPaymentSlip} = require("../../controllers/notificationController");
 
 
 exports.createTenant = async (valuesTenant) => {
-    const { profileId, ownerId, newProfile, prefix, roomIds, firstName, lastName, deposit, phoneNumber, contractDuration, moveInDate } = valuesTenant
-
+    const {
+        profileId,
+        ownerId,
+        newProfile,
+        prefix,
+        roomIds,
+        firstName,
+        lastName,
+        deposit,
+        phoneNumber,
+        contractDuration,
+        moveInDate
+    } = valuesTenant
 
 
     let owner;
@@ -43,14 +53,44 @@ exports.createTenant = async (valuesTenant) => {
     }
 
 }
+exports.editTenant = async (valuesTenant) => {
+    const {
+        id,
+        prefix,
+        firstName,
+        lastName,
+        roomId,
+        phone,
+        deposit,
+        contractDuration
+    } = valuesTenant
+
+    try {
+        const tanant = await Tenant.findOneAndUpdate(
+            {_id: id},
+            {
+                $set: {
+                    prefix, firstName, lastName,
+                    room: new mongoose.Types.ObjectId(roomId),
+                    phone, deposit, contractDuration
+                }
+            },
+            {new: true}
+        )
+        return tanant
+
+    } catch (error) {
+        throw error
+    }
+
+}
 
 
 exports.getTeanantInParent = async (owner) => {
 
 
     try {
-        const result = await Tenant.find({ owner }).populate({ path: 'room' }).populate({ path: 'accountId' })
-
+        const result = await Tenant.find({owner}).populate({path: 'room'}).populate({path: 'accountId'})
 
 
         return {
@@ -68,9 +108,9 @@ exports.updateTenancys = async (tenantId, tenancyStatus, moveOutDate) => {
 
     try {
         const tenant = await Tenant.findOneAndUpdate(
-            { _id: tenantId },
-            { $set: { tenancyStatus: tenancyStatus, moveOutDate: moveOutDate } },
-            { new: true }
+            {_id: tenantId},
+            {$set: {tenancyStatus: tenancyStatus, moveOutDate: moveOutDate}},
+            {new: true}
         )
 
         return tenant
@@ -97,8 +137,8 @@ exports.assignServices = async (tenantId, newServiceIds) => {
 
         if (idsToAdd.length > 0) {
             await Tenant.updateOne(
-                { _id: tenantId },
-                { $push: { serviceUsage: { $each: idsToAdd } } }
+                {_id: tenantId},
+                {$push: {serviceUsage: {$each: idsToAdd}}}
             );
         }
 
@@ -110,7 +150,6 @@ exports.assignServices = async (tenantId, newServiceIds) => {
 }
 
 
-
 exports.deleteServices = async (tenantId, serviceUsageId) => {
 
 
@@ -118,11 +157,11 @@ exports.deleteServices = async (tenantId, serviceUsageId) => {
 
         // ถ้าเป็ฯ array ให้ใช้ $in ใน pull
         const tenant = await Tenant.updateOne(
-            { _id: tenantId },
+            {_id: tenantId},
             {
-                $pull: { serviceUsage: serviceUsageId }
+                $pull: {serviceUsage: serviceUsageId}
             },
-            { new: true }
+            {new: true}
         )
 
         //ใช้ pull ในการลย
@@ -186,7 +225,7 @@ exports.informationApartmentForTenants = async (ownerId) => {
             , {
                 $group: {
                     _id: '$apartmentData._id',
-                    apartment: { $first: '$apartmentData' },
+                    apartment: {$first: '$apartmentData'},
                     bank: {
                         $push: {
                             _id: '$_id',
@@ -253,30 +292,26 @@ exports.informationApartmentForTenants = async (ownerId) => {
         return informationsApartment[0]
 
     } catch (error) {
-        return { success: false, error: error.message };
+        return {success: false, error: error.message};
     }
 
 }
 
 
-
-
 exports.ListBillingTenant = async (accountId) => {
 
 
-
-    const tenantId = await Tenant.findOne({ accountId: new mongoose.Types.ObjectId(accountId) }).exec()
-
+    const tenantId = await Tenant.findOne({accountId: new mongoose.Types.ObjectId(accountId)}).exec()
 
 
     if (!tenantId) {
         return sendError('ไม่พบ', 'tenant')
     }
 
-    const bill = await Bill.find({ tenant: tenantId._id })
+    const bill = await Bill.find({tenant: tenantId._id})
         .populate([
-            { path: 'apartment', select: 'billingSettings -_id' },
-            { path: 'tenant', select: 'firstName lastName' }
+            {path: 'apartment', select: 'billingSettings -_id'},
+            {path: 'tenant', select: 'firstName lastName'}
         ]);
 
 
@@ -294,7 +329,7 @@ exports.SavePayments = async (data) => {
     try {
 
         const check = await Bill.aggregate([
-            { $match: { _id: new mongoose.Types.ObjectId(data.bill) } },
+            {$match: {_id: new mongoose.Types.ObjectId(data.bill)}},
 
             {
                 $lookup: {
@@ -304,8 +339,8 @@ exports.SavePayments = async (data) => {
                     as: 'tenantInfo'
                 }
             },
-            { $unwind: '$tenantInfo' },
-            { $match: { 'tenantInfo._id': new mongoose.Types.ObjectId(data.tenant._id) } },
+            {$unwind: '$tenantInfo'},
+            {$match: {'tenantInfo._id': new mongoose.Types.ObjectId(data.tenant._id)}},
 
             {
                 $lookup: {
@@ -330,7 +365,7 @@ exports.SavePayments = async (data) => {
                     as: 'apartmentInfo'
                 }
             },
-            { $unwind: '$apartmentInfo' },
+            {$unwind: '$apartmentInfo'},
 
             {
                 $project: {
@@ -354,10 +389,6 @@ exports.SavePayments = async (data) => {
                 }
             }
         ]);
-
-
-
-
 
 
         // ✅ ตรวจสอบว่าพบ Bill หรือไม่
@@ -402,7 +433,7 @@ exports.SavePayments = async (data) => {
         const payment = new Payment(data);
 
 
-        await payment.save({ session });
+        await payment.save({session});
 
 
         // ✅ อัปเดตสถานะ Bill
@@ -417,7 +448,7 @@ exports.SavePayments = async (data) => {
 
                 }
             },
-            { session }
+            {session}
         );
 
         // เพิ่ม noti
@@ -425,7 +456,7 @@ exports.SavePayments = async (data) => {
 
         await session.commitTransaction();
         session.endSession();
-        return { success: true, payment, check };
+        return {success: true, payment, check};
 
     } catch (error) {
         try {

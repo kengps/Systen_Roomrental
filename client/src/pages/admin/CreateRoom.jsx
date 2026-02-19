@@ -1,18 +1,18 @@
-import { Paper, TextField, Typography } from '@mui/material';
-import { Button, Card, Form, Input, InputNumber, Collapse, Row, Col, Radio, Flex } from 'antd';
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import {Paper, TextField, Typography} from '@mui/material';
+import {Button, Card, Form, Input, InputNumber, Collapse, Row, Col, Radio, Flex} from 'antd';
+import React, {useState} from 'react';
+import {useForm} from 'react-hook-form';
 import CreateRoomPage from '../../components/form/dashboard/rooms/CreateRoomPage';
-import { toast } from 'react-toastify';
+import {toast} from 'react-toastify';
 import persistMiddleware from '../../service/zustand/middleware/persistMiddleware';
 import axios from 'axios';
-import { useQuery } from '@tanstack/react-query';
+import {useQuery} from '@tanstack/react-query';
 
-const { Panel } = Collapse;
+const {Panel} = Collapse;
 
 let getRooms = async (profileId) => {
     return await axios.get(`${import.meta.env.VITE_REACT_APP_API}/listroom`, {
-        params: { profileId }
+        params: {profileId}
 
     })
 }
@@ -23,28 +23,25 @@ const CreateRoom = () => {
     const [count, setCount] = useState(3);
     const [price, setPrice] = useState(3500);
     const [rooms, setRooms] = useState([]);
-    const { user } = persistMiddleware()
+    const {user} = persistMiddleware()
 
     const profileId = user?.userPayLoad?.user?.id
 
-    const { data: existingRooms } = useQuery({
+    const {data: existingRooms} = useQuery({
         queryKey: ['existingRooms'],
         queryFn: () => getRooms(profileId)
     })
 
 
-
-
-    const { register, handleSubmit, control, reset, formState: { errors }, } = useForm();
+    const {register, handleSubmit, control, reset, formState: {errors},} = useForm();
 
     const handleAddRooms = async (value) => {
 
         try {
 
-            const { floor, price, roomPerFloor, count } = value
+            const {floor, price, roomPerFloor, count} = value
 
             const newRooms = [];
-
 
 
             // สร้างอาเรย์ที่เก็บหมายเลขห้องที่มีอยู่
@@ -55,7 +52,7 @@ const CreateRoom = () => {
 
 
                 for (let j = 1; j <= roomPerFloor; j++) {
-                    
+
                     //const roomNumber = i * 10 ** (count - 1) + (j - 1); //! เริ่มจาก xx0
                     const roomNumber = i * 10 ** (count - 1) + j
 
@@ -64,7 +61,7 @@ const CreateRoom = () => {
 
                     // ตรวจสอบว่าห้องที่ต้องการสร้างมีอยู่แล้วหรือไม่
                     if (!existingRoomNumbers.includes(roomNumber)) {
-                        newRooms.push({ floor: i, roomNumber, });
+                        newRooms.push({floor: i, roomNumber,});
                     }
                 }
             }
@@ -88,16 +85,15 @@ const CreateRoom = () => {
         }
 
 
-
         try {
             console.log(`⩇⩇:⩇⩇🚨 ~ value :`, value);
 
-            const response = await fetch(`${import.meta.env.VITE_REACT_APP_API}/admin/room/create`, {
+            const response = await fetch(`${import.meta.env.VITE_REACT_APP_API}/create-rooms`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ value }),
+                body: JSON.stringify({value}),
             });
             console.log(`⩇⩇:⩇⩇🚨 ~ response :`, response);
 

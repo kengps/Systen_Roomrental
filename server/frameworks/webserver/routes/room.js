@@ -6,7 +6,7 @@ const { Hono } = require('hono');
 const appRooms = new Hono()
 
 
-appRooms.post('/create', createRoom);
+appRooms.post('/create-rooms', createRoom);
 
 appRooms.put('/update-price', updatePrice);
 appRooms.put('/update-unit-meter', updateUnitMeter);
