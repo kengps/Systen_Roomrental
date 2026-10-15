@@ -20,7 +20,7 @@ const IndexForm = () => {
     const Login2 = persistMiddleware((state) => state.Login)
     const { Login, isAuthenticated, user, GetDataApartment } = persistMiddleware();
 
-    const domainNaame = window.location.hostname
+    const domainName = window.location.hostname
     const origin = window.location.origin
 
 
@@ -51,7 +51,7 @@ const IndexForm = () => {
         if (hasFetchedLogo.current) return; // guard StrictMode double-invoke
         hasFetchedLogo.current = true;
 
-        const cacheKey = `logo:${domainNaame}`
+        const cacheKey = `logo:${domainName}`
         const cachedImg = sessionStorage.getItem(cacheKey)
         if (cachedImg) {
             setImgBg(cachedImg)
@@ -59,14 +59,14 @@ const IndexForm = () => {
         }
 
         const fetchImageLogo = async () => {
-            const response = await getImageLogo(domainNaame)
+            const response = await getImageLogo(domainName)
             if (response && response.img) {
                 setImgBg(response.img)
                 sessionStorage.setItem(cacheKey, response.img)
             }
         }
         fetchImageLogo()
-    }, [domainNaame])
+    }, [domainName])
 
     //0 check Status Login
     useEffect(() => {
@@ -99,7 +99,6 @@ const IndexForm = () => {
 
             }
         } catch (error) {
-            console.log(`⩇⩇:⩇⩇🚨  file: IndexLogin.jsx:39  error :`, error);
 
 
         }
@@ -112,7 +111,6 @@ const IndexForm = () => {
         try {
 
             const response = await Login(value);
-            console.log(`⩇⩇:⩇⩇🚨 ~ response :`, response);
 
 
             toast.success(response.messages)

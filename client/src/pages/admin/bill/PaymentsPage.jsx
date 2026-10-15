@@ -1,6 +1,6 @@
-import { AuditOutlined, CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, HourglassOutlined, PrinterOutlined, RedoOutlined, SendOutlined } from '@ant-design/icons';
+import { AuditOutlined, CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, HourglassOutlined, PrinterOutlined, RedoOutlined, SendOutlined, UnorderedListOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Card, Col, DatePicker, Row, Space, Table, Tag, Tooltip, Typography } from 'antd';
+import { Button, ConfigProvider, DatePicker, Space, Table, Tag, Tooltip, Typography } from 'antd';
 import dayjs from 'dayjs';
 import 'dayjs/locale/th';
 import buddhistEra from 'dayjs/plugin/buddhistEra';
@@ -8,25 +8,98 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import ReactDOMServer from 'react-dom/server';
 import ReactDOM from "react-dom/client";
 import { matchPath, useLocation, useNavigate } from 'react-router-dom';
-// import { getListPayments } from '../../../service/api/bill';
 import { canclePayment, confirmPayment, getListPayments } from '../../../service/api/bill';
 import persistMiddleware from '../../../service/zustand/middleware/persistMiddleware';
 import PaymentDrawerAdmin from '../components/billing-payment/PaymentDrawerForm';
 
 import { checkSlip, listBankAccount, sendMessage } from '../../../service/api/apartment';
 import PrintableReceiptPage from './PrintableReceiptPage';
-import { number } from 'zod';
 import Swal from 'sweetalert2';
 
 // --- Initialize dayjs for Thai locale and Buddhist Era ---
 dayjs.extend(buddhistEra);
 dayjs.locale('th');
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
+
+/* ---------- Design tokens ---------- */
+const C = {
+    ink: '#0F172A',
+    raised: '#1E2A4A',
+    page: '#F4F5F9',
+    card: '#FFFFFF',
+    line: '#E6E8F0',
+    muted: '#5B6478',
+    sunken: '#F7F8FC',
+    primary: '#4F46E5',
+    primaryDeep: '#4338CA',
+    primarySoft: '#EEF0FF',
+    primarySoftLine: '#C7CCF5',
+    primarySoftText: '#3730A3',
+    okBg: '#DCFCE7',
+    okFg: '#166534',
+    okNum: '#15803D',
+    badBg: '#FFE4E9',
+    badFg: '#9F1239',
+    onInkMuted: '#A5B0C6',
+    onInkIcon: '#A5B4FC',
+    onInkBadge: '#C7D2FE',
+};
+
+const FONT = "'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif";
+
+const theme = {
+    token: { colorPrimary: C.primary, borderRadius: 12, fontFamily: FONT, controlHeight: 44 },
+};
+
+const css = `
+.pp-root { background: ${C.page}; min-height: 100vh; padding: 24px 16px 48px; font-family: ${FONT}; color: ${C.ink}; }
+.pp-wrap { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.pp-banner { background: ${C.ink}; border-radius: 20px; padding: 24px 28px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.pp-banner-icon { width: 52px; height: 52px; border-radius: 10px; background: ${C.raised}; color: ${C.onInkIcon}; display: flex; align-items: center; justify-content: center; font-size: 24px; flex: none; }
+.pp-banner-text { flex: 1 1 240px; min-width: 0; }
+.pp-banner-title { margin: 0; font-size: 26px; font-weight: 700; color: #fff; line-height: 1.3; }
+.pp-banner-sub { margin: 4px 0 0; font-size: 14px; color: ${C.onInkMuted}; }
+.pp-badge-ink { background: ${C.raised}; color: ${C.onInkBadge}; border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 600; }
+.pp-section { background: ${C.card}; border: 1px solid ${C.line}; border-radius: 20px; padding: 24px; }
+.pp-section-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.pp-section-icon { width: 36px; height: 36px; border-radius: 10px; background: ${C.primarySoft}; color: ${C.primary}; display: flex; align-items: center; justify-content: center; font-size: 18px; flex: none; }
+.pp-section-title { margin: 0; font-size: 16px; font-weight: 700; }
+.pp-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; }
+.pp-toolbar-month { display: flex; align-items: center; gap: 8px; }
+.pp-toolbar-month label { font-size: 14px; font-weight: 600; white-space: nowrap; }
+.pp-toolbar-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.pp-table-scroll { overflow-x: auto; }
+.pp-table .ant-table { background: transparent; }
+.pp-table .ant-table-thead > tr > th { background: ${C.sunken}; color: ${C.muted}; font-weight: 600; border-bottom: 1px solid ${C.line}; }
+.pp-table .ant-table-tbody > tr > td { border-bottom: 1px solid ${C.line}; }
+.pp-pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 2px 12px; font-size: 13px; font-weight: 600; line-height: 22px; white-space: nowrap; }
+.pp-room { background: ${C.primarySoft}; color: ${C.primarySoftText}; border: 1px solid ${C.primarySoftLine}; }
+.pp-amount { font-weight: 700; color: ${C.okNum}; }
+.pp-primary-btn.ant-btn-primary { background: ${C.primary}; color: #fff; font-weight: 600; }
+.pp-primary-btn.ant-btn-primary:hover:not(:disabled) { background: ${C.primaryDeep} !important; }
+.pp-secondary-btn.ant-btn { background: ${C.primarySoft}; border-color: ${C.primarySoftLine}; color: ${C.primarySoftText}; font-weight: 600; }
+.pp-secondary-btn.ant-btn:hover:not(:disabled) { background: #E3E6FF !important; color: ${C.primarySoftText} !important; border-color: ${C.primarySoftLine} !important; }
+.pp-secondary-btn.ant-btn:disabled { background: ${C.sunken}; border-color: ${C.line}; color: #9AA3B5; }
+.pp-root button:focus-visible { outline: 3px solid ${C.primarySoftLine}; outline-offset: 2px; }
+@media (max-width: 600px) {
+  .pp-banner { padding: 20px; }
+  .pp-banner-title { font-size: 22px; }
+  .pp-section { padding: 16px; }
+  .pp-toolbar-actions { width: 100%; }
+  .pp-toolbar-actions .ant-btn { flex: 1 1 100%; }
+}
+`;
+
+// สถานะการชำระ: ใช้ข้อความ + ไอคอนกำกับเสมอ ไม่พึ่งสีอย่างเดียว
+const statusPill = (tone) => ({
+    ok: { background: C.okBg, color: C.okFg },
+    bad: { background: C.badBg, color: C.badFg },
+    soft: { background: C.primarySoft, color: C.primarySoftText },
+    neutral: { background: C.sunken, color: C.muted, border: `1px solid ${C.line}` },
+}[tone]);
 
 // --- Updated API function ---
-
-
 
 // mork ไว้ก่อน เพื่อส่ง หากลบค่อยเอากลับไปเป็น props
 let slipResults = {
@@ -338,28 +411,6 @@ export default function PaymentsPage() {
 
 
 
-    // useEffect(() => {
-
-    //     const slipAmount = slipResult?.amount
-
-    //     const totalAmount = paymentData?.totalAmount
-
-
-    //     const paidAmount = paymentData?.billId?.paidAmount
-
-    //     const outstanding = totalAmount - paidAmount
-
-
-
-    //     if (totalAmount === slipAmount || slipAmount > totalAmount || outstanding >= slipAmount) {
-    //         setIsSameAmount(true)
-    //     } else {
-    //         setIsSameAmount(false)
-    //     }
-
-
-    // }, [paymentData, slipResult])
-
     useEffect(() => {
         if (!slipResult || !paymentData) {
             setIsSameAmount(false);
@@ -472,29 +523,7 @@ export default function PaymentsPage() {
         setCurrentPage(1); // Reset to first page when changing month
     };
 
-    // --- Print functions (unchanged) ---
-    // const openPrintWindow = (htmlContent) => {
-    //     const styles = `<style>
-    //         @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap');
-    //         @page { size: A4 portrait; margin: 1cm; }
-    //         html, body { height: 100%; margin: 0; padding: 0; }
-    //         body { font-family: 'Sarabun', sans-serif; }
-    //         .page-layout { display: flex; flex-direction: column; height: 100%; width: 100%; box-sizing: border-box; }
-    //         .receipt-half { flex: 1 1 0; min-height: 0; overflow: hidden; }
-    //         .cut-line { flex-shrink: 0; border: none; border-top: 2px dashed #999; text-align: center; margin: 1mm 0; }
-    //         .cut-line::after { content: '✂'; font-size: 16px; position: relative; top: -12px; background: white; padding: 0 10px; }
-    //         .page-break { page-break-after: always; }
-    //     </style>`;
-
-    //     const printWindow = window.open('', '_blank');
-    //     printWindow.document.write(`<html><head><title>ใบเสร็จรับเงิน</title>${styles}</head><body>${htmlContent}</body></html>`);
-    //     printWindow.document.close();
-    //     printWindow.focus();
-    //     setTimeout(() => { printWindow.print(); printWindow.close(); }, 500);
-    // };
-
-
-
+    // --- Print functions ---
     const openPrintWindow = (content) => {
         const styles = `<style>
       @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap');
@@ -530,8 +559,8 @@ export default function PaymentsPage() {
 
 
 
-        const customerCopy = <PrintableReceiptPage bill={billData} apartmentData={apartmentData} copyTitle="ฉบับสำหรับลูกค้า (Customer Copy)" />;
-        const officeCopy = <PrintableReceiptPage bill={billData} apartmentData={apartmentData} copyTitle="ฉบับสำหรับผู้ประกอบการ (Office Copy)" />;
+        const customerCopy = <PrintableReceiptPage bill={billData} apartmentData={apartmentData} copyTitle="ฉบับสำหรับลูกค้า" />;
+        const officeCopy = <PrintableReceiptPage bill={billData} apartmentData={apartmentData} copyTitle="ฉบับสำหรับผู้ประกอบการ" />;
 
         const printContent = (
             <div className="page-layout">
@@ -550,32 +579,14 @@ export default function PaymentsPage() {
         );
     };
 
-
-    // const handlePrintReceipt = (billData) => {
-
-    //     const customerCopy = ReactDOMServer.renderToString(<PrintableReceiptPage bill={billData} copyTitle="ฉบับสำหรับลูกค้า (Customer Copy)" />);
-
-
-    //     const officeCopy = ReactDOMServer.renderToString(<PrintableReceiptPage bill={billData} copyTitle="ฉบับสำหรับผู้ประกอบการ (Office Copy)" />);
-
-    //     const printHtml = `<div class="page-layout">
-    //         <div class="receipt-half">${customerCopy}</div>
-    //         <hr class="cut-line" />
-    //         <div class="receipt-half">${officeCopy}</div>
-    //     </div>`;
-
-    //     openPrintWindow(printHtml);
-    //     setPaidBills(currentBills => currentBills.map(b => b.billId === billData.billId ? { ...b, status: 'printed' } : b));
-    // };
-
     const handlePrintAll = () => {
         const billsToPrint = filteredData.filter(bill => bill.status === 'unprinted');
         if (billsToPrint.length === 0) return;
 
         let allReceiptsHtml = '';
         billsToPrint.forEach((bill, index) => {
-            const customerCopy = ReactDOMServer.renderToString(<PrintableReceiptPage bill={bill} apartmentData={apartmentData} copyTitle="ฉบับสำหรับลูกค้า (Customer Copy)" />);
-            const officeCopy = ReactDOMServer.renderToString(<PrintableReceiptPage bill={bill} apartmentData={apartmentData} copyTitle="ฉบับสำหรับผู้ประกอบการ (Office Copy)" />);
+            const customerCopy = ReactDOMServer.renderToString(<PrintableReceiptPage bill={bill} apartmentData={apartmentData} copyTitle="ฉบับสำหรับลูกค้า " />);
+            const officeCopy = ReactDOMServer.renderToString(<PrintableReceiptPage bill={bill} apartmentData={apartmentData} copyTitle="ฉบับสำหรับผู้ประกอบการ" />);
 
             allReceiptsHtml += `<div class="page-layout">
                 <div class="receipt-half">${customerCopy}</div>
@@ -632,7 +643,7 @@ export default function PaymentsPage() {
     const handleConfirmSlip = async (data, slipPayment) => {
 
         const newPaidAmount = slipPayment?.amount;
-        console.log(`⩇⩇:⩇⩇🚨 ~ newPaidAmount :`, newPaidAmount);
+
 
 
         const newRemainingAmount = (data?.billId?.totalAmount + data?.billId?.penaltyAmount - data?.billId?.paidAmount) - newPaidAmount;
@@ -811,7 +822,7 @@ export default function PaymentsPage() {
             title: 'เลขห้อง',
             dataIndex: ['tenantInfo', 'roomNumber'],
             key: 'roomNumber',
-            render: (text) => <Tag color="purple">{text}</Tag>
+            render: (text) => <span className="pp-pill pp-room">{text}</span>
         },
         {
             title: 'ชื่อผู้เช่า',
@@ -823,7 +834,7 @@ export default function PaymentsPage() {
             dataIndex: 'totalAmount',
             key: 'totalAmount',
             align: 'right',
-            render: (amount) => <Text strong className="text-green-600">{amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</Text>
+            render: (amount) => <span className="pp-amount">{amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
         },
         {
             title: 'สถานะ',
@@ -831,18 +842,21 @@ export default function PaymentsPage() {
             render: (_, record) => {
                 const status = record.paymentStatus;
                 const statusMap = {
-                    pending: { color: 'warning', label: 'รอดำเนินการ', icon: <ClockCircleOutlined /> },
-                    waiting: { color: 'warning', label: 'รอการตรวจสอบ', icon: <HourglassOutlined /> },
-                    completed: { color: 'success', label: 'ชำระแล้ว', icon: <CheckCircleOutlined /> },
-                    failed: { color: 'error', label: 'ชำระไม่สำเร็จ', icon: <CloseCircleOutlined /> },
-                    refunded: { color: 'processing', label: 'คืนเงินแล้ว', icon: <RedoOutlined /> },
-                    outstanding: { color: 'error', label: 'ค้างชำระ', icon: <CloseCircleOutlined /> },
-                    rejected: { color: 'error', label: 'ปฏิเสธการชำระ', icon: <CloseCircleOutlined /> }
+                    pending: { tone: 'soft', label: 'รอดำเนินการ', icon: <ClockCircleOutlined /> },
+                    waiting: { tone: 'soft', label: 'รอการตรวจสอบ', icon: <HourglassOutlined /> },
+                    completed: { tone: 'ok', label: 'ชำระแล้ว', icon: <CheckCircleOutlined /> },
+                    failed: { tone: 'bad', label: 'ชำระไม่สำเร็จ', icon: <CloseCircleOutlined /> },
+                    refunded: { tone: 'neutral', label: 'คืนเงินแล้ว', icon: <RedoOutlined /> },
+                    outstanding: { tone: 'bad', label: 'ค้างชำระ', icon: <CloseCircleOutlined /> },
+                    rejected: { tone: 'bad', label: 'ปฏิเสธการชำระ', icon: <CloseCircleOutlined /> }
                 };
-                const statusInfo = statusMap[status] || { color: 'default', label: 'ไม่ทราบสถานะ' };
+                const statusInfo = statusMap[status] || { tone: 'neutral', label: 'ไม่ทราบสถานะ' };
 
                 return (
-                    <Tag icon={statusInfo.icon} color={statusInfo.color}>{statusInfo.label}</Tag>
+                    <span className="pp-pill" style={statusPill(statusInfo.tone)}>
+                        {statusInfo.icon}
+                        {statusInfo.label}
+                    </span>
                 );
             }
         },
@@ -855,28 +869,28 @@ export default function PaymentsPage() {
 
                 return <>
 
-                    <Space>
+                    <Space wrap>
                         <Tooltip title={record.status === 'printed' ? 'ใบเสร็จนี้ถูกพิมพ์แล้ว' : 'พิมพ์ใบเสร็จรับเงิน'}>
                             <Button
+                                className="pp-secondary-btn"
                                 icon={<PrinterOutlined />}
                                 onClick={() => handlePrintReceipt(record)}
                                 disabled={record.status === 'printed' || record.paymentStatus !== 'completed'}
-                                className={record.status === 'printed' ? '' : `!bg-indigo-500 !text-white hover:!bg-indigo-400 !border-indigo-500 ${record.paymentStatus !== 'completed' ? '!opacity-50 !cursor-not-allowed' : ''}`}
                             >
                                 พิมพ์ใบเสร็จ
                             </Button>
                         </Tooltip>
                         <Button
-
+                            className="pp-primary-btn"
                             type='primary'
                             onClick={() => onclickNa(record)}>
                             รายละเอียด
                         </Button>
                         <Button
+                            className="pp-secondary-btn"
                             type="default"
                             disabled={record.paymentStatus !== 'completed'}
                             onClick={() => handleNotifyPayment(record)}
-                            className={`!bg-yellow-500 !text-white hover:!bg-yellow-400 !border-yellow-500 ${record.paymentStatus !== 'completed' ? '!opacity-50 !cursor-not-allowed' : ''}`}
                         >
                             แจ้งเตือนชำระ
                         </Button>
@@ -896,76 +910,77 @@ export default function PaymentsPage() {
 
     // --- Main component JSX ---
     return (
-        <div className="min-h-screen bg-slate-100 p-4 sm:p-6 lg:p-8 font-sans">
-            <Card className="max-w-7xl mx-auto shadow-lg rounded-2xl">
-                <Space direction="vertical" size="large" className="w-full">
+        <ConfigProvider theme={theme}>
+            <style>{css}</style>
+            <div className="pp-root">
+                <div className="pp-wrap">
 
-                    {/* Page Header */}
-                    <div className="p-4 bg-indigo-50 rounded-xl">
-                        <div className="flex flex-col sm:flex-row sm:justify-between gap-4 sm:items-center w-full">
+                    {/* PageHeader */}
+                    <header className="pp-banner">
+                        <div className="pp-banner-icon" aria-hidden="true"><AuditOutlined /></div>
+                        <div className="pp-banner-text">
+                            <h1 className="pp-banner-title">หน้าออกใบเสร็จรับเงิน</h1>
+                            <p className="pp-banner-sub">สำหรับห้องที่ชำระบิลแล้ว</p>
+                        </div>
+                        <span className="pp-badge-ink">ชำระแล้ว {completedPaymentsCount} รายการ</span>
+                    </header>
 
-                            {/* Left Section */}
-                            <div className="flex items-start gap-4 min-w-0">
-                                <AuditOutlined className="text-3xl text-indigo-500 shrink-0" />
-                                <div className="min-w-0">
-                                    <Title level={4} className="!mb-0 !text-slate-800 text-lg sm:text-xl whitespace-normal break-words">
-                                        หน้าออกใบเสร็จรับเงิน
-                                    </Title>
-                                    <Text type="secondary" className="text-sm whitespace-normal break-words">
-                                        สำหรับห้องที่ชำระบิลแล้ว
-                                    </Text>
-                                </div>
+                    {/* Toolbar */}
+                    <section className="pp-section">
+                        <div className="pp-toolbar">
+                            <div className="pp-toolbar-month">
+                                <label htmlFor="pp-month">เลือกเดือน:</label>
+                                <DatePicker
+                                    id="pp-month"
+                                    picker="month"
+                                    value={filterMonth}
+                                    onChange={handleMonthChange}
+                                    format="MMMM BBBB"
+                                />
                             </div>
-
-                            {/* Right Section */}
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
-                                <div className="flex items-center gap-2 w-full sm:w-auto">
-                                    <Text className="font-medium whitespace-nowrap">เลือกเดือน:</Text>
-                                    <DatePicker
-                                        picker="month"
-                                        value={filterMonth}
-                                        onChange={handleMonthChange}
-                                        format="MMMM BBBB"
-                                        className="w-full sm:w-auto"
-                                    />
-                                </div>
-
-                                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                                    <Button
-                                        type="primary"
-                                        icon={<PrinterOutlined />}
-                                        onClick={handlePrintAll}
-                                        disabled={unprintedCount === 0}
-                                        className="bg-indigo-600 hover:bg-indigo-700 shadow-md w-full sm:w-auto"
-                                    >
-                                        พิมพ์ที่ยังไม่พิมพ์ ({unprintedCount})
-                                    </Button>
-                                    <Button
-                                        icon={<SendOutlined />}
-                                        onClick={handleNotifyAllPayments}
-                                        loading={isNotifyAllLoading}
-                                        disabled={completedPaymentsCount === 0}
-                                        className="w-full sm:w-auto border-indigo-200 text-indigo-600"
-                                    >
-                                        ส่งแจ้งเตือนทั้งหมด ({completedPaymentsCount})
-                                    </Button>
-                                </div>
+                            <div className="pp-toolbar-actions">
+                                <Button
+                                    className="pp-primary-btn"
+                                    type="primary"
+                                    icon={<PrinterOutlined />}
+                                    onClick={handlePrintAll}
+                                    disabled={unprintedCount === 0}
+                                >
+                                    พิมพ์ที่ยังไม่พิมพ์ ({unprintedCount})
+                                </Button>
+                                <Button
+                                    className="pp-secondary-btn"
+                                    icon={<SendOutlined />}
+                                    onClick={handleNotifyAllPayments}
+                                    loading={isNotifyAllLoading}
+                                    disabled={completedPaymentsCount === 0}
+                                >
+                                    ส่งแจ้งเตือนทั้งหมด ({completedPaymentsCount})
+                                </Button>
                             </div>
                         </div>
-                    </div>
-
+                    </section>
 
                     {/* --- Data Table --- */}
-                    <Table
-                        loading={isLoading}
-                        columns={columns}
-                        dataSource={filteredData}
-                        rowKey="paymentId"
-                        pagination={paginationInfo}
-                        scroll={{ x: 'max-content' }}
-                    />
-                </Space>
-            </Card>
+                    <section className="pp-section">
+                        <div className="pp-section-head">
+                            <span className="pp-section-icon" aria-hidden="true"><UnorderedListOutlined /></span>
+                            <h2 className="pp-section-title">รายการชำระเงิน</h2>
+                        </div>
+                        <div className="pp-table-scroll">
+                            <Table
+                                className="pp-table"
+                                loading={isLoading}
+                                columns={columns}
+                                dataSource={filteredData}
+                                rowKey="paymentId"
+                                pagination={paginationInfo}
+                                scroll={{ x: 'max-content' }}
+                            />
+                        </div>
+                    </section>
+                </div>
+            </div>
 
             {/* --- Drawer Component --- */}
             <PaymentDrawerAdmin
@@ -985,7 +1000,6 @@ export default function PaymentsPage() {
                 handleCanceledSlip={handleCanceledSlip}
 
             />
-        </div>
-
+        </ConfigProvider>
     );
 }

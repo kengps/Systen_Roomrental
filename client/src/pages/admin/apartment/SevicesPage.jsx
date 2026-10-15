@@ -3,20 +3,17 @@ import {
     DeleteOutlined,
     EditOutlined,
     PlusOutlined,
+    SettingOutlined,
 } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import {
     Button,
-    Card,
-    Col,
-    Divider,
+    ConfigProvider,
     Form,
     Input,
     message,
     Modal,
     Popconfirm,
-    Row,
-    Select,
     Space,
     Switch,
     Table,
@@ -28,12 +25,76 @@ import { Controller, useForm } from 'react-hook-form';
 import { addServices, getServices } from '../../../service/api/apartment';
 import persistMiddleware from '../../../service/zustand/middleware/persistMiddleware';
 import NumericInputControllerPage from '../components/ui/NumericInputControllerPage';
-import PageHeader from '../../../components/common/PageHeader';
 
-const { Title, Text } = Typography;
-const { Option } = Select;
+const { Text } = Typography;
 
+/* ---------- Design tokens ---------- */
+const C = {
+    ink: '#0F172A',
+    raised: '#1E2A4A',
+    page: '#F4F5F9',
+    card: '#FFFFFF',
+    line: '#E6E8F0',
+    muted: '#5B6478',
+    sunken: '#F7F8FC',
+    primary: '#4F46E5',
+    primaryDeep: '#4338CA',
+    primarySoft: '#EEF0FF',
+    primarySoftLine: '#C7CCF5',
+    primarySoftText: '#3730A3',
+    okBg: '#DCFCE7',
+    okFg: '#166534',
+    onInkMuted: '#A5B0C6',
+    onInkIcon: '#A5B4FC',
+};
 
+const FONT = "'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif";
+
+const theme = {
+    token: { colorPrimary: C.primary, borderRadius: 12, fontFamily: FONT, controlHeight: 44 },
+};
+
+const css = `
+.ms-root { background: ${C.page}; min-height: 100vh; padding: 24px 16px 48px; font-family: ${FONT}; color: ${C.ink}; }
+.ms-wrap { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.ms-banner { background: ${C.ink}; border-radius: 20px; padding: 24px 28px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.ms-banner-icon { width: 52px; height: 52px; border-radius: 10px; background: ${C.raised}; color: ${C.onInkIcon}; display: flex; align-items: center; justify-content: center; font-size: 24px; flex: none; }
+.ms-banner-text { flex: 1 1 240px; min-width: 0; }
+.ms-banner-title { margin: 0; font-size: 26px; font-weight: 700; color: #fff; line-height: 1.3; }
+.ms-banner-sub { margin: 4px 0 0; font-size: 14px; color: ${C.onInkMuted}; }
+.ms-section { background: ${C.card}; border: 1px solid ${C.line}; border-radius: 20px; padding: 24px; }
+.ms-section-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.ms-section-icon { width: 36px; height: 36px; border-radius: 10px; background: ${C.primarySoft}; color: ${C.primary}; display: flex; align-items: center; justify-content: center; font-size: 18px; flex: none; }
+.ms-section-title { margin: 0; font-size: 16px; font-weight: 700; }
+.ms-table-scroll { overflow-x: auto; }
+.ms-table .ant-table { background: transparent; }
+.ms-table .ant-table-thead > tr > th { background: ${C.sunken}; color: ${C.muted}; font-weight: 600; border-bottom: 1px solid ${C.line}; }
+.ms-table .ant-table-tbody > tr > td { border-bottom: 1px solid ${C.line}; }
+.ms-name { font-size: 14px; font-weight: 600; }
+.ms-desc { display: block; margin-top: 2px; font-size: 12px; color: ${C.muted}; }
+.ms-price { font-size: 14px; font-weight: 700; }
+.ms-mobile-only { display: inline-block; margin-top: 2px; }
+.ms-primary-btn.ant-btn-primary { background: ${C.primary}; color: #fff; font-weight: 600; }
+.ms-primary-btn.ant-btn-primary:hover { background: ${C.primaryDeep} !important; }
+.ms-secondary-btn.ant-btn { background: ${C.primarySoft}; border-color: ${C.primarySoftLine}; color: ${C.primarySoftText}; font-weight: 600; }
+.ms-secondary-btn.ant-btn:hover { background: #E3E6FF !important; color: ${C.primarySoftText} !important; border-color: ${C.primarySoftLine} !important; }
+.ms-modal-actions { display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap; border-top: 1px solid ${C.line}; padding-top: 16px; margin-top: 8px; }
+.ms-modal-actions .ant-btn { min-width: 96px; }
+.ms-grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0 12px; }
+.ms-root button:focus-visible, .ms-modal button:focus-visible { outline: 3px solid ${C.primarySoftLine}; outline-offset: 2px; }
+@media (min-width: 769px) { .ms-mobile-only { display: none; } }
+@media (max-width: 640px) { .ms-hide-sm { display: none; } }
+@media (max-width: 600px) {
+  .ms-banner { padding: 20px; }
+  .ms-banner-title { font-size: 22px; }
+  .ms-section { padding: 16px; }
+}
+`;
+
+const unitTagStyle = (unit) =>
+    unit === 'monthly'
+        ? { background: C.primarySoft, color: C.primarySoftText, border: `1px solid ${C.primarySoftLine}`, margin: 0 }
+        : { background: C.okBg, color: C.okFg, border: `1px solid ${C.okFg}33`, margin: 0 };
 
 export default function ManageServicesPage() {
     const [services, setServices] = useState([]);
@@ -175,22 +236,9 @@ export default function ManageServicesPage() {
             ellipsis: true,
             render: (text, record) => (
                 <div>
-                    <Text strong style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
-                        {text}
-                    </Text>
+                    <span className="ms-name">{text}</span>
                     {record.description && (
-                        <div>
-                            <Text
-                                type="secondary"
-                                style={{
-                                    fontSize: 'clamp(10px, 2vw, 12px)',
-                                    display: 'block',
-                                    marginTop: '2px'
-                                }}
-                            >
-                                {record.description}
-                            </Text>
-                        </div>
+                        <span className="ms-desc">{record.description}</span>
                     )}
                 </div>
             ),
@@ -199,13 +247,10 @@ export default function ManageServicesPage() {
             title: 'ประเภท',
             dataIndex: 'unit',
             key: 'unit',
-            width: 100,
+            width: 110,
             responsive: ['md'],
             render: (unit) => (
-                <Tag
-                    color={unit === 'monthly' ? 'blue' : 'green'}
-                    style={{ fontSize: 'clamp(10px, 2vw, 12px)' }}
-                >
+                <Tag style={unitTagStyle(unit)}>
                     {unit === 'monthly' ? 'รายเดือน' : 'ครั้งเดียว'}
                 </Tag>
             ),
@@ -218,19 +263,9 @@ export default function ManageServicesPage() {
             align: 'right',
             render: (price, record) => (
                 <div style={{ textAlign: 'right' }}>
-                    <Text strong style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
-                        ฿{price.toLocaleString('en-US')}
-                    </Text>
-                    <div style={{ display: 'block', fontSize: 'clamp(10px, 2vw, 11px)' }}>
-                        <Tag
-                            color={record.unit === 'monthly' ? 'blue' : 'green'}
-                            size="small"
-                            className="md:hidden"
-                            style={{
-                                fontSize: 'clamp(9px, 1.8vw, 10px)',
-                                marginTop: '2px'
-                            }}
-                        >
+                    <span className="ms-price">฿{price.toLocaleString('en-US')}</span>
+                    <div>
+                        <Tag className="ms-mobile-only" style={unitTagStyle(record.unit)}>
                             {record.unit === 'monthly' ? 'รายเดือน' : 'ครั้งเดียว'}
                         </Tag>
                     </div>
@@ -241,30 +276,30 @@ export default function ManageServicesPage() {
             title: 'สถานะ',
             dataIndex: 'status',
             key: 'status',
-            width: 80,
+            width: 90,
             align: 'center',
             render: (status, record) => (
                 <Switch
                     checked={status}
                     onChange={(checked) => handleStatusChange(checked, record)}
-                    size="small"
+                    aria-label={`เปิดหรือปิดใช้งาน ${record.name}`}
                 />
             ),
         },
         {
             title: 'จัดการ',
             key: 'action',
-            width: 120,
+            width: 130,
             align: 'center',
             render: (_, record) => (
                 <Space size="small" wrap>
                     <Button
+                        className="ms-secondary-btn"
                         icon={<EditOutlined />}
                         onClick={() => showEditModal(record)}
-                        size="small"
-                        style={{ fontSize: 'clamp(10px, 2vw, 12px)' }}
+                        aria-label={`แก้ไข ${record.name}`}
                     >
-                        <span className="hidden sm:inline">แก้ไข</span>
+                        <span className="ms-hide-sm">แก้ไข</span>
                     </Button>
                     <Popconfirm
                         title="ยืนยันการลบ"
@@ -276,9 +311,12 @@ export default function ManageServicesPage() {
                     >
                         <Button
                             icon={<DeleteOutlined />}
+                            
                             danger
-                            size="small"
-                        />
+                            aria-label={`ลบ ${record.name}`}
+                        >
+                            <span className="ms-hide-sm">ลบ</span>
+                    </Button>
                     </Popconfirm>
                 </Space>
             ),
@@ -286,125 +324,86 @@ export default function ManageServicesPage() {
     ];
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            backgroundColor: '#f0f2f5',
-            padding: 'clamp(8px, 2vw, 32px)'
-        }}>
-            <Card style={{
-                maxWidth: '1200px',
-                margin: '0 auto',
-                boxShadow: '0 4px 8px 0 rgba(0,0,0,0.1)',
-                borderRadius: '8px'
-            }}>
-                <Space
-                    direction="vertical"
-                    size="large"
-                    style={{ width: '100%' }}
-                >
-                    <PageHeader
-                        title="จัดการค่าบริการเพิ่มเติม"
-                        subtitle="เพิ่ม ลบ หรือแก้ไขค่าบริการอื่นๆ สำหรับอพาร์ทเมนท์"
-                        icon="⚙️"
-                    />
-                    
-                    <div style={{ textAlign: 'right', marginBottom: '16px' }}>
+        <ConfigProvider theme={theme}>
+            <style>{css}</style>
+            <div className="ms-root">
+                <div className="ms-wrap">
+                    {/* PageHeader */}
+                    <header className="ms-banner">
+                        <div className="ms-banner-icon" aria-hidden="true"><SettingOutlined /></div>
+                        <div className="ms-banner-text">
+                            <h1 className="ms-banner-title">จัดการค่าบริการเพิ่มเติม</h1>
+                            <p className="ms-banner-sub">เพิ่ม ลบ หรือแก้ไขค่าบริการอื่นๆ สำหรับอพาร์ทเมนท์</p>
+                        </div>
                         <Button
+                            className="ms-primary-btn"
                             type="primary"
                             icon={<PlusOutlined />}
-                            size="large"
                             onClick={showAddModal}
-                            style={{
-                                fontSize: 'clamp(12px, 2.5vw, 14px)',
-                                height: 'clamp(36px, 6vw, 40px)'
-                            }}
                         >
                             เพิ่มบริการใหม่
                         </Button>
-                    </div>
+                    </header>
 
                     {/* Table Section */}
-                    <div style={{
-                        overflowX: 'auto',
-                        margin: '0 -16px',
-                        padding: '0 16px'
-                    }}>
-                        <Table
-                            columns={columns}
-                            dataSource={services}
-                            rowKey="id"
-                            loading={isLoadingServices}
-                            pagination={{
-                                pageSize: 10,
-                                showSizeChanger: false,
-                                showQuickJumper: false,
-                                showTotal: (total, range) => (
-                                    <span style={{ fontSize: 'clamp(10px, 2vw, 12px)' }}>
-                                        {`${range[0]}-${range[1]} จาก ${total} รายการ`}
-                                    </span>
-                                ),
-                                itemRender: (page, type, originalElement) => {
-                                    if (type === 'prev' || type === 'next') {
-                                        return React.cloneElement(originalElement, {
-                                            style: { fontSize: 'clamp(10px, 2vw, 12px)' }
-                                        });
-                                    }
-                                    return originalElement;
-                                }
-                            }}
-                            scroll={{ x: 650 }}
-                            size="small"
-                            style={{
-                                fontSize: 'clamp(11px, 2.2vw, 13px)'
-                            }}
-                        />
-                    </div>
-                </Space>
-            </Card>
+                    <section className="ms-section">
+                        <div className="ms-section-head">
+                            <span className="ms-section-icon" aria-hidden="true"><AppstoreAddOutlined /></span>
+                            <h2 className="ms-section-title">รายการค่าบริการ</h2>
+                        </div>
+                        <div className="ms-table-scroll">
+                            <Table
+                                className="ms-table"
+                                columns={columns}
+                                dataSource={services}
+                                rowKey="id"
+                                loading={isLoadingServices}
+                                pagination={{
+                                    pageSize: 10,
+                                    showSizeChanger: false,
+                                    showQuickJumper: false,
+                                    showTotal: (total, range) => (
+                                        <span style={{ fontSize: 12, color: C.muted }}>
+                                            {`${range[0]}-${range[1]} จาก ${total} รายการ`}
+                                        </span>
+                                    ),
+                                }}
+                                scroll={{ x: 650 }}
+                            />
+                        </div>
+                    </section>
+                </div>
+            </div>
 
             {/* Modal */}
             <Modal
                 title={
-                    <Title
-                        level={4}
-                        style={{
-                            margin: 0,
-                            fontSize: 'clamp(16px, 3vw, 18px)'
-                        }}
-                    >
+                    <span style={{ fontSize: 18, fontWeight: 700 }}>
                         {editingService ? 'แก้ไขบริการ' : 'เพิ่มบริการใหม่'}
-                    </Title>
+                    </span>
                 }
                 open={isModalOpen}
                 onCancel={handleCancel}
                 footer={null}
                 destroyOnClose
                 width="100%"
-                style={{
-                    maxWidth: '600px',
-                    top: 'clamp(20px, 5vh, 50px)'
-                }}
-                bodyStyle={{
-                    padding: 'clamp(12px, 3vw, 24px)',
-                    maxHeight: '80vh',
-                    overflowY: 'auto'
+                rootClassName="ms-modal"
+                style={{ maxWidth: 600, top: 40 }}
+                styles={{
+                    content: { borderRadius: 20, padding: 24 },
+                    body: { maxHeight: '80vh', overflowY: 'auto' },
                 }}
             >
                 <Form
                     layout="vertical"
                     onFinish={handleSubmit(handleSave)}
-                    style={{ paddingTop: '16px' }}
+                    style={{ paddingTop: 16 }}
                 >
                     <Form.Item
-                        label={
-                            <span style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
-                                ชื่อบริการ
-                            </span>
-                        }
+                        label="ชื่อบริการ"
                         required
                         validateStatus={errors.name ? 'error' : ''}
                         help={errors.name?.message}
-                        style={{ marginBottom: 'clamp(12px, 3vw, 16px)' }}
                     >
                         <NumericInputControllerPage
                             type='string'
@@ -412,66 +411,39 @@ export default function ManageServicesPage() {
                             control={control}
                             rulesName='กรุณากรอกชื่อบริการ'
                             placeholder='เช่น ค่าที่จอดรถ, ค่าอินเทอร์เน็ต'
-                            style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}
                         />
                     </Form.Item>
 
-                    <Row gutter={[12, 12]}>
-                        <Col xs={24} sm={12}>
-                            <Form.Item
-                                label={
-                                    <span style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
-                                        ประเภทการเรียกเก็บ
-                                    </span>
-                                }
-                                required
-                                style={{ marginBottom: 'clamp(12px, 3vw, 16px)' }}
-                            >
-                                <NumericInputControllerPage
-                                    type="select"
-                                    controllerName="unit"
-                                    control={control}
-                                    selectOptions={[
-                                        { value: 'monthly', name: 'รายเดือน' },
-                                        { value: 'onetime', name: 'ครั้งเดียว' },
-                                    ]}
-                                    style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}
-                                />
-                            </Form.Item>
-                        </Col>
-                        <Col xs={24} sm={12}>
-                            <Form.Item
-                                label={
-                                    <span style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
-                                        ราคา
-                                    </span>
-                                }
-                                required
-                                validateStatus={errors.price ? 'error' : ''}
-                                help={errors.price?.message}
-                                style={{ marginBottom: 'clamp(12px, 3vw, 16px)' }}
-                            >
-                                <NumericInputControllerPage
-                                    type='number'
-                                    controllerName='price'
-                                    control={control}
-                                    rulesName='ราคาต้องมากกว่า 0'
-                                    placeholder='0'
-                                    prefix="฿"
-                                    style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}
-                                />
-                            </Form.Item>
-                        </Col>
-                    </Row>
+                    <div className="ms-grid-2">
+                        <Form.Item label="ประเภทการเรียกเก็บ" required>
+                            <NumericInputControllerPage
+                                type="select"
+                                controllerName="unit"
+                                control={control}
+                                selectOptions={[
+                                    { value: 'monthly', name: 'รายเดือน' },
+                                    { value: 'onetime', name: 'ครั้งเดียว' },
+                                ]}
+                            />
+                        </Form.Item>
+                        <Form.Item
+                            label="ราคา"
+                            required
+                            validateStatus={errors.price ? 'error' : ''}
+                            help={errors.price?.message}
+                        >
+                            <NumericInputControllerPage
+                                type='number'
+                                controllerName='price'
+                                control={control}
+                                rulesName='ราคาต้องมากกว่า 0'
+                                placeholder='0'
+                                prefix="฿"
+                            />
+                        </Form.Item>
+                    </div>
 
-                    <Form.Item
-                        label={
-                            <span style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}>
-                                คำอธิบาย (ถ้ามี)
-                            </span>
-                        }
-                        style={{ marginBottom: 'clamp(16px, 4vw, 24px)' }}
-                    >
+                    <Form.Item label="คำอธิบาย (ถ้ามี)">
                         <Controller
                             name="description"
                             control={control}
@@ -480,51 +452,21 @@ export default function ManageServicesPage() {
                                     {...field}
                                     rows={3}
                                     placeholder="รายละเอียดเพิ่มเติมเกี่ยวกับบริการนี้"
-                                    style={{ fontSize: 'clamp(12px, 2.5vw, 14px)' }}
                                 />
                             )}
                         />
                     </Form.Item>
 
-                    <Divider style={{ margin: 'clamp(12px, 3vw, 16px) 0' }} />
-
-                    <Form.Item
-                        style={{
-                            textAlign: 'right',
-                            marginBottom: 0
-                        }}
-                    >
-                        <Space
-                            size="middle"
-                            style={{
-                                width: '100%',
-                                justifyContent: 'flex-end',
-                                flexWrap: 'wrap'
-                            }}
-                        >
-                            <Button
-                                onClick={handleCancel}
-                                style={{
-                                    fontSize: 'clamp(12px, 2.5vw, 14px)',
-                                    minWidth: '80px'
-                                }}
-                            >
-                                ยกเลิก
-                            </Button>
-                            <Button
-                                type="primary"
-                                htmlType="submit"
-                                style={{
-                                    fontSize: 'clamp(12px, 2.5vw, 14px)',
-                                    minWidth: '80px'
-                                }}
-                            >
-                                บันทึก
-                            </Button>
-                        </Space>
-                    </Form.Item>
+                    <div className="ms-modal-actions">
+                        <Button className="ms-secondary-btn" onClick={handleCancel}>
+                            ยกเลิก
+                        </Button>
+                        <Button className="ms-primary-btn" type="primary" htmlType="submit">
+                            บันทึก
+                        </Button>
+                    </div>
                 </Form>
             </Modal>
-        </div>
+        </ConfigProvider>
     );
 }

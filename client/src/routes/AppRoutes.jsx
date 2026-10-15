@@ -1,77 +1,44 @@
-import React, { Suspense, useEffect } from 'react'
-import { Navigate, Route, Routes } from "react-router-dom";
-import HomePage from '../pages/HomePage';
-import AdminPages from '../pages/admin/Admin';
-import MemberPage from '../pages/member/Member';
-import PageNotFound from '../pages/404/PageNotFound';
-
-import ProtectedRoutes from './ProtectedRoutes';
-
-import AdminRoutes from './AdminRoutes';
-import MemberRoutes from './MemberRoutes';
-
-import persistMiddleware from '../service/zustand/middleware/persistMiddleware';
-import TableAdmin from '../pages/admin/Table';
+import React, {Suspense} from 'react';
+import {Navigate, Route, Routes} from 'react-router-dom';
+import {Skeleton} from 'antd';
 import routes from '../routes';
 
-import { Spin } from 'antd';
-import IndexForm from '../pages/login/Index';
+const PageSkeleton = () => (
+    <div style={{padding: 24}}>
+        <Skeleton active title paragraph={{rows: 6}}/>
+    </div>
+);
 
-const AppRoutes = () => {
-    // persist store
-    // const userAuth = persistMiddleware((state) => state.user);
+// ครอบแต่ละหน้า (ระดับ child ลงไป) ด้วย Suspense ของตัวเอง
+// → ตอนหน้าใหม่กำลังโหลด จะมี fallback แค่ในพื้นที่เนื้อหา (ตรง <Outlet />)
+// ส่วน Layout / Sidebar ที่อยู่ด้านบนจะไม่ถูกแทนที่
+const withBoundary = (Component) => (
+    <Suspense fallback={<PageSkeleton/>}>
+        <Component/>
+    </Suspense>
+);
 
-    const { user, isAuthenticated } = persistMiddleware();
-    if (isAuthenticated) {
-    } else {
-    }
+const renderRoutes = (list, depth = 0) =>
+    list.map((route, index) => {
+        // index route ของ child → redirect เหมือนเดิม
+        if (depth > 0 && route.index) {
+            return <Route key={index} index element={<Navigate to="/admin/dashboard"/>}/>;
+        }
 
+        const element = depth === 0 ? <route.element/> : withBoundary(route.element);
 
-    return (
+        return (
+            <Route key={index} path={route.path} element={element}>
+                {route.children && renderRoutes(route.children, depth + 1)}
+            </Route>
+        );
+    });
 
-        <Suspense fallback={<div>Loading...</div>}>
-            <Routes>
-                {routes.map((route, index) => {
-                    if (route.children) {
-                        return (
-                            <Route key={index} path={route.path} element={<route.element />}>
-                                {route.children.map((childRoute, childIndex) => {
+const AppRoutes = () => (
+    // boundary ชั้นนอก: ใช้ตอนโหลด Layout ระดับบนสุดครั้งแรกเท่านั้น
+    <Suspense fallback={<PageSkeleton/>}>
+        <Routes>{renderRoutes(routes)}</Routes>
+    </Suspense>
+);
 
-
-                                    if (childRoute.index) {
-                                        return (
-                                            <Route key={childIndex} index element={<Navigate to={'/admin/dashboard'} />} /> // Handle index route
-                                        );
-                                    }
-
-                                    if (childRoute.children) {
-                                        return (
-                                            <Route key={childIndex} path={childRoute.path} element={<childRoute.element />}>
-                                                {childRoute.children.map((grandChildRoute, grandChildIndex) => (
-                                                    <Route
-                                                        key={grandChildIndex}
-                                                        path={grandChildRoute.path}
-                                                        element={<grandChildRoute.element />}
-                                                    />
-                                                ))}
-                                            </Route>
-                                        );
-                                    }
-                                    return (
-                                        <Route key={childIndex} path={childRoute.path} element={<childRoute.element />} />
-                                    );
-                                })}
-                            </Route>
-                        );
-                    }
-                    return (
-                        <Route key={index} path={route.path} element={<route.element />} />
-                    );
-                })}
-            </Routes>
-        </Suspense>
-
-    )
-}
-
-export default AppRoutes
+export default AppRoutes;

@@ -5,103 +5,333 @@ import Icon, {
     HomeOutlined,
     PlusOutlined,
     ThunderboltOutlined,
-    UserOutlined
-} from "@ant-design/icons";
+    UserOutlined,
+    FileTextOutlined,
+} from '@ant-design/icons';
 import {
     Button,
-    Card,
     Checkbox,
-    Col,
+    ConfigProvider,
     Divider,
     Input,
     InputNumber,
     Modal,
-    Row,
     Select,
     Space,
     Table,
-    Typography
-} from "antd";
-import dayjs from "dayjs";
-import "dayjs/locale/th";
-import buddhistEra from "dayjs/plugin/buddhistEra";
-import { Controller } from "react-hook-form";
-
-
+    Typography,
+} from 'antd';
+import dayjs from 'dayjs';
+import 'dayjs/locale/th';
+import buddhistEra from 'dayjs/plugin/buddhistEra';
+import {Controller} from 'react-hook-form';
 
 dayjs.extend(buddhistEra);
-dayjs.locale("th");
+dayjs.locale('th');
 
-const { Title, Text } = Typography;
-const { Option, OptGroup } = Select;
+const {Text} = Typography;
+const {Option, OptGroup} = Select;
 
+/* ------------------------------------------------------------------ */
+/* Design tokens (ชุดเดียวกับหน้า ListRoom)                            */
+/* ------------------------------------------------------------------ */
+const C = {
+    ink: '#0F172A',
+    muted: '#5B6478',
+    line: '#E6E8F0',
+    page: '#F4F5F9',
+    card: '#FFFFFF',
+    primary: '#4F46E5',
+    primaryDeep: '#4338CA',
+    primarySoft: '#EEF0FF',
+    water: '#2563EB',
+    waterSoft: '#E6EEFF',
+    electric: '#B45309',
+    electricSoft: '#FEF1DC',
+    danger: '#BE123C',
+    success: '#15803D',
+};
 
+const FONT = "'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif";
 
+const theme = {
+    token: {
+        colorPrimary: C.primary,
+        borderRadius: 12,
+        fontFamily: FONT,
+        controlHeight: 44,
+    },
+};
+
+const MONTHS = [
+    'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+    'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม',
+];
+
+// responsive อยู่ใน CSS แทน window.innerWidth (ไม่ต้อง re-render ตอน resize)
+const css = `
+.bf-page { background: ${C.page}; padding: clamp(12px, 3vw, 32px); font-family: ${FONT}; color: ${C.ink}; }
+.bf-wrap { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+.bf-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.bf-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.bf-sticky { position: sticky; top: 24px; }
+.bf-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.bf-three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.bf-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 14px; }
+.bf-receipt { padding: 28px; }
+.bf-table .ant-table { background: transparent; }
+.bf-table .ant-table-thead > tr > th { background: #F7F8FC; font-weight: 600; font-size: 13px; color: ${C.muted}; }
+.bf-card-title { display: flex; align-items: center; gap: 12px; font-size: 16px; font-weight: 700; }
+button:focus-visible { outline: 2px solid ${C.primary}; outline-offset: 2px; }
+@media (max-width: 991px) {
+    .bf-layout { grid-template-columns: minmax(0, 1fr); }
+    .bf-sticky { position: static; }
+}
+@media (max-width: 575px) {
+    .bf-receipt { padding: 16px 12px; }
+    .bf-row { font-size: 12px; }
+}
+@media print {
+    .bf-no-print { display: none !important; }
+}
+`;
+
+/* ------------------------------------------------------------------ */
+/* Icons                                                               */
+/* ------------------------------------------------------------------ */
 const WaterDropSvg = () => (
     <svg viewBox="0 0 1024 1024" fill="currentColor" width="1em" height="1em">
-        <path d="M512 960C335.3 960 192 816.7 192 640c0-170.7 176.7-347.3 320-515.7C655.3 292.7 832 469.3 832 640c0 176.7-143.3 320-320 320zM512 213.3c-106.7 124.3-234.7 262.2-234.7 426.7 0 129.4 105.3 234.7 234.7 234.7s234.7-105.3 234.7-234.7C746.7 475.5 618.7 337.6 512 213.3z" />
+        <path d="M512 960C335.3 960 192 816.7 192 640c0-170.7 176.7-347.3 320-515.7C655.3 292.7 832 469.3 832 640c0 176.7-143.3 320-320 320zM512 213.3c-106.7 124.3-234.7 262.2-234.7 426.7 0 129.4 105.3 234.7 234.7 234.7s234.7-105.3 234.7-234.7C746.7 475.5 618.7 337.6 512 213.3z"/>
     </svg>
 );
-const WaterDropIcon = props => <Icon component={WaterDropSvg} {...props} />;
+const WaterDropIcon = (props) => <Icon component={WaterDropSvg} {...props} />;
 
+/* ------------------------------------------------------------------ */
+/* Small building blocks                                               */
+/* ------------------------------------------------------------------ */
+const PageHeader = ({icon, title, subtitle, action}) => (
+    <header
+        style={{
+            background: C.ink,
+            borderRadius: 20,
+            padding: '24px 28px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 16,
+        }}
+    >
+        <div style={{display: 'flex', alignItems: 'center', gap: 16, minWidth: 0}}>
+            <span
+                aria-hidden="true"
+                style={{
+                    flex: '0 0 auto', width: 52, height: 52, borderRadius: 16, background: '#1E2A4A',
+                    color: '#A5B4FC', fontSize: 24, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+            >
+                {icon}
+            </span>
+            <div style={{minWidth: 0}}>
+                <h1 style={{margin: 0, fontSize: 26, fontWeight: 700, lineHeight: 1.25, color: '#FFFFFF'}}>{title}</h1>
+                <p style={{margin: '4px 0 0', fontSize: 14, color: '#A5B0C6'}}>{subtitle}</p>
+            </div>
+        </div>
+        {action}
+    </header>
+);
 
-const BillingForm = ({ handleNotifyPayment,
-    control,
-    tenantDataForUI,
-    formData,
-    electricMeter,
-    electricCost,
-    total,
-    handleOkBilling,
-    isValid,
-    isFormDisabled,
-    waterMeter,
-    waterCost,
-    waterUsage,
-    setIsServiceModalVisible,
-    isServiceModalVisible,
+const Section = ({icon, iconBg, iconColor, title, children}) => (
+    <section
+        style={{
+            background: C.card,
+            border: `1px solid ${C.line}`,
+            borderRadius: 20,
+            padding: 24,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 16,
+            minWidth: 0,
+        }}
+    >
+        <div className="bf-card-title">
+            {icon && (
+                <span
+                    style={{
+                        width: 36, height: 36, borderRadius: 10, background: iconBg || C.primarySoft,
+                        color: iconColor || C.primaryDeep, display: 'flex', alignItems: 'center',
+                        justifyContent: 'center', fontSize: 18,
+                    }}
+                >
+                    {icon}
+                </span>
+            )}
+            {title}
+        </div>
+        {children}
+    </section>
+);
 
-    addDiscount,
-    printRef,
-    apartmentInfoForUI,
-    handleAddSelectedServices,
-    setSelectedServices,
-    isOtherSelected,
-    selectedServices,
-    serviceOptions,
-    electricUsage,
-    additionalChargeColumns,
-    getValues,
-    removeDiscount,
-    phones }) => {
+const Field = ({label, children}) => (
+    <div style={{display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0}}>
+        <Text style={{fontSize: 13, color: C.muted}}>{label}</Text>
+        {children}
+    </div>
+);
 
+const BillRow = ({label, value, tone}) => {
+    const color = tone === 'danger' ? C.danger : tone === 'success' ? C.success : C.ink;
+    return (
+        <div className="bf-row">
+            <span style={{color, wordBreak: 'break-word'}}>{label}</span>
+            <span style={{color, fontWeight: 600, whiteSpace: 'nowrap'}}>{value}</span>
+        </div>
+    );
+};
 
-    const primaryColor = "#abb2b9";
-    const electricColor = "#F59E0B";
-    const waterColor = "#1890ff";
+const Rule = ({dashed}) => (
+    <div style={{borderTop: `1px ${dashed ? 'dashed' : 'solid'} ${C.line}`, margin: '4px 0'}}/>
+);
 
+const baht = (n) => `฿${(Number(n) || 0).toLocaleString()}`;
 
-    const renderWaterBill = () => {
-        const isPerUnit = waterMeter?.billingType === "perUnit"
-        const label = isPerUnit ? `ค่าน้ำ (${waterUsage} หน่วย)` : "ค่าน้ำ (เหมาจ่าย)"
+/* ------------------------------------------------------------------ */
+/* Utility card (ใช้ร่วมกันทั้งค่าน้ำและค่าไฟ — เดิมเขียนซ้ำ 2 ชุด)     */
+/* ------------------------------------------------------------------ */
+const UtilityCard = ({kind, title, icon, color, soft, meter, usage, cost, control, getValues, isFormDisabled}) => {
+    const isFlat = meter?.billingType === 'flatRate';
+    const n = (field) => `utilities.${kind}${field}`;
 
-        return (
-            <>
-                <Text>{label}</Text>
-                <Text>฿{waterCost.toLocaleString()}</Text>
-            </>
-        )
-    }
+    return (
+        <Section icon={icon} iconBg={soft} iconColor={color} title={title}>
+            {isFlat ? (
+                <div className="bf-three">
+                    <Field label="ค่าบริการ">
+                        <Controller
+                            name={n('FlatRate')}
+                            control={control}
+                            render={({field}) => (
+                                <InputNumber {...field} prefix="฿" readOnly disabled={isFormDisabled} style={{width: '100%'}}/>
+                            )}
+                        />
+                    </Field>
+                    <Field label="ประเภท">
+                        <Input value="เหมาจ่าย" readOnly/>
+                    </Field>
+                    <Field label="จำนวน">
+                        <Input value="1 เดือน" readOnly/>
+                    </Field>
+                </div>
+            ) : (
+                <div className="bf-three">
+                    <Field label="หน่วยก่อนหน้า">
+                        <Controller
+                            name={n('Previous')}
+                            control={control}
+                            render={({field}) => (
+                                <InputNumber {...field} placeholder="เลขเดิม" readOnly disabled={isFormDisabled} style={{width: '100%'}}/>
+                            )}
+                        />
+                    </Field>
+                    <Field label="หน่วยปัจจุบัน">
+                        <Controller
+                            name={n('Current')}
+                            control={control}
+                            rules={{
+                                validate: (value) =>
+                                    Number(value) >= Number(getValues(n('Previous'))) || 'ต้องมากกว่าเลขก่อนหน้า',
+                            }}
+                            render={({field, fieldState: {error}}) => (
+                                <>
+                                    <InputNumber
+                                        {...field}
+                                        placeholder="เลขใหม่"
+                                        status={error ? 'error' : ''}
+                                        disabled={isFormDisabled}
+                                        min={Number(getValues(n('Previous'))) || 0}
+                                        style={{width: '100%'}}
+                                    />
+                                    {error && <Text type="danger" style={{fontSize: 12}}>{error.message}</Text>}
+                                </>
+                            )}
+                        />
+                    </Field>
+                    <Field label="ราคาต่อหน่วย">
+                        <Controller
+                            name={n('Rate')}
+                            control={control}
+                            render={({field}) => (
+                                <InputNumber {...field} prefix="฿" readOnly disabled={isFormDisabled} style={{width: '100%'}}/>
+                            )}
+                        />
+                    </Field>
+                </div>
+            )}
 
+            <div
+                style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: '12px 16px', borderRadius: 12, background: soft,
+                }}
+            >
+                <Text style={{fontSize: 14, color: C.ink}}>
+                    {isFlat ? 'ค่าบริการ 1 เดือน' : `ใช้ไป ${usage.toLocaleString()} หน่วย`}
+                </Text>
+                <Text strong style={{fontSize: 18, color}}>{baht(cost)}</Text>
+            </div>
+        </Section>
+    );
+};
+
+/* ------------------------------------------------------------------ */
+/* Main                                                                */
+/* ------------------------------------------------------------------ */
+const BillingForm = ({
+                         handleNotifyPayment,
+                         control,
+                         tenantDataForUI,
+                         formData,
+                         electricMeter,
+                         electricCost,
+                         total,
+                         handleOkBilling,
+                         isValid,
+                         isFormDisabled,
+                         waterMeter,
+                         waterCost,
+                         waterUsage,
+                         setIsServiceModalVisible,
+                         isServiceModalVisible,
+                         addDiscount,
+                         printRef,
+                         apartmentInfoForUI,
+                         handleAddSelectedServices,
+                         setSelectedServices,
+                         isOtherSelected,
+                         selectedServices,
+                         serviceOptions,
+                         electricUsage,
+                         additionalChargeColumns,
+                         getValues,
+                         removeDiscount,
+                         phones,
+                         // เดิมถูกใช้ใน modal แต่ไม่ได้รับเป็น props (จะ error ตอนกด "อื่นๆ") — รับเพิ่มให้แล้ว
+                         setIsOtherSelected,
+                         otherDescription,
+                         setOtherDescription,
+                         otherAmount,
+                         setOtherAmount,
+                     }) => {
+    const isWaterPerUnit = waterMeter?.billingType === 'perUnit';
+    const isElectricPerUnit = electricMeter?.billingType === 'perUnit';
+
+    /* ---------------- Service modal ---------------- */
     const renderServiceSelectionModal = () => {
-        // 👈 กรองรายการ service ที่จะแสดงใน Modal
         const existingServiceNames = formData.additionalCharges
-            .filter(c => c.type === 'existing')
-            .map(c => c.description);
+            .filter((c) => c.type === 'existing')
+            .map((c) => c.description);
 
-        const availableServices = serviceOptions.filter(
-            s => !existingServiceNames.includes(s.name)
-        );
+        const availableServices = serviceOptions.filter((s) => !existingServiceNames.includes(s.name));
 
         return (
             <Modal
@@ -112,14 +342,12 @@ const BillingForm = ({ handleNotifyPayment,
                 okText="เพิ่มบริการที่เลือก"
                 cancelText="ยกเลิก"
             >
-                {/* ส่วนของการเลือก Service ที่มีอยู่แล้ว */}
                 <Checkbox.Group
-                    style={{ width: '100%' }}
+                    style={{width: '100%'}}
                     value={selectedServices}
                     onChange={(checkedValues) => setSelectedServices(checkedValues)}
                 >
-                    <Space direction="vertical" style={{ width: '100%' }}>
-                        {/* 👈 ใช้ availableServices แทน serviceOptions */}
+                    <Space direction="vertical" style={{width: '100%'}}>
                         {availableServices.map((service) => (
                             <Checkbox key={service.name} value={service.name}>
                                 {`${service.name} (${service.price.toLocaleString()} บาท)`}
@@ -128,19 +356,14 @@ const BillingForm = ({ handleNotifyPayment,
                     </Space>
                 </Checkbox.Group>
 
-                <Divider />
+                <Divider/>
 
-                {/* 👇 ส่วนของ "อื่นๆ" ที่เพิ่มเข้ามา */}
-                <Checkbox
-                    checked={isOtherSelected}
-                    onChange={(e) => setIsOtherSelected(e.target.checked)}
-                >
+                <Checkbox checked={isOtherSelected} onChange={(e) => setIsOtherSelected(e.target.checked)}>
                     อื่นๆ (โปรดระบุ)
                 </Checkbox>
 
-                {/* แสดงช่องกรอกข้อมูลเมื่อติ๊กเลือก "อื่นๆ" */}
                 {isOtherSelected && (
-                    <Space direction="vertical" style={{ width: '100%', marginTop: '12px' }}>
+                    <Space direction="vertical" style={{width: '100%', marginTop: 12}}>
                         <Input
                             placeholder="ระบุชื่อรายการ"
                             value={otherDescription}
@@ -149,1195 +372,383 @@ const BillingForm = ({ handleNotifyPayment,
                         <InputNumber
                             placeholder="ระบุจำนวนเงิน"
                             prefix="฿"
-                            style={{ width: '100%' }}
+                            style={{width: '100%'}}
                             value={otherAmount}
                             onChange={(value) => setOtherAmount(value)}
                         />
                     </Space>
                 )}
             </Modal>
-        )
-    }
+        );
+    };
+
+    /* ---------------- Discount table ---------------- */
     const discountColumns = [
         {
-            title: "รายการ",
-            dataIndex: "description",
-            key: "description",
-            render: (text, record, index) => (
+            title: 'รายการ',
+            dataIndex: 'description',
+            key: 'description',
+            render: (_, __, index) => (
                 <Controller
                     control={control}
                     name={`discounts.${index}.description`}
-                    render={({ field }) => (
-                        <Input
-                            {...field}
-                            placeholder="ระบุรายการส่วนลด"
-                            variant="borderless"
-                        />
-                    )}
+                    render={({field}) => <Input {...field} placeholder="ระบุรายการส่วนลด" variant="borderless"/>}
                 />
             ),
         },
         {
-            title: "จำนวนเงิน",
-            dataIndex: "amount",
-            key: "amount",
-            width: "180px",
-            render: (text, record, index) => (
+            title: 'จำนวนเงิน',
+            dataIndex: 'amount',
+            key: 'amount',
+            width: 170,
+            render: (_, __, index) => (
                 <Controller
                     control={control}
                     name={`discounts.${index}.amount`}
-                    render={({ field }) => (
-                        <InputNumber
-                            {...field}
-                            prefix="฿"
-                            style={{ width: "100%" }}
-                            placeholder="0"
-                        // ลบ variant="borderless" ออก
-                        />
-                    )}
+                    render={({field}) => <InputNumber {...field} prefix="฿" placeholder="0" style={{width: '100%'}}/>}
                 />
             ),
         },
-        // ส่วน action เหมือนเดิม
+        {
+            // ปุ่มลบ: เดิมรับ removeDiscount มาแต่ไม่ได้ใช้ — ตรวจ signature ให้ตรงกับของคุณด้วย
+            title: '',
+            key: 'action',
+            width: 56,
+            render: (_, record) => (
+                <Button
+                    type="text"
+                    danger
+                    aria-label="ลบส่วนลด"
+                    icon={<DeleteOutlined/>}
+                    disabled={isFormDisabled}
+                    onClick={() => removeDiscount(record.id)}
+                />
+            ),
+        },
     ];
 
-    return (
-        <div
-            style={{
-                minHeight: "100vh",
-                backgroundColor: "#f8f9fa",
-                padding: "24px",
-            }}
-        >
-            <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
-                {renderServiceSelectionModal()}
+    const phoneText = (phones || [])
+        .filter((item) => item.number)
+        .map((item) => {
+            const label = {mobile: 'มือถือ', office: 'สำนักงาน', fax: 'โทร.แฟกซ์'}[item.type] || 'โทร.';
+            return `${label} ${item.number}`;
+        })
+        .join(' • ');
 
-                <Card
-                    style={{
-                        marginBottom: "24px",
-                        boxShadow:
-                            "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)",
-                        background: `linear-gradient(135deg, ${primaryColor} 0%, #eaecee 100%)`,
-                        color: "white",
-                    }}
-                >
-                    <Row
-                        align="middle"
-                        justify="space-between"
-                        gutter={[16, 16]}
-                        style={{ flexWrap: "wrap" }}
-                    >
-                        <Col xs={24} md={18}>
-                            <Space align="center">
-                                <HomeOutlined style={{ fontSize: "2rem", color: "white" }} />
-                                <div>
-                                    <Title level={3} style={{ marginBottom: 0, color: "white" }}>
-                                        ระบบแจ้งชำระเงิน
-                                    </Title>
-                                    <Text style={{ color: "#e9ecef" }}>
-                                        สร้างและแจ้งยอดบิลค่าเช่าสำหรับอพาร์ทเมนท์
-                                    </Text>
-                                </div>
-                            </Space>
-                        </Col>
-                        <Col
-                            xs={24}
-                            md="auto"
-                            style={{ textAlign: "right", display: "flex", justifyContent: "flex-end" }}
-                        >
-                            <Button
-                                icon={<CopyOutlined />}
-                                size="large"
-                                onClick={handleNotifyPayment}
-                                style={{
-                                    background: "rgba(255, 255, 255, 0.9)",
-                                    color: primaryColor,
-                                    border: "none",
-                                    fontWeight: "bold",
-                                    boxShadow: "0 1px 2px 0 rgba(0,0,0,0.05)",
-                                    width: "100%",
-                                    maxWidth: "220px",
-                                }}
-                                block
-                            >
+    const isDue = total >= 0;
+
+    return (
+        <ConfigProvider theme={theme}>
+            <style>{css}</style>
+            {renderServiceSelectionModal()}
+
+            <div className="bf-page">
+                <div className="bf-wrap">
+
+                    {/* Heading */}
+                    <PageHeader
+                        icon={<HomeOutlined/>}
+                        title="ระบบแจ้งชำระเงิน"
+                        subtitle="สร้างและแจ้งยอดบิลค่าเช่าสำหรับอพาร์ทเมนท์"
+                        action={
+                            <Button type="primary" icon={<CopyOutlined/>} onClick={handleNotifyPayment} style={{fontWeight: 600}}>
                                 คัดลอก
                             </Button>
-                        </Col>
-                    </Row>
-                </Card>
+                        }
+                    />
 
+                    <div className="bf-layout">
+                        {/* ============ LEFT: form ============ */}
+                        <div className="bf-col">
+                            <Section icon={<UserOutlined/>} title="ข้อมูลผู้เช่า">
+                                <div className="bf-two">
+                                    <Field label="ห้อง / ผู้เช่า">
+                                        <Controller
+                                            name="tenantId"
+                                            control={control}
+                                            render={({field}) => (
+                                                <Select {...field} placeholder="เลือกห้อง" style={{width: '100%'}}>
+                                                    {tenantDataForUI
+                                                        ?.filter((t) => !t.isBilled)
+                                                        .sort((a, b) => a.roomNumber - b.roomNumber)
+                                                        .map((tenant) => (
+                                                            <Option key={tenant.id} value={tenant.id}>
+                                                                ห้อง {tenant.roomNumber} - {tenant.name}
+                                                            </Option>
+                                                        ))}
 
-
-                <div style={{ paddingTop: "32px" }}>
-
-                    <Row gutter={[24, 24]}>
-                        <Col xs={24} lg={14}>
-                            <Space
-                                direction="vertical"
-                                size="large"
-                                style={{ width: "100%" }}
-                            >
-                                <Card
-                                    styles={{
-                                        header: {
-                                            borderLeft: "5px solid #f1948a",
-                                            backgroundColor: "#fdedec",
-                                        },
-                                    }}
-                                    title={
-                                        <>
-                                            <UserOutlined /> ข้อมูลผู้เช่า
-                                        </>
-                                    }
-                                    style={{ boxShadow: "0 1px 2px 0 rgba(0,0,0,0.05)" }}
-                                >
-                                    <Row gutter={[16, 16]}>
-
-                                        <Col xs={24} sm={12}>
-                                            <Controller
-                                                name="tenantId"
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <Select {...field} placeholder="เลือกห้อง" style={{ width: "100%" }}>
-                                                        {tenantDataForUI
-                                                            ?.filter((t) => !t.isBilled)
-                                                            .sort((a, b) => a.roomNumber - b.roomNumber)
-                                                            .map((tenant) => (
-                                                                <Option key={tenant.id} value={tenant.id}>
-                                                                    ห้อง {tenant.roomNumber} - {tenant.name}
-                                                                </Option>
-                                                            ))}
-
-                                                        {tenantDataForUI?.some((t) => t.isBilled) && (
-                                                            <OptGroup label={
-                                                                <span style={{ color: '#52c41a', fontWeight: 'bold' }}>
-                                                                    ออกบิลแล้ว
-                                                                </span>
-                                                            }>
-                                                                {tenantDataForUI
-                                                                    ?.filter((t) => t.isBilled)
-                                                                    .sort((a, b) => a.roomNumber - b.roomNumber)
-                                                                    .map((tenant) => (
-                                                                        <Option key={tenant.id} value={tenant.id} disabled>
-                                                                            ห้อง {tenant.roomNumber} - {tenant.name}
-                                                                            {/* <Tag color="green" style={{ marginLeft: 8 }}>ออกบิลแล้ว</Tag> */}
-                                                                        </Option>
-                                                                    ))}
-                                                            </OptGroup>
-                                                        )}
-                                                    </Select>
-
-                                                )}
-                                            />
-                                        </Col>
-
-                                        <Col xs={12}>
-                                            <Controller
-                                                name="roomCharges.monthlyRent"
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <InputNumber
-
-                                                        readOnly
-                                                        addonBefore="ค่าเช่า"
-                                                        {...field}
-                                                        style={{ width: "100%" }}
-                                                        prefix="฿"
-                                                    />
-                                                )}
-                                            />
-                                        </Col>
-                                    </Row>
-                                </Card>
-
-
-                                <Card
-                                    styles={{
-                                        header: {
-                                            borderLeft: "5px solid #82e0aa",
-                                            backgroundColor: "#eafaf1",
-                                        },
-                                    }}
-                                    title={
-                                        <>
-                                            <CalendarOutlined /> ประจำเดือน
-                                        </>
-                                    }
-                                    style={{ boxShadow: "0 1px 2px 0 rgba(0,0,0,0.05)" }}
-                                >
-                                    <Row gutter={[16, 16]}>
-                                        <Col xs={24} sm={12}>
-                                            <Space direction="vertical" style={{ width: '100%' }}>
-
-                                                <Controller
-                                                    name="billingPeriod.month"
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            {...field}
-                                                            style={{ width: '100%' }}
-                                                            placeholder="เลือกเดือน"
-                                                            disabled={isFormDisabled}
-                                                        >
-                                                            <Option value="มกราคม">มกราคม</Option>
-                                                            <Option value="กุมภาพันธ์">กุมภาพันธ์</Option>
-                                                            <Option value="มีนาคม">มีนาคม</Option>
-                                                            <Option value="เมษายน">เมษายน</Option>
-                                                            <Option value="พฤษภาคม">พฤษภาคม</Option>
-                                                            <Option value="มิถุนายน">มิถุนายน</Option>
-                                                            <Option value="กรกฎาคม">กรกฎาคม</Option>
-                                                            <Option value="สิงหาคม">สิงหาคม</Option>
-                                                            <Option value="กันยายน">กันยายน</Option>
-                                                            <Option value="ตุลาคม">ตุลาคม</Option>
-                                                            <Option value="พฤศจิกายน">พฤศจิกายน</Option>
-                                                            <Option value="ธันวาคม">ธันวาคม</Option>
-                                                        </Select>
+                                                    {tenantDataForUI?.some((t) => t.isBilled) && (
+                                                        <OptGroup label={<span style={{color: C.success, fontWeight: 700}}>ออกบิลแล้ว</span>}>
+                                                            {tenantDataForUI
+                                                                .filter((t) => t.isBilled)
+                                                                .sort((a, b) => a.roomNumber - b.roomNumber)
+                                                                .map((tenant) => (
+                                                                    <Option key={tenant.id} value={tenant.id} disabled>
+                                                                        ห้อง {tenant.roomNumber} - {tenant.name}
+                                                                    </Option>
+                                                                ))}
+                                                        </OptGroup>
                                                     )}
-                                                />
-                                            </Space>
-                                        </Col>
-                                        <Col xs={24} sm={12}>
-                                            <Title level={4} style={{ margin: 0, color: "#343a40" }}>
-                                                {formData.billingPeriod.year}
-                                            </Title>
-                                        </Col>
-                                    </Row>
-                                </Card>
+                                                </Select>
+                                            )}
+                                        />
+                                    </Field>
+                                    <Field label="ค่าเช่าต่อเดือน">
+                                        <Controller
+                                            name="roomCharges.monthlyRent"
+                                            control={control}
+                                            render={({field}) => (
+                                                <InputNumber {...field} readOnly prefix="฿" style={{width: '100%'}}/>
+                                            )}
+                                        />
+                                    </Field>
+                                </div>
+                            </Section>
 
-
-
-
-                                <Row gutter={[16, 16]}>
-
-                                    <Col xs={24} md={12}>
-                                        <Card
-                                            title={
-                                                <>
-                                                    <WaterDropIcon style={{ color: waterColor }} /> ค่าน้ำ
-                                                </>
-                                            }
-                                            size="small"
-                                            style={{ boxShadow: "0 1px 2px 0 rgba(0,0,0,0.05)" }}
-                                            styles={{
-                                                header: {
-                                                    borderLeft: "5px solid #2563eb",
-                                                    backgroundColor: "#eff6ff",
-                                                },
-                                            }}
-
-
-                                        >
-                                            <Row justify="space-between" align="middle" style={{ minHeight: '60px' }}>
-                                                <Col flex="1">
-                                                    {waterMeter?.billingType === "flatRate" ? (
-                                                        // กรณีเหมาจ่าย - ให้ layout เหมือนกัน
-                                                        <>
-                                                            <Row gutter={8}>
-                                                                <Col span={8}>
-                                                                    <Space direction="vertical" style={{ width: '100%' }}>
-                                                                        <Text type="secondary">ค่าบริการ</Text>
-                                                                        <Controller
-                                                                            name="utilities.waterFlatRate"
-                                                                            control={control}
-                                                                            render={({ field }) => (
-                                                                                <InputNumber
-                                                                                    {...field}
-                                                                                    style={{ width: '100%' }}
-                                                                                    prefix="฿"
-                                                                                    readOnly
-                                                                                    disabled={isFormDisabled} // <--- เพิ่มตรงนี้
-                                                                                />
-                                                                            )}
-                                                                        />
-                                                                    </Space>
-                                                                </Col>
-                                                                <Col span={8}>
-                                                                    <Space direction="vertical" style={{ width: '100%' }}>
-                                                                        <Text type="secondary">ประเภท</Text>
-                                                                        <Input value="เหมาจ่าย" readOnly style={{ width: '100%' }} />
-                                                                    </Space>
-                                                                </Col>
-                                                                <Col span={8}>
-                                                                    <Space direction="vertical" style={{ width: '100%' }}>
-                                                                        <Text type="secondary">จำนวน</Text>
-                                                                        <Input value="1 เดือน" readOnly style={{ width: '100%' }} />
-                                                                    </Space>
-                                                                </Col>
-                                                            </Row>
-                                                            <Divider style={{ margin: "12px 0" }} />
-                                                            <div style={{ textAlign: "right" }}>
-                                                                <Text strong>
-                                                                    ค่าบริการ: 1 เดือน = {" "}
-                                                                    <span style={{ color: waterColor, fontSize: "1.1em" }}>
-                                                                        ฿{waterCost.toLocaleString()}
-                                                                    </span>
-                                                                </Text>
-                                                            </div>
-                                                        </>
-                                                    ) : (
-                                                        // กรณีต่อหน่วย - layout เดิม
-                                                        <>
-                                                            <Row gutter={8}>
-                                                                <Col span={8}>
-                                                                    <Space direction="vertical" style={{ width: '100%' }}>
-                                                                        <Text type="secondary">หน่วยก่อนหน้า</Text>
-                                                                        <Controller
-                                                                            name="utilities.waterPrevious"
-                                                                            control={control}
-                                                                            render={({ field }) => (
-                                                                                <InputNumber
-                                                                                    {...field}
-                                                                                    style={{ width: '100%' }}
-                                                                                    placeholder="เลขเดิม"
-                                                                                    disabled={isFormDisabled} // <--- เพิ่มตรงนี้
-                                                                                    readOnly
-                                                                                />
-                                                                            )}
-                                                                        />
-                                                                    </Space>
-                                                                </Col>
-                                                                <Col span={8}>
-                                                                    <Space direction="vertical" style={{ width: '100%' }}>
-                                                                        <Text type="secondary">หน่วยปัจจุบัน</Text>
-                                                                        <Controller
-                                                                            name="utilities.waterCurrent"
-                                                                            control={control}
-                                                                            rules={{
-                                                                                validate: (value) =>
-                                                                                    Number(value) >= Number(getValues('utilities.waterPrevious')) ||
-                                                                                    'ต้องมากกว่าเลขก่อนหน้า'
-                                                                            }}
-                                                                            //                                  👇 ตรวจสอบตรงนี้
-                                                                            render={({ field, fieldState: { error } }) => (
-                                                                                <>
-                                                                                    <InputNumber
-                                                                                        {...field}
-                                                                                        style={{ width: '100%' }}
-                                                                                        placeholder="เลขใหม่"
-                                                                                        // เพิ่ม status='error' เพื่อให้ InputNumber เป็นสีแดง
-                                                                                        status={error ? 'error' : ''}
-                                                                                        disabled={isFormDisabled} // <--- เพิ่มตรงนี้
-                                                                                        min={Number(getValues('utilities.waterPrevious')) || 0}
-                                                                                    />
-                                                                                    {/* 👇 และตรวจสอบว่ามีส่วนนี้สำหรับแสดงข้อความ */}
-                                                                                    {error && <Text type="danger" style={{ fontSize: 12 }}>{error.message}</Text>}
-                                                                                </>
-                                                                            )}
-                                                                        />
-
-                                                                    </Space>
-                                                                </Col>
-                                                                <Col span={8}>
-                                                                    <Space direction="vertical" style={{ width: '100%' }}>
-                                                                        <Text type="secondary">ราคาต่อหน่วย</Text>
-                                                                        <Controller
-                                                                            name="utilities.waterRate"
-                                                                            control={control}
-                                                                            render={({ field }) => (
-                                                                                <InputNumber
-                                                                                    {...field}
-                                                                                    style={{ width: '100%' }}
-                                                                                    prefix="฿"
-                                                                                    readOnly
-                                                                                    disabled={isFormDisabled} // <--- เพิ่มตรงนี้
-                                                                                />
-                                                                            )}
-                                                                        />
-                                                                    </Space>
-                                                                </Col>
-                                                            </Row>
-                                                            <Divider style={{ margin: "12px 0" }} />
-                                                            <div style={{ textAlign: "right" }}>
-                                                                <Text strong>
-                                                                    ใช้ไป: {waterUsage.toLocaleString()} หน่วย = {" "}
-                                                                    <span style={{ color: waterColor, fontSize: "1.1em" }}>
-                                                                        ฿{waterCost.toLocaleString()}
-                                                                    </span>
-                                                                </Text>
-                                                            </div>
-                                                        </>
-                                                    )}
-                                                </Col>
-                                            </Row>
-
-                                        </Card>
-                                    </Col>
-
-
-                                    <Col xs={24} md={12}>
-                                        <Card
-                                            title={
-                                                <>
-                                                    <ThunderboltOutlined style={{ color: electricColor }} /> ค่าไฟฟ้า
-                                                </>
-                                            }
-                                            size="small"
-                                            style={{ boxShadow: "0 1px 2px 0 rgba(0,0,0,0.05)" }}
-
-                                            styles={{
-                                                header: {
-                                                    borderLeft: "5px solid #d97706",
-                                                    backgroundColor: "#fef5e7",
-                                                },
+                            <Section icon={<CalendarOutlined/>} title="ประจำเดือน">
+                                <div className="bf-two">
+                                    <Field label="เดือน">
+                                        <Controller
+                                            name="billingPeriod.month"
+                                            control={control}
+                                            render={({field}) => (
+                                                <Select {...field} style={{width: '100%'}} placeholder="เลือกเดือน" disabled={isFormDisabled}>
+                                                    {MONTHS.map((m) => <Option key={m} value={m}>{m}</Option>)}
+                                                </Select>
+                                            )}
+                                        />
+                                    </Field>
+                                    <Field label="ปี (พ.ศ.)">
+                                        <div
+                                            style={{
+                                                height: 44, display: 'flex', alignItems: 'center', padding: '0 14px',
+                                                borderRadius: 12, background: '#F1F3F9', fontSize: 16, fontWeight: 600,
                                             }}
                                         >
-                                            <Row justify="space-between" align="middle" style={{ minHeight: '60px' }}>
-                                                <Col flex="1">
-                                                    {electricMeter?.billingType === "flatRate" ? (
-                                                        // กรณีเหมาจ่าย - ให้ layout เหมือนกัน
-                                                        <>
-                                                            <Row gutter={8}>
-                                                                <Col span={8}>
-                                                                    <Space direction="vertical" style={{ width: '100%' }}>
-                                                                        <Text type="secondary">ค่าบริการ</Text>
-                                                                        <Controller
-                                                                            name="utilities.electricFlatRate"
-                                                                            control={control}
-                                                                            render={({ field }) => (
-                                                                                <InputNumber
-                                                                                    {...field}
-                                                                                    style={{ width: '100%' }}
-                                                                                    prefix="฿"
-                                                                                    readOnly
-                                                                                />
-                                                                            )}
-                                                                        />
-                                                                    </Space>
-                                                                </Col>
-                                                                <Col span={8}>
-                                                                    <Space direction="vertical" style={{ width: '100%' }}>
-                                                                        <Text type="secondary">ประเภท</Text>
-                                                                        <Input value="เหมาจ่าย" readOnly style={{ width: '100%' }} />
-                                                                    </Space>
-                                                                </Col>
-                                                                <Col span={8}>
-                                                                    <Space direction="vertical" style={{ width: '100%' }}>
-                                                                        <Text type="secondary">จำนวน</Text>
-                                                                        <Input value="1 เดือน" readOnly style={{ width: '100%' }} />
-                                                                    </Space>
-                                                                </Col>
-                                                            </Row>
-                                                            <Divider style={{ margin: "12px 0" }} />
-                                                            <div style={{ textAlign: "right" }}>
-                                                                <Text strong>
-                                                                    ค่าบริการ: 1 เดือน = {" "}
-                                                                    <span style={{ color: electricColor, fontSize: "1.1em" }}>
-                                                                        ฿{electricCost.toLocaleString()}
-                                                                    </span>
-                                                                </Text>
-                                                            </div>
-                                                        </>
-                                                    ) : (
-                                                        // กรณีต่อหน่วย - layout เดิม
-                                                        <>
-                                                            <Row gutter={8}>
-                                                                <Col span={8}>
-                                                                    <Space direction="vertical" style={{ width: '100%' }}>
-                                                                        <Text type="secondary">หน่วยก่อนหน้า</Text>
-                                                                        <Controller
-                                                                            name="utilities.electricPrevious"
-                                                                            control={control}
-                                                                            render={({ field }) => (
-                                                                                <InputNumber
-                                                                                    {...field}
-                                                                                    disabled={isFormDisabled} // <--- เพิ่มตรงนี้
-                                                                                    style={{ width: '100%' }}
-                                                                                    placeholder="เลขเดิม"
-                                                                                    readOnly
-                                                                                />
-                                                                            )}
-                                                                        />
-                                                                    </Space>
-                                                                </Col>
-                                                                <Col span={8}>
-                                                                    <Space direction="vertical" style={{ width: '100%' }}>
-                                                                        <Text type="secondary">หน่วยปัจจุบัน</Text>
-                                                                        <Controller
-                                                                            name="utilities.electricCurrent"
-                                                                            control={control}
-                                                                            rules={{
-                                                                                validate: (value) =>
-                                                                                    Number(value) >= Number(getValues('utilities.electricPrevious')) ||
-                                                                                    'ต้องมากกว่าเลขก่อนหน้า'
-                                                                            }}
-                                                                            //                                  👇 ตรวจสอบตรงนี้
-                                                                            render={({ field, fieldState: { error } }) => (
-                                                                                <>
-                                                                                    <InputNumber
-                                                                                        {...field}
-                                                                                        style={{ width: '100%' }}
-                                                                                        placeholder="เลขใหม่"
-                                                                                        // เพิ่ม status='error' เพื่อให้ InputNumber เป็นสีแดง
-                                                                                        status={error ? 'error' : ''}
-                                                                                        disabled={isFormDisabled} // <--- เพิ่มตรงนี้
-                                                                                        min={Number(getValues('utilities.electricPrevious')) || 0}
-                                                                                    />
-                                                                                    {/* 👇 และตรวจสอบว่ามีส่วนนี้สำหรับแสดงข้อความ */}
-                                                                                    {error && <Text type="danger" style={{ fontSize: 12 }}>{error.message}</Text>}
-                                                                                </>
-                                                                            )}
-                                                                        />
-                                                                    </Space>
-                                                                </Col>
-                                                                <Col span={8}>
-                                                                    <Space direction="vertical" style={{ width: '100%' }}>
-                                                                        <Text type="secondary">ราคาต่อหน่วย</Text>
-                                                                        <Controller
-                                                                            name="utilities.electricRate"
-                                                                            control={control}
-                                                                            render={({ field }) => (
-                                                                                <InputNumber
-                                                                                    {...field}
-                                                                                    style={{ width: '100%' }}
-                                                                                    prefix="฿"
-                                                                                    readOnly
-                                                                                    disabled={isFormDisabled} // <--- เพิ่มตรงนี้
-                                                                                />
-                                                                            )}
-                                                                        />
-                                                                    </Space>
-                                                                </Col>
-                                                            </Row>
-                                                            <Divider style={{ margin: "12px 0" }} />
-                                                            <div style={{ textAlign: "right" }}>
-                                                                <Text strong>
-                                                                    ใช้ไป: {electricUsage.toLocaleString()} หน่วย = {" "}
-                                                                    <span style={{ color: electricColor, fontSize: "1.1em" }}>
-                                                                        ฿{electricCost.toLocaleString()}
-                                                                    </span>
-                                                                </Text>
-                                                            </div>
-                                                        </>
-                                                    )}
-                                                </Col>
-                                            </Row>
-                                        </Card>
-                                    </Col>
+                                            {formData.billingPeriod.year}
+                                        </div>
+                                    </Field>
+                                </div>
+                            </Section>
 
-                                </Row>
+                            <div className="bf-two">
+                                <UtilityCard
+                                    kind="water"
+                                    title="ค่าน้ำ"
+                                    icon={<WaterDropIcon/>}
+                                    color={C.water}
+                                    soft={C.waterSoft}
+                                    meter={waterMeter}
+                                    usage={waterUsage}
+                                    cost={waterCost}
+                                    control={control}
+                                    getValues={getValues}
+                                    isFormDisabled={isFormDisabled}
+                                />
+                                <UtilityCard
+                                    kind="electric"
+                                    title="ค่าไฟฟ้า"
+                                    icon={<ThunderboltOutlined/>}
+                                    color={C.electric}
+                                    soft={C.electricSoft}
+                                    meter={electricMeter}
+                                    usage={electricUsage}
+                                    cost={electricCost}
+                                    control={control}
+                                    getValues={getValues}
+                                    isFormDisabled={isFormDisabled}
+                                />
+                            </div>
 
-                                {/* <Card
-                                    title="ค่าใช้จ่ายอื่นๆ"
-                                    style={{ boxShadow: "0 1px 2px 0 rgba(0,0,0,0.05)" }}
-                                    styles={{
-                                        header: {
-                                            borderLeft: "5px solid #bb8fce",
-                                            backgroundColor: "#f4ecf7",
-                                        },
-                                    }}
-                                >
+                            <div className="bf-two">
+                                <Section title="ค่าใช้จ่ายอื่นๆ">
                                     <Table
+                                        className="bf-table"
                                         columns={additionalChargeColumns}
                                         dataSource={formData.additionalCharges}
                                         pagination={false}
                                         rowKey="id"
                                         size="small"
+                                        scroll={{x: '100%'}}
                                     />
-
                                     <Button
                                         type="dashed"
-                                        // icon={<PlusOutlined />}
+                                        icon={<PlusOutlined/>}
                                         onClick={() => setIsServiceModalVisible(true)}
-                                        style={{ marginTop: "16px", width: "100%" }}
-                                        disabled={isFormDisabled} // <--- เพิ่มตรงนี้
+                                        disabled={isFormDisabled}
+                                        block
+                                        style={{color: C.primaryDeep, borderColor: '#C7CCF5'}}
                                     >
-                                        เพิ่มรายการ
+                                        เพิ่มค่าใช้จ่าย
                                     </Button>
+                                </Section>
 
-
-
-
-                                </Card>
-
-                                <Card
-                                    title="ส่วนลด"
-                                    styles={{
-                                        header: {
-                                            borderLeft: "5px solid #28a745", // สีเขียวสำหรับส่วนลด
-                                            backgroundColor: "#eafaf1",
-                                        },
-                                    }}
-                                >
+                                <Section title="ส่วนลด">
                                     <Table
+                                        className="bf-table"
                                         columns={discountColumns}
                                         dataSource={formData.discounts}
                                         pagination={false}
                                         rowKey="id"
                                         size="small"
+                                        scroll={{x: '100%'}}
                                     />
                                     <Button
                                         type="dashed"
-                                        icon={<PlusOutlined />}
+                                        icon={<PlusOutlined/>}
                                         onClick={addDiscount}
-                                        style={{ marginTop: "16px", width: "100%", color: "#28a745", borderColor: "#28a745" }}
-                                        disabled={isFormDisabled} // <--- เพิ่มตรงนี้
+                                        disabled={isFormDisabled}
+                                        block
+                                        style={{color: C.success, borderColor: '#BBE5C8'}}
                                     >
-                                        เพิ่มรายการส่วนลด
+                                        เพิ่มส่วนลด
                                     </Button>
-                                </Card> */}
+                                </Section>
+                            </div>
+                        </div>
 
+                        {/* ============ RIGHT: bill preview ============ */}
+                        <div className="bf-sticky">
+                            <div ref={printRef}>
+                                <div
+                                    className="bf-receipt"
+                                    style={{
+                                        background: C.card, border: `1px solid ${C.line}`, borderRadius: 20,
+                                        boxShadow: '0 12px 32px rgba(15,23,42,0.08)',
+                                        display: 'flex', flexDirection: 'column', gap: 12,
+                                    }}
+                                >
+                                    {/* Apartment */}
+                                    <div style={{textAlign: 'center'}}>
+                                        <div style={{fontSize: 18, fontWeight: 700, lineHeight: 1.4}}>
+                                            {apartmentInfoForUI.name}
+                                        </div>
+                                        <div style={{fontSize: 12, color: C.muted, lineHeight: 1.5, wordBreak: 'break-word'}}>
+                                            {apartmentInfoForUI.address}
+                                        </div>
+                                        <div style={{fontSize: 12, color: C.muted, lineHeight: 1.5, wordBreak: 'break-word'}}>
+                                            {phoneText || 'ไม่มีเบอร์โทร'}
+                                        </div>
+                                    </div>
 
-                                <Row gutter={[16, 16]} wrap>
-                                    <Col xs={24} md={12}>
-                                        <Card
-                                            title="ค่าใช้จ่ายอื่นๆ"
-                                            style={{ boxShadow: "0 1px 2px 0 rgba(0,0,0,0.05)" }}
-                                            styles={{
-                                                header: {
-                                                    borderLeft: "5px solid #bb8fce",
-                                                    backgroundColor: "#f4ecf7",
-                                                },
-                                            }}
-                                        >
-                                            <Table
-                                                columns={additionalChargeColumns}
-                                                dataSource={formData.additionalCharges}
-                                                pagination={false}
-                                                rowKey="id"
-                                                size="small"
-                                                scroll={{ x: '100%' }} // 👈 สำคัญ!
-                                            />
-                                            <Button
-                                                type="dashed"
-                                                onClick={() => setIsServiceModalVisible(true)}
-                                                style={{ marginTop: "16px", width: "100%" }}
-                                                disabled={isFormDisabled}
-                                            >
-                                                เพิ่มค่าใช้จ่าย
-                                            </Button>
-                                        </Card>
-                                    </Col>
+                                    <Rule/>
 
-                                    <Col xs={24} md={12}>
-                                        <Card
-                                            title="ส่วนลด"
-                                            styles={{
-                                                header: {
-                                                    borderLeft: "5px solid #28a745",
-                                                    backgroundColor: "#eafaf1",
-                                                },
-                                            }}
-                                        >
-                                            <Table
-                                                columns={discountColumns}
-                                                dataSource={formData.discounts}
-                                                pagination={false}
-                                                rowKey="id"
-                                                // size="small"
-                                                scroll={{ x: '100%' }} // 👈 สำคัญ!
-                                            />
-                                            <Button
-                                                type="dashed"
+                                    {/* Title */}
+                                    <div style={{textAlign: 'center'}}>
+                                        <div style={{display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 20, fontWeight: 700, color: C.primaryDeep}}>
+                                            <FileTextOutlined aria-hidden="true"/>
+                                            ใบแจ้งยอดค่าบริการ
+                                        </div>
+                                        <div style={{fontSize: 13, color: C.muted, marginTop: 4}}>
+                                            วันที่ออก: {dayjs().format('D MMMM BBBB')}
+                                        </div>
+                                    </div>
 
-                                                onClick={addDiscount}
-                                                style={{
-                                                    marginTop: "16px",
-                                                    width: "100%",
-                                                    color: "#28a745",
-                                                    borderColor: "#28a745",
-                                                }}
-                                                disabled={isFormDisabled}
-                                            >
-                                                เพิ่มส่วนลด
-                                            </Button>
-                                        </Card>
-                                    </Col>
-                                </Row>
-                            </Space>
-                        </Col>
-
-                        <Col
-                            xs={24}
-                            sm={24}
-                            md={24}
-                            lg={14}
-                            xl={12}
-                            xxl={10}
-                            style={{
-                                padding: '0 8px',
-                                '@media (maxWidth: 576px)': {
-                                    padding: '0 4px'
-                                }
-                            }}
-                        >
-                            <div style={{
-                                position: "sticky",
-                                top: "24px",
-                                '@media (maxWidth: 768px)': {
-                                    position: 'static'
-                                }
-                            }}>
-                                <div ref={printRef}>
-                                    <Card
+                                    {/* Tenant */}
+                                    <div
                                         style={{
-                                            boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)",
-                                            border: "2px solid #e5e7eb",
-                                            margin: '0 auto',
-                                            maxWidth: '100%',
-                                            '@media (maxWidth: 576px)': {
-                                                margin: '0',
-                                                border: '1px solid #e5e7eb',
-                                                boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-                                            }
+                                            background: '#F7F8FC', borderRadius: 12, padding: '12px 16px',
+                                            display: 'flex', flexDirection: 'column', gap: 4, fontSize: 14,
                                         }}
-                                        styles={{ body: { padding: window.innerWidth < 576 ? '16px 12px' : '24px' } }}
-                                    // bodyStyle={{
-                                    //     padding: window.innerWidth < 576 ? '16px 12px' : '24px'
-                                    // }}
                                     >
-                                        {/* Header Section */}
-                                        <div style={{
-                                            textAlign: "center",
-                                            marginBottom: "16px",
-                                            '@media (maxWidth: 576px)': {
-                                                marginBottom: '12px'
-                                            }
-                                        }}>
-                                            <Title
-                                                level={window.innerWidth < 576 ? 5 : 4}
-                                                style={{
-                                                    marginBottom: "4px",
-                                                    fontSize: window.innerWidth < 576 ? '16px' : 'inherit',
-                                                    lineHeight: '1.4'
-                                                }}
-                                            >
-                                                {apartmentInfoForUI.name}
-                                            </Title>
-                                            <Text
-                                                type="secondary"
-                                                style={{
-                                                    fontSize: window.innerWidth < 576 ? "10px" : "12px",
-                                                    display: 'block',
-                                                    lineHeight: '1.4',
-                                                    wordBreak: 'break-word'
-                                                }}
-                                            >
-                                                {apartmentInfoForUI.address}
-                                            </Text>
-                                            <br />
-                                            {phones && phones.length > 0 ? (
-                                                <Text
-                                                    type="secondary"
-                                                    style={{
-                                                        fontSize: window.innerWidth < 576 ? "10px" : "12px",
-                                                        display: 'block',
-                                                        lineHeight: '1.4',
-                                                        wordBreak: 'break-word'
-                                                    }}
-                                                >
-                                                    {phones
-                                                        .filter((item) => item.number)
-                                                        .map((item) => {
-                                                            let label = "โทร.";
-                                                            if (item.type === "mobile") {
-                                                                label = "มือถือ";
-                                                            } else if (item.type === "office") {
-                                                                label = "สำนักงาน";
-                                                            } else if (item.type === "fax") {
-                                                                label = "โทร.แฟกซ์";
-                                                            }
-                                                            return `${label} ${item.number}`;
-                                                        })
-                                                        .join(window.innerWidth < 576 ? " | " : " • ")}
-                                                </Text>
-                                            ) : (
-                                                <Text
-                                                    type="secondary"
-                                                    style={{
-                                                        fontSize: window.innerWidth < 576 ? "10px" : "12px"
-                                                    }}
-                                                >
-                                                    ไม่มีเบอร์โทร
-                                                </Text>
-                                            )}
+                                        <div className="bf-row" style={{justifyContent: 'flex-start'}}>
+                                            <Text strong style={{minWidth: 84}}>ชื่อ</Text>
+                                            <span style={{wordBreak: 'break-word'}}>{formData.tenantInfo.name || '-'}</span>
                                         </div>
-
-                                        <Divider style={{ margin: window.innerWidth < 576 ? '12px 0' : '16px 0' }} />
-
-                                        {/* Bill Title */}
-                                        <div style={{
-                                            textAlign: "center",
-                                            marginBottom: window.innerWidth < 576 ? "16px" : "24px"
-                                        }}>
-                                            <Title
-                                                level={window.innerWidth < 576 ? 4 : 3}
-                                                style={{
-                                                    color: primaryColor,
-                                                    fontSize: window.innerWidth < 576 ? '18px' : 'inherit',
-                                                    marginBottom: '8px'
-                                                }}
-                                            >
-                                                ใบแจ้งยอดค่าบริการ
-                                            </Title>
-                                            <Text style={{
-                                                fontSize: window.innerWidth < 576 ? '12px' : '14px'
-                                            }}>
-                                                วันที่ออก: {dayjs().format("D MMMM BBBB")}
-                                            </Text>
+                                        <div className="bf-row" style={{justifyContent: 'flex-start'}}>
+                                            <Text strong style={{minWidth: 84}}>ห้อง</Text>
+                                            <span>
+                                                {formData.tenantInfo.roomNumber || '-'}
+                                                {formData.tenantInfo.floor && ` ชั้น ${formData.tenantInfo.floor}`}
+                                            </span>
                                         </div>
+                                        <div className="bf-row" style={{justifyContent: 'flex-start'}}>
+                                            <Text strong style={{minWidth: 84}}>ประจำเดือน</Text>
+                                            <span>{formData.billingPeriod.month} {formData.billingPeriod.year}</span>
+                                        </div>
+                                    </div>
 
-                                        {/* Tenant Info Card */}
-                                        <Card
-                                            size="small"
-                                            style={{
-                                                marginBottom: "16px",
-                                                backgroundColor: "#f8f9fa",
-                                            }}
-                                            // bodyStyle={{
-                                            //     padding: window.innerWidth < 576 ? '8px 12px' : '12px 16px'
-                                            // }}
-                                            styles={{ body: { padding: window.innerWidth < 576 ? '8px 12px' : '12px 16px' } }}
-                                        >
-                                            <div style={{
-                                                fontSize: window.innerWidth < 576 ? '12px' : '14px',
-                                                lineHeight: '1.6'
-                                            }}>
-                                                <div style={{ marginBottom: '4px' }}>
-                                                    <Text strong style={{ minWidth: window.innerWidth < 576 ? '40px' : '50px', display: 'inline-block' }}>
-                                                        ชื่อ:
-                                                    </Text>{" "}
-                                                    <span style={{ wordBreak: 'break-word' }}>
-                                                        {formData.tenantInfo.name || "-"}
-                                                    </span>
-                                                </div>
-                                                <div style={{ marginBottom: '4px' }}>
-                                                    <Text strong style={{ minWidth: window.innerWidth < 576 ? '40px' : '50px', display: 'inline-block' }}>
-                                                        ห้อง:
-                                                    </Text>{" "}
-                                                    {formData.tenantInfo.roomNumber || "-"}{" "}
-                                                    {formData.tenantInfo.floor && `ชั้น ${formData.tenantInfo.floor}`}
-                                                </div>
-                                                <div>
-                                                    <Text strong style={{ minWidth: window.innerWidth < 576 ? '40px' : '50px', display: 'inline-block' }}>
-                                                        ประจำเดือน:
-                                                    </Text>{" "}
-                                                    {formData.billingPeriod.month} {formData.billingPeriod.year}
-                                                </div>
+                                    {/* Lines */}
+                                    <div style={{display: 'flex', flexDirection: 'column', gap: 10}}>
+                                        <BillRow label="ค่าห้อง" value={baht(formData.roomCharges.monthlyRent)}/>
+                                        <Rule/>
+                                        <BillRow
+                                            label={isElectricPerUnit ? `ค่าไฟฟ้า (${electricUsage} หน่วย)` : 'ค่าไฟฟ้า (เหมาจ่าย)'}
+                                            value={baht(electricCost)}
+                                        />
+                                        <BillRow
+                                            label={isWaterPerUnit ? `ค่าน้ำ (${waterUsage} หน่วย)` : 'ค่าน้ำ (เหมาจ่าย)'}
+                                            value={baht(waterCost)}
+                                        />
+
+                                        {formData.additionalCharges.length > 0 && <Rule/>}
+                                        {formData.additionalCharges.map((charge) => (
+                                            <BillRow key={charge.id} label={charge.description} value={baht(charge.amount)}/>
+                                        ))}
+
+                                        {(formData.roomCharges.previousBalance > 0 ||
+                                            formData.roomCharges.deposit > 0 ||
+                                            formData.discounts.length > 0) && <Rule/>}
+
+                                        {formData.roomCharges.previousBalance > 0 && (
+                                            <BillRow tone="danger" label="ค้างชำระ" value={baht(formData.roomCharges.previousBalance)}/>
+                                        )}
+                                        {formData.roomCharges.deposit > 0 && (
+                                            <BillRow tone="success" label="หักมัดจำ" value={`-${baht(formData.roomCharges.deposit)}`}/>
+                                        )}
+                                        {formData.discounts.map((discount) => (
+                                            <BillRow
+                                                key={discount.id}
+                                                tone="success"
+                                                label={discount.description}
+                                                value={`-${baht(discount.amount)}`}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    <Rule dashed/>
+
+                                    {/* Total */}
+                                    <div
+                                        className="billing-total-card"
+                                        style={{
+                                            display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between',
+                                            alignItems: 'center', gap: 8, padding: '16px 20px', borderRadius: 16,
+                                            background: isDue ? C.primarySoft : '#E7F7EC',
+                                            border: `1px solid ${isDue ? '#C7CCF5' : '#B7E4C7'}`,
+                                        }}
+                                    >
+                                        <div>
+                                            <div style={{fontSize: 16, fontWeight: 700}}>ยอดชำระรวม</div>
+                                            <div style={{fontSize: 12, color: C.muted}}>
+                                                {isDue ? '(ยอดเงินที่ต้องได้รับ)' : '(ยอดเงินที่ต้องชำระเพิ่มเติม)'}
                                             </div>
-                                        </Card>
+                                        </div>
+                                        <div style={{fontSize: 28, fontWeight: 700, lineHeight: 1.1, color: isDue ? C.primaryDeep : C.success}}>
+                                            ฿{Math.abs(total).toLocaleString(undefined, {minimumFractionDigits: 2})}
+                                        </div>
+                                    </div>
 
-                                        {/* Billing Details */}
-                                        <Space
-                                            direction="vertical"
-                                            style={{ width: "100%" }}
-                                            size={window.innerWidth < 576 ? "small" : "small"}
-                                        >
-                                            {/* Room charges */}
-                                            <div style={{
-                                                display: "flex",
-                                                justifyContent: "space-between",
-                                                alignItems: 'center',
-                                                flexWrap: window.innerWidth < 400 ? 'wrap' : 'nowrap',
-                                                gap: window.innerWidth < 400 ? '4px' : '8px'
-                                            }}>
-                                                <Text style={{
-                                                    fontSize: window.innerWidth < 576 ? '12px' : '14px',
-                                                    flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
-                                                }}>
-                                                    ค่าห้อง
-                                                </Text>
-                                                <Text style={{
-                                                    fontSize: window.innerWidth < 576 ? '12px' : '14px',
-                                                    fontWeight: '500',
-                                                    textAlign: window.innerWidth < 400 ? 'right' : 'inherit',
-                                                    flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
-                                                }}>
-                                                    ฿{formData.roomCharges.monthlyRent.toLocaleString()}
-                                                </Text>
-                                            </div>
-
-                                            <Divider style={{ margin: "4px 0" }} />
-
-                                            {/* Electric charges */}
-                                            <div style={{
-                                                display: "flex",
-                                                justifyContent: "space-between",
-                                                alignItems: 'center',
-                                                flexWrap: window.innerWidth < 400 ? 'wrap' : 'nowrap',
-                                                gap: window.innerWidth < 400 ? '4px' : '8px'
-                                            }}>
-                                                {electricMeter?.billingType === "perUnit" ? (
-                                                    <>
-                                                        <Text style={{
-                                                            fontSize: window.innerWidth < 576 ? '12px' : '14px',
-                                                            flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
-                                                        }}>
-                                                            ค่าไฟฟ้า ({electricUsage} หน่วย)
-                                                        </Text>
-                                                        <Text style={{
-                                                            fontSize: window.innerWidth < 576 ? '12px' : '14px',
-                                                            fontWeight: '500',
-                                                            textAlign: window.innerWidth < 400 ? 'right' : 'inherit',
-                                                            flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
-                                                        }}>
-                                                            ฿{electricCost.toLocaleString()}
-                                                        </Text>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Text style={{
-                                                            fontSize: window.innerWidth < 576 ? '12px' : '14px',
-                                                            flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
-                                                        }}>
-                                                            ค่าไฟฟ้า (เหมาจ่าย)
-                                                        </Text>
-                                                        <Text style={{
-                                                            fontSize: window.innerWidth < 576 ? '12px' : '14px',
-                                                            fontWeight: '500',
-                                                            textAlign: window.innerWidth < 400 ? 'right' : 'inherit',
-                                                            flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
-                                                        }}>
-                                                            ฿{electricCost.toLocaleString()}
-                                                        </Text>
-                                                    </>
-                                                )}
-                                            </div>
-
-                                            {/* Water charges */}
-                                            <div style={{
-                                                display: "flex",
-                                                justifyContent: "space-between",
-                                                alignItems: 'center',
-                                                flexWrap: window.innerWidth < 400 ? 'wrap' : 'nowrap',
-                                                gap: window.innerWidth < 400 ? '4px' : '8px'
-                                            }}>
-                                                {renderWaterBill()}
-                                            </div>
-
-                                            <Divider style={{ margin: "4px 0" }} />
-
-                                            {/* Additional charges */}
-                                            {formData.additionalCharges.map((charge) => (
-                                                <div
-                                                    key={charge.id}
-                                                    style={{
-                                                        display: "flex",
-                                                        justifyContent: "space-between",
-                                                        alignItems: 'center',
-                                                        flexWrap: window.innerWidth < 400 ? 'wrap' : 'nowrap',
-                                                        gap: window.innerWidth < 400 ? '4px' : '8px'
-                                                    }}
-                                                >
-                                                    <Text style={{
-                                                        fontSize: window.innerWidth < 576 ? '12px' : '14px',
-                                                        flex: window.innerWidth < 400 ? '1 1 100%' : 'none',
-                                                        wordBreak: 'break-word'
-                                                    }}>
-                                                        {charge.description}
-                                                    </Text>
-                                                    <Text style={{
-                                                        fontSize: window.innerWidth < 576 ? '12px' : '14px',
-                                                        fontWeight: '500',
-                                                        textAlign: window.innerWidth < 400 ? 'right' : 'inherit',
-                                                        flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
-                                                    }}>
-                                                        ฿{(charge.amount || 0).toLocaleString()}
-                                                    </Text>
-                                                </div>
-                                            ))}
-
-                                            {formData.additionalCharges.length > 0 && (
-                                                <Divider style={{ margin: "4px 0" }} />
-                                            )}
-
-                                            {/* Previous balance */}
-                                            {formData.roomCharges.previousBalance > 0 && (
-                                                <div style={{
-                                                    display: "flex",
-                                                    justifyContent: "space-between",
-                                                    alignItems: 'center',
-                                                    flexWrap: window.innerWidth < 400 ? 'wrap' : 'nowrap',
-                                                    gap: window.innerWidth < 400 ? '4px' : '8px'
-                                                }}>
-                                                    <Text
-                                                        type="danger"
-                                                        style={{
-                                                            fontSize: window.innerWidth < 576 ? '12px' : '14px',
-                                                            flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
-                                                        }}
-                                                    >
-                                                        ค้างชำระ
-                                                    </Text>
-                                                    <Text
-                                                        type="danger"
-                                                        style={{
-                                                            fontSize: window.innerWidth < 576 ? '12px' : '14px',
-                                                            fontWeight: '500',
-                                                            textAlign: window.innerWidth < 400 ? 'right' : 'inherit',
-                                                            flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
-                                                        }}
-                                                    >
-                                                        ฿{formData.roomCharges.previousBalance.toLocaleString()}
-                                                    </Text>
-                                                </div>
-                                            )}
-
-                                            {/* Deposit deduction */}
-                                            {formData.roomCharges.deposit > 0 && (
-                                                <div style={{
-                                                    display: "flex",
-                                                    justifyContent: "space-between",
-                                                    alignItems: 'center',
-                                                    flexWrap: window.innerWidth < 400 ? 'wrap' : 'nowrap',
-                                                    gap: window.innerWidth < 400 ? '4px' : '8px'
-                                                }}>
-                                                    <Text
-                                                        type="success"
-                                                        style={{
-                                                            fontSize: window.innerWidth < 576 ? '12px' : '14px',
-                                                            flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
-                                                        }}
-                                                    >
-                                                        หักมัดจำ
-                                                    </Text>
-                                                    <Text
-                                                        type="success"
-                                                        style={{
-                                                            fontSize: window.innerWidth < 576 ? '12px' : '14px',
-                                                            fontWeight: '500',
-                                                            textAlign: window.innerWidth < 400 ? 'right' : 'inherit',
-                                                            flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
-                                                        }}
-                                                    >
-                                                        -฿{formData.roomCharges.deposit.toLocaleString()}
-                                                    </Text>
-                                                </div>
-                                            )}
-
-                                            {/* Discounts */}
-                                            {formData.discounts.map((discount) => (
-                                                <div
-                                                    key={discount.id}
-                                                    style={{
-                                                        display: "flex",
-                                                        justifyContent: "space-between",
-                                                        alignItems: 'center',
-                                                        flexWrap: window.innerWidth < 400 ? 'wrap' : 'nowrap',
-                                                        gap: window.innerWidth < 400 ? '4px' : '8px'
-                                                    }}
-                                                >
-                                                    <Text
-                                                        type="success"
-                                                        style={{
-                                                            fontSize: window.innerWidth < 576 ? '12px' : '14px',
-                                                            flex: window.innerWidth < 400 ? '1 1 100%' : 'none',
-                                                            wordBreak: 'break-word'
-                                                        }}
-                                                    >
-                                                        {discount.description}
-                                                    </Text>
-                                                    <Text
-                                                        type="success"
-                                                        style={{
-                                                            fontSize: window.innerWidth < 576 ? '12px' : '14px',
-                                                            fontWeight: '500',
-                                                            textAlign: window.innerWidth < 400 ? 'right' : 'inherit',
-                                                            flex: window.innerWidth < 400 ? '1 1 100%' : 'none'
-                                                        }}
-                                                    >
-                                                        -฿{(discount.amount || 0).toLocaleString()}
-                                                    </Text>
-                                                </div>
-                                            ))}
-
-                                            {/* Total Section */}
-                                            <Divider style={{ margin: "8px 0" }} dashed />
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    justifyContent: "space-between",
-                                                    alignItems: "center",
-                                                    padding: window.innerWidth < 576 ? "8px" : "12px",
-                                                    borderRadius: "8px",
-                                                    background: total >= 0 ? "#FFFBE6" : "#F6FFED",
-                                                    border: `1px solid ${total >= 0 ? "#FFE58F" : "#B7EB8F"}`,
-                                                    flexDirection: window.innerWidth < 400 ? 'column' : 'row',
-                                                    gap: window.innerWidth < 400 ? '8px' : '16px'
-                                                }}
-                                            >
-                                                <div style={{
-                                                    textAlign: window.innerWidth < 400 ? 'center' : 'left',
-                                                    flex: 1
-                                                }}>
-                                                    <Title
-                                                        level={window.innerWidth < 576 ? 5 : 4}
-                                                        style={{
-                                                            marginBottom: 0,
-                                                            fontSize: window.innerWidth < 576 ? '14px' : 'inherit'
-                                                        }}
-                                                    >
-                                                        ยอดชำระรวม
-                                                    </Title>
-                                                    <Text
-                                                        type="secondary"
-                                                        style={{
-                                                            fontSize: window.innerWidth < 576 ? '10px' : '12px',
-                                                            display: 'block',
-                                                            textAlign: window.innerWidth < 400 ? 'center' : 'left'
-                                                        }}
-                                                    >
-                                                        {total >= 0 ? "(ยอดเงินที่ต้องได้รับ)" : "(ยอดเงินที่ต้องชำระเพิ่มเติม)"}
-                                                    </Text>
-                                                </div>
-
-                                                <Title
-                                                    level={window.innerWidth < 576 ? 4 : 3}
-                                                    style={{
-                                                        marginBottom: 0,
-                                                        color: total >= 0 ? "#D46B08" : "#389E0D",
-                                                        fontSize: window.innerWidth < 576 ? '18px' : 'inherit',
-                                                        textAlign: 'right',
-                                                        flex: window.innerWidth < 400 ? 'none' : 'none'
-                                                    }}
-                                                >
-                                                    ฿{Math.abs(total).toLocaleString(undefined, {
-                                                        minimumFractionDigits: 2,
-                                                    })}
-                                                </Title>
-                                            </div>
-
-                                            {/* Save Button */}
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    justifyContent: "center",
-                                                    alignItems: "center",
-                                                    padding: "0.2rem",
-                                                    borderRadius: "0.5rem",
-                                                    marginTop: "0.5rem",
-                                                }}
-                                            >
-                                                <Button
-                                                    size={window.innerWidth < 576 ? "middle" : "large"}
-                                                    onClick={handleOkBilling}
-                                                    color="primary"
-                                                    variant="solid"
-                                                    style={{
-                                                        border: "none",
-                                                        fontWeight: "bold",
-                                                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
-                                                        borderRadius: "0.375rem",
-                                                        padding: window.innerWidth < 576 ? "0 1.5rem" : "0 2rem",
-                                                        width: window.innerWidth < 576 ? "100%" : "auto",
-                                                        minHeight: window.innerWidth < 576 ? "40px" : "auto"
-                                                    }}
-                                                    disabled={!isValid || isFormDisabled}
-                                                >
-                                                    บันทึก
-                                                </Button>
-                                            </div>
-                                        </Space>
-                                    </Card>
+                                    {/* Save (ไม่ติดไปตอนพิมพ์) */}
+                                    <Button
+                                        className="bf-no-print"
+                                        type="primary"
+                                        size="large"
+                                        block
+                                        onClick={handleOkBilling}
+                                        disabled={!isValid || isFormDisabled}
+                                        style={{fontWeight: 600, marginTop: 4}}
+                                    >
+                                        บันทึก
+                                    </Button>
                                 </div>
                             </div>
-                        </Col>
-                    </Row>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div >
+        </ConfigProvider>
+    );
+};
 
-
-    )
-}
-
-export default BillingForm
+export default BillingForm;

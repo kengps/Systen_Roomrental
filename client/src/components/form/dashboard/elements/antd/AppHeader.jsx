@@ -1,151 +1,77 @@
-// import React from 'react';
-// import { Avatar, Button, Layout, Space, Tooltip, Typography, Badge } from 'antd';
-// const { Header } = Layout;
-//
-// import {
-//   BellOutlined,
-//   MenuFoldOutlined,
-//   MenuUnfoldOutlined,
-//   UserOutlined
-// } from '@ant-design/icons';
-// import NotificationPopover, { useNotificationCount } from '../../utilities/NotificationPopover';
-//
-//
-//
-// function AppHeader({
-//   setCollapsed,
-//   collapsed,
-//   colorBg,
-//   apartmentData,
-//   onNotificationClick,
-//   onUserClick
-// }) {
-//
-//
-//   // Get unread notification count
-//   const unreadCount = useNotificationCount();
-//
-//
-//
-//   const handleNotificationClick = (notification) => {
-//
-//
-//     // Call parent callback if provided
-//     if (onNotificationClick) {
-//       onNotificationClick(notification);
-//     }
-//   };
-//
-//   const handleUserClick = () => {
-//     console.log('User avatar clicked');
-//
-//     // Call parent callback if provided
-//     if (onUserClick) {
-//       onUserClick();
-//     }
-//   };
-//
-//   return (
-//     <Header
-//       style={{
-//         padding: 0,
-//         background: "linear-gradient(90deg, #003366, #0055a5)", // Header gradient
-//         display: "flex",
-//         alignItems: "center",
-//         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)"
-//       }}
-//     >
-//       {/* Menu Toggle Button */}
-//       <Button
-//         type="text"
-//         icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-//         onClick={() => setCollapsed(!collapsed)}
-//         style={{
-//           fontSize: '18px',
-//           width: 64,
-//           height: 64,
-//           color: "#fff"
-//         }}
-//       />
-//
-//       {/* Title */}
-//       <Typography.Title
-//         level={4}
-//         style={{
-//           flexGrow: 1,
-//           textAlign: "center",
-//           margin: 0,
-//           fontWeight: 600,
-//           color: "#fff",
-//           letterSpacing: "0.5px",
-//           textShadow: "1px 1px 3px rgba(0,0,0,0.3)"
-//         }}
-//       >
-//         {apartmentData?.result?.apartmentName ?? "Room Rental By Prasert"}
-//       </Typography.Title>
-//
-//       {/* Right Side Actions */}
-//       <Space size="middle" align="center" style={{ marginRight: '24px' }}>
-//         {/* Notification Bell with Popover */}
-//         <NotificationPopover
-//           onNotificationClick={handleNotificationClick}
-//           placement="bottomRight"
-//         >
-//           <Tooltip title="การแจ้งเตือน">
-//             <Badge count={unreadCount} size="small">
-//               <div
-//                 style={{
-//                   fontSize: "18px",
-//                   color: "#fff",
-//                   cursor: "pointer",
-//                   display: "flex",
-//                   alignItems: "center",
-//                   justifyContent: "center",
-//                   width: "32px",
-//                   height: "32px",
-//
-//
-//                 }}
-//               >
-//                 <BellOutlined />
-//               </div>
-//             </Badge>
-//           </Tooltip>
-//         </NotificationPopover>
-//
-//         {/* User Avatar */}
-//         {/* <Tooltip title="โปรไฟล์ผู้ใช้" >
-//           <Avatar
-//             size={32}
-//             style={{
-//
-//               cursor: "pointer"
-//             }}
-//
-//             icon={<UserOutlined />}
-//             onClick={handleUserClick}
-//           />
-//         </Tooltip> */}
-//       </Space>
-//     </Header>
-//   );
-// }
-//
-// export default AppHeader;
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {Avatar, Button, Layout, Space, Typography, Badge, Modal} from 'antd';
+import {Avatar, Badge, ConfigProvider, Layout, Tooltip, Typography} from 'antd';
 import {
     BellOutlined,
-    ExclamationCircleFilled,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
-    SettingOutlined,
     UserOutlined,
 } from '@ant-design/icons';
 import NotificationPopover, {useNotificationCount} from '../../utilities/NotificationPopover';
 import {useNavigate} from 'react-router-dom';
 
 const {Header} = Layout;
+
+/* ───────── Design tokens ───────── */
+const C = {
+    ink: '#0F172A',
+    page: '#F4F5F9',
+    card: '#FFFFFF',
+    line: '#E6E8F0',
+    muted: '#5B6478',
+    primary: '#4F46E5',
+    primaryDeep: '#4338CA',
+    primarySoft: '#EEF0FF',
+    primarySoftLine: '#C7CCF5',
+    primarySoftText: '#3730A3',
+    danger: '#BE123C',
+};
+
+const FONT = "'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif";
+
+const theme = {
+    token: {colorPrimary: C.primary, borderRadius: 12, fontFamily: FONT, controlHeight: 44},
+};
+
+const css = `
+.ah-header { font-family: ${FONT}; }
+
+.ah-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; flex: none;
+  border-radius: 12px; cursor: pointer;
+  background: ${C.primarySoft};
+  border: 1px solid ${C.primarySoftLine};
+  color: ${C.primarySoftText};
+  font-size: 18px; padding: 0;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+.ah-btn:hover { background: ${C.primary}; border-color: ${C.primary}; color: #fff; }
+.ah-btn:focus-visible { outline: 3px solid ${C.primarySoftLine}; outline-offset: 2px; }
+
+.ah-btn--plain { background: ${C.card}; border-color: ${C.line}; color: ${C.muted}; }
+.ah-btn--plain:hover { background: ${C.primarySoft}; border-color: ${C.primarySoftLine}; color: ${C.primarySoftText}; }
+
+.ah-btn--avatar { border-radius: 999px; background: ${C.primarySoft}; border-color: ${C.primarySoftLine}; }
+.ah-btn--avatar:hover { background: ${C.primarySoft}; border-color: ${C.primary}; }
+
+.ah-title {
+  flex: 1; min-width: 0; text-align: center; padding: 0 12px;
+}
+.ah-title h4.ant-typography {
+  margin: 0 !important; color: ${C.ink} !important;
+  font-size: 20px !important; font-weight: 700 !important; line-height: 1.3 !important;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ah-title--missing h4.ant-typography { color: ${C.muted} !important; font-weight: 600 !important; }
+
+.ah-right { display: flex; align-items: center; gap: 12px; flex: none; }
+
+@media (max-width: 640px) {
+  .ah-header { padding: 0 12px !important; }
+  .ah-title h4.ant-typography { font-size: 16px !important; }
+  .ah-right { gap: 8px; }
+}
+`;
 
 function AppHeader({
                        setCollapsed,
@@ -193,213 +119,79 @@ function AppHeader({
     };
 
     return (
-        <>
-            {/* ✅ Modal แจ้งเตือน */}
+        <ConfigProvider theme={theme}>
+            <style>{css}</style>
 
-
-            {/* ✅ Header ของจริง */}
             <Header
+                className="ah-header"
                 style={{
                     padding: '0 24px',
-                    background: 'linear-gradient(135deg, #ffffff 0%, #f9f8ff 100%)',
-                    backdropFilter: 'blur(15px)',
+                    background: C.card,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    height: '70px',
-                    borderBottom: '3px solid #9155FD',
+                    gap: 8,
+                    height: 68,
+                    lineHeight: 1,
+                    borderBottom: `1px solid ${C.line}`,
                     position: 'sticky',
                     top: 0,
                     zIndex: 1000,
-                    boxShadow: '0 8px 25px rgba(145, 85, 253, 0.1)',
                 }}
             >
                 {/* Left */}
-                <div style={{display: 'flex', alignItems: 'center', zIndex: 2}}>
-                    <Button
-                        type="text"
-                        icon={collapsed ? <MenuUnfoldOutlined/> : <MenuFoldOutlined/>}
-                        onClick={() => setCollapsed(!collapsed)}
-                        style={{
-                            fontSize: '22px',
-                            width: 48,
-                            height: 48,
-                            background: 'linear-gradient(135deg, #9155FD 0%, #D333FF 100%)',
-                            color: '#fff',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            borderRadius: '12px',
-                            boxShadow: '0 4px 12px rgba(145, 85, 253, 0.4)',
-                            border: 'none',
-                        }}
-                    />
-                </div>
+                <button
+                    type="button"
+                    className="ah-btn"
+                    onClick={() => setCollapsed(!collapsed)}
+                    aria-label={collapsed ? 'ขยายเมนู' : 'ย่อเมนู'}
+                    aria-expanded={!collapsed}
+                >
+                    {collapsed ? <MenuUnfoldOutlined/> : <MenuFoldOutlined/>}
+                </button>
 
                 {/* Center */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        textAlign: 'center',
-                        zIndex: 1,
-                    }}
-                >
-                    <div style={{position: 'relative', padding: '0 10px'}}>
-                        <Typography.Title
-                            level={4}
-                            style={{
-                                margin: 0,
-                                fontWeight: 900,
-                                background: 'linear-gradient(90deg, #6226ef 0%, #9155FD 50%, #d333ff 100%)',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                                fontSize: '22px',
-                                letterSpacing: '0.8px',
-                                textTransform: 'uppercase',
-                            }}
-                        >
-                            {apartmentData?.result?.apartmentName ?? 'กรุณาตั้งค่าอพาร์ทเมนต์ของคุณ'}
-                        </Typography.Title>
-
-                        <div
-                            style={{
-                                height: '4px',
-                                width: '60px',
-                                background: 'linear-gradient(90deg, #9155FD 0%, #FF00E4 100%)',
-                                borderRadius: '10px',
-                                margin: '4px auto 0',
-                                boxShadow: '0 0 12px rgba(211, 51, 255, 0.6)',
-                            }}
-                        />
-                    </div>
+                <div className={`ah-title${missingApartment ? ' ah-title--missing' : ''}`}>
+                    <Typography.Title level={4}>
+                        {apartmentData?.result?.apartmentName ?? 'กรุณาตั้งค่าอพาร์ทเมนต์ของคุณ'}
+                    </Typography.Title>
                 </div>
 
                 {/* Right */}
-                <Space size="large" align="center" style={{zIndex: 2}}>
+                <div className="ah-right">
                     <NotificationPopover onNotificationClick={handleNotificationClick} placement="bottomRight">
-                        <div
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '44px',
-                                height: '44px',
-                                borderRadius: '14px',
-                                cursor: 'pointer',
-                                background: '#fff',
-                                boxShadow: '0 4px 10px rgba(145, 85, 253, 0.15)',
-                                transition: 'all 0.3s ease',
-                                border: '1px solid rgba(145, 85, 253, 0.1)',
-                            }}
-                            className="header-action-btn"
-                        >
-                            <Badge
-                                count={unreadCount}
-                                size="small"
-                                style={{
-                                    backgroundColor: '#FF4D4F',
-                                    boxShadow: '0 0 10px rgba(255,77,79,0.5)',
-                                }}
+                        <Tooltip title="การแจ้งเตือน">
+                            <button
+                                type="button"
+                                className="ah-btn ah-btn--plain"
+                                aria-label="การแจ้งเตือน"
                             >
-                                <BellOutlined style={{fontSize: '24px', color: '#9155FD'}}/>
-                            </Badge>
-                        </div>
+                                <Badge
+                                    count={unreadCount}
+                                    size="small"
+                                    style={{backgroundColor: C.danger}}
+                                >
+                                    <BellOutlined style={{fontSize: 20, color: 'inherit'}}/>
+                                </Badge>
+                            </button>
+                        </Tooltip>
                     </NotificationPopover>
 
-                    <div
+                    <button
+                        type="button"
+                        className="ah-btn ah-btn--avatar"
                         onClick={handleUserClick}
-                        style={{
-                            cursor: 'pointer',
-                            padding: '4px',
-                            borderRadius: '50%',
-                            background: 'linear-gradient(135deg, #6226ef 0%, #9155FD 50%, #ff00e4 100%)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            boxShadow: '0 6px 15px rgba(145, 85, 253, 0.4)',
-                            transition: 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.1)')}
-                        onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                        aria-label="โปรไฟล์ผู้ใช้"
                     >
                         <Avatar
-                            size={38}
-                            style={{
-                                background: '#fff',
-                                color: '#9155FD',
-                                border: '2px solid #fff',
-                                fontWeight: 'bold',
-                            }}
+                            size={34}
+                            style={{background: C.primary, color: '#fff'}}
                             icon={<UserOutlined/>}
                         />
-                    </div>
-                </Space>
-
-                <style>{`
-          .header-action-btn:hover {
-            transform: translateY(-3px) rotate(5deg);
-            background: #9155FD !important;
-            box-shadow: 0 8px 20px rgba(145, 85, 253, 0.3) !important;
-          }
-          .header-action-btn:hover .anticon {
-            color: #fff !important;
-          }
-
-          .apartment-modal .ant-modal-content{
-            padding: 0 !important;
-            border-radius: 18px !important;
-            overflow: hidden;
-            border: 1px solid rgba(145,85,253,0.18);
-            background: linear-gradient(135deg, rgba(255,255,255,0.86) 0%, rgba(249,248,255,0.86) 100%);
-            box-shadow: 0 24px 80px rgba(20, 10, 40, 0.25);
-            backdrop-filter: blur(14px);
-          }
-          .apartment-modal__wrap{
-            padding: 18px 18px 16px;
-          }
-          .apartment-modal__top{
-            display: flex;
-            align-items: center;
-            gap: 12px;
-          }
-          .apartment-modal__icon{
-            width: 44px;
-            height: 44px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #9155FD 0%, #D333FF 100%);
-            box-shadow: 0 10px 24px rgba(145,85,253,0.35);
-          }
-          .apartment-modal__divider{
-            height: 1px;
-            margin: 14px 0 12px;
-            background: linear-gradient(90deg, rgba(145,85,253,0.0) 0%, rgba(145,85,253,0.35) 50%, rgba(145,85,253,0.0) 100%);
-          }
-          .apartment-modal__hint{
-            padding: 12px 12px;
-            border-radius: 14px;
-            background: rgba(145,85,253,0.07);
-            border: 1px solid rgba(145,85,253,0.12);
-          }
-          .apartment-modal__btn{
-            height: 44px;
-            border-radius: 14px !important;
-            font-weight: 800;
-            border: none !important;
-            background: linear-gradient(135deg, #9155FD 0%, #D333FF 100%) !important;
-            box-shadow: 0 10px 22px rgba(145,85,253,0.28);
-          }
-          .apartment-modal__btn:hover{
-            transform: translateY(-1px);
-            box-shadow: 0 14px 28px rgba(145,85,253,0.34);
-          }
-        `}</style>
+                    </button>
+                </div>
             </Header>
-        </>
+        </ConfigProvider>
     );
 }
 

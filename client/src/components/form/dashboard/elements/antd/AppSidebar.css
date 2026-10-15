@@ -1,34 +1,35 @@
-/* Modern Sidebar Menu Styles */
+/* ========================================
+   Sidebar — Modern Dark Theme
+   Primary accent: #9155FD → #D333FF (purple)
+   Background:     #1A1B24 → #242635 (dark gradient)
+   ======================================== */
 
-/* Main Sider Container */
+/* ---- CSS Variables ---- */
+:root {
+  --sidebar-bg: #0F172A;
+  --sidebar-text: rgba(255, 255, 255, 0.85);
+  --sidebar-text-secondary: rgba(255, 255, 255, 0.55);
+  --sidebar-accent: #9155FD;
+  --sidebar-accent-end: #D333FF;
+  --sidebar-accent-gradient: linear-gradient(135deg, var(--sidebar-accent) 0%, var(--sidebar-accent-end) 100%);
+  --sidebar-item-hover: rgba(145, 85, 253, 0.08);
+  --sidebar-border: rgba(145, 85, 253, 0.08);
+  --sidebar-card-bg: rgba(255, 255, 255, 0.04);
+  --sidebar-card-border: rgba(255, 255, 255, 0.06);
+}
+
+/* ========================================
+   Desktop Sidebar (Sider)
+   ======================================== */
+
 .ant-layout-sider {
-  background: #19478c !important;
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2) !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
-  position: relative !important;
-  overflow: hidden !important;
-  z-index: 1 !important;
+  background: var(--sidebar-bg) !important;
+  border-right: 1px solid var(--sidebar-border) !important;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.25) !important;
   width: 100% !important;
   max-width: 100% !important;
-}
-
-/* Force override for any conflicting styles */
-.ant-layout-sider.ant-layout-sider-dark {
-  background: #19478c !important;
-}
-
-.ant-layout-sider.ant-layout-sider-collapsed {
-  background: #19478c !important;
-}
-
-/* Additional specificity override */
-.ant-layout .ant-layout-sider {
-  background: #19478c !important;
-}
-
-/* Override any theme styles */
-.ant-layout-sider[class*="ant-layout-sider"] {
-  background: #19478c !important;
+  overflow: hidden !important;
+  z-index: 100 !important;
 }
 
 .ant-layout-sider::before {
@@ -38,187 +39,203 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+  background:
+    radial-gradient(circle at 20% 30%, rgba(145, 85, 253, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(211, 51, 255, 0.03) 0%, transparent 50%);
   pointer-events: none;
+  z-index: 0;
 }
 
-/* Profile Section */
-.ant-layout-sider .ant-layout-sider-children > div:first-child {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
-  border-radius: 16px;
-  margin: 20px;
-  padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
+/* ========================================
+   Brand Section
+   ======================================== */
+
+.sidebar-brand {
+  position: relative;
+  z-index: 2;
+  padding: 28px 20px 20px;
+  display: flex;
+  align-items: center;
 }
 
-.ant-layout-sider .ant-layout-sider-children > div:first-child:hover {
-  background: rgba(255, 255, 255, 0.08);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+.sidebar-brand-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: var(--sidebar-accent-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(145, 85, 253, 0.35);
+  flex-shrink: 0;
 }
 
-/* Profile Avatar */
-.ant-avatar {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
+.sidebar-brand-text {
+  font-size: 20px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.5px;
+  margin-left: 12px;
 }
 
-.ant-avatar:hover {
-  transform: scale(1.05);
-  box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+/* ========================================
+   Profile Card
+   ======================================== */
+
+.sidebar-profile-card {
+  position: relative;
+  z-index: 2;
+  padding: 0 20px 20px;
 }
 
-/* Profile Text */
-.ant-typography {
-  /* color: rgba(255, 255, 255, 1) !important; */
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  white-space: nowrap !important;
-  text-overflow: ellipsis !important;
-  overflow: hidden !important;
-  max-width: 100% !important;
+.sidebar-profile-inner {
+  position: relative;
+  z-index: 1;
 }
 
-/* Menu Container */
+.sidebar-profile-avatar {
+  background: var(--sidebar-accent-gradient) !important;
+  border: 2px solid var(--sidebar-card-border) !important;
+  box-shadow: 0 6px 16px rgba(145, 85, 253, 0.3) !important;
+  transition: all 0.3s ease !important;
+  flex-shrink: 0;
+}
+
+.sidebar-profile-avatar:hover {
+  transform: scale(1.05) !important;
+  box-shadow: 0 10px 22px rgba(145, 85, 253, 0.4) !important;
+}
+
+/* ========================================
+   Menu Container
+   ======================================== */
+
 .ant-menu {
   background: transparent !important;
   border: none !important;
-  padding: 0 8px 20px 8px;
-  overflow: hidden !important;
+  padding: 0 12px 20px;
+  overflow: visible !important;
   width: 100% !important;
 }
 
-/* Menu Items */
-.ant-menu-item {
-  background: rgba(255, 255, 255, 0.03) !important;
-  border-radius: 12px !important;
-  margin: 6px 0 !important;
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  color: rgba(255, 255, 255, 0.85) !important;
+/* Group Titles */
+.ant-menu-item-group-title {
+  color: rgba(145, 85, 253, 0.55) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 20px 16px 8px !important;
+  line-height: 1;
+}
+
+.ant-menu-item-group-title::after {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(145, 85, 253, 0.3), transparent);
+  margin-top: 8px;
+}
+
+/* ========================================
+   Menu Items (top-level)
+   ======================================== */
+
+.ant-menu-item,
+.ant-menu-submenu-title {
+  margin: 4px 8px !important;
+  width: calc(100% - 16px) !important;
+  border-radius: 10px !important;
+  height: 42px !important;
+  line-height: 42px !important;
+  color: var(--sidebar-text) !important;
   font-weight: 500 !important;
+  font-size: 13px !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
   position: relative !important;
   overflow: hidden !important;
-  height: 48px !important;
-  line-height: 48px !important;
   white-space: nowrap !important;
   text-overflow: ellipsis !important;
-  padding: 0 8px !important;
-  max-width: 100% !important;
-  width: 100% !important;
+  padding: 0 12px !important;
+  border: 1px solid transparent !important;
 }
 
-/* Menu Item Text */
-.ant-menu-item .ant-menu-title-content {
+.ant-menu-item .ant-menu-title-content,
+.ant-menu-submenu-title .ant-menu-title-content {
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
-  max-width: 100% !important;
-  display: block !important;
+  width: 100% !important;
 }
 
-/* Menu Item Icon */
-.ant-menu-item .anticon {
-  margin-right: 6px !important;
+/* Icons */
+.ant-menu-item .anticon,
+.ant-menu-submenu-title .anticon {
+  color: var(--sidebar-text-secondary) !important;
+  font-size: 16px !important;
+  margin-right: 10px !important;
+  transition: all 0.3s ease !important;
   flex-shrink: 0 !important;
 }
 
-/* Logout Button Styling */
-.logout-button {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%) !important;
-  border: none !important;
-  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3) !important;
-  transition: all 0.3s ease !important;
+/* Hover */
+.ant-menu-item:hover,
+.ant-menu-submenu-title:hover {
+  background: var(--sidebar-item-hover) !important;
+  border-color: var(--sidebar-border) !important;
+  color: var(--sidebar-accent) !important;
+  transform: translateX(4px) !important;
 }
 
-.logout-button:hover {
-  background: linear-gradient(135deg, #ff5252 0%, #e53935 100%) !important;
-  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4) !important;
-  transform: translateY(-2px) !important;
+.ant-menu-item:hover .anticon,
+.ant-menu-submenu-title:hover .anticon {
+  color: var(--sidebar-accent) !important;
+  transform: scale(1.1) !important;
 }
 
-.logout-button:active {
-  transform: translateY(0px) !important;
-}
+/* ==== Selected / Active ==== */
 
-.logout-button .anticon {
-  font-size: 16px !important;
-}
-
-.ant-menu-item:not(.ant-menu-item-selected)::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  transition: left 0.6s ease;
-}
-
-.ant-menu-item:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
-  color: white !important;
-  transform: translateX(8px) !important;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
-}
-
-.ant-menu-item:hover::before {
-  left: 100%;
-}
-
-/* สีเมนูที่เลือก*/
 .ant-menu-item-selected {
-  background: rgba(255, 255, 255, 0.14) !important; /* เทาโปร่งแสง */
-  border-color: rgba(255, 255, 255, 0.25) !important;
-  color: rgba(255, 255, 255, 0.95) !important;
-  backdrop-filter: blur(6px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15) !important;
+  background: rgba(145, 85, 253, 0.12) !important;
+  border: 1px solid rgba(145, 85, 253, 0.3) !important;
+  color: #fff !important;
+  box-shadow: 0 0 0 2px rgba(145, 85, 253, 0.15) !important;
 }
 
 .ant-menu-item-selected::before {
   content: '';
   position: absolute;
-  left: 50%;
+  left: 0;
   top: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateY(-50%);
   width: 4px;
-  height: 24px;
-  background: linear-gradient(180deg, #667eea, #764ba2);
-  border-radius: 2px;
-  box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
-  z-index: 10;
+  height: 22px;
+  border-radius: 0 4px 4px 0;
+  background: var(--sidebar-accent-gradient);
+  box-shadow: 0 0 10px rgba(145, 85, 253, 0.5);
+  z-index: 1;
 }
 
-/* Menu Icons */
-.ant-menu-item .anticon {
-  color: rgba(255, 255, 255, 0.7) !important;
-  font-size: 18px !important;
-  transition: all 0.3s ease !important;
-  margin-right: 12px !important;
+.ant-menu-item-selected .anticon,
+.ant-menu-submenu-selected .ant-menu-submenu-title .anticon {
+  color: var(--sidebar-accent) !important;
 }
 
-.ant-menu-item:hover .anticon {
-  color: white !important;
-  transform: scale(1.1) !important;
+/* Left-active indicator for selected item with submenu children */
+.ant-menu-submenu .ant-menu-item-selected::before,
+.ant-menu-submenu .ant-menu-item-selected::before {
+  left: 0;
 }
 
-/* สีเมนูที่เลือก*/
-.ant-menu-item-selected .anticon {
-  color: #808080 !important;
-}
+/* ========================================
+   SubMenu — Tree Structure
+   ======================================== */
 
-/* SubMenu Styles - Tree Structure */
 .ant-menu-submenu {
   background: transparent !important;
   border: none !important;
-  margin: 6px 0 !important;
+  margin: 4px 8px !important;
   transition: all 0.3s ease !important;
   position: relative !important;
 }
@@ -226,521 +243,369 @@
 .ant-menu-submenu::before {
   content: '';
   position: absolute;
-  left: 20px;
-  top: 24px;
-  bottom: 24px;
+  left: 36px;
+  top: 60px;
+  bottom: -12px;
   width: 1px;
-  background: linear-gradient(180deg, rgba(102, 126, 234, 0.3) 0%, rgba(102, 126, 234, 0.1) 100%);
+  background: linear-gradient(180deg, rgba(145, 85, 253, 0.25) 0%, transparent 100%);
   z-index: 1;
 }
 
-.ant-menu-submenu:hover {
-  background: transparent !important;
-}
-
 .ant-menu-submenu-title {
-  color: rgba(255, 255, 255, 0.85) !important;
+  color: var(--sidebar-text) !important;
   font-weight: 500 !important;
-  transition: all 0.3s ease !important;
-  height: 48px !important;
-  line-height: 48px !important;
-  border-radius: 12px !important;
+  height: 42px !important;
+  line-height: 42px !important;
+  border-radius: 10px !important;
   background: transparent !important;
+  padding: 0 12px !important;
   position: relative !important;
   white-space: nowrap !important;
   text-overflow: ellipsis !important;
   overflow: hidden !important;
-  padding: 0 16px !important;
+  border: 1px solid transparent !important;
 }
 
-.ant-menu-submenu-title:hover {
-  color: white !important;
-  background: rgba(255, 255, 255, 0.05) !important;
+.ant-menu-submenu-title::after {
+  content: '';
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: var(--sidebar-text-secondary);
+  transition: transform 0.2s ease;
+}
+
+.ant-menu-submenu-title[data-open='true']::after,
+.ant-menu-submenu-open > .ant-menu-submenu-title::after {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.ant-menu-submenu:hover .ant-menu-submenu-title {
+  background: transparent !important;
 }
 
 .ant-menu-submenu-selected .ant-menu-submenu-title {
-  color: white !important;
-  background: rgba(102, 126, 234, 0.1) !important;
+  color: var(--sidebar-accent) !important;
 }
 
-/* SubMenu Items - Tree Structure with Lines */
+/* Submenu child items */
 .ant-menu-submenu .ant-menu-item {
-  background: transparent !important;
   margin: 2px 0 !important;
-  padding-left: 48px !important;
+  padding-left: 44px !important;
   padding-right: 16px !important;
   border-radius: 8px !important;
-  height: 40px !important;
-  line-height: 40px !important;
+  height: 38px !important;
+  line-height: 38px !important;
   position: relative !important;
   border: none !important;
   white-space: nowrap !important;
   text-overflow: ellipsis !important;
   overflow: hidden !important;
+  background: transparent !important;
 }
 
-.ant-menu-submenu .ant-menu-item::before {
-  content: '';
-  position: absolute;
-  left: 20px;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: linear-gradient(180deg, rgba(102, 126, 234, 0.4) 0%, rgba(102, 126, 234, 0.2) 100%);
-  z-index: 1;
-}
-
-.ant-menu-submenu .ant-menu-item::after {
-  content: '';
-  position: absolute;
-  left: 20px;
-  top: 20px;
-  width: 16px;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(102, 126, 234, 0.4) 0%, rgba(102, 126, 234, 0.2) 100%);
-  z-index: 2;
-}
-
+/* Submenu child — hover */
 .ant-menu-submenu .ant-menu-item:hover {
-  background: rgba(255, 255, 255, 0.06) !important;
-  transform: translateX(8px) !important;
+  background: var(--sidebar-item-hover) !important;
+  transform: translateX(4px) !important;
 }
 
-/* สีเมนูที่เลือก*/
+/* Submenu child — selected indicator */
 .ant-menu-submenu .ant-menu-item-selected {
-  background: rgba(255, 255, 255, 0.12) !important; /* เบาลงใน submenu */
-  color: rgba(255, 255, 255, 0.95) !important;
+  background: rgba(145, 85, 253, 0.1) !important;
+  color: #fff !important;
 }
 
 .ant-menu-submenu .ant-menu-item-selected::before {
-  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  content: '';
+  position: absolute;
+  left: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--sidebar-accent-gradient);
+  box-shadow: 0 0 10px rgba(145, 85, 253, 0.5);
+  z-index: 1;
 }
 
-.ant-menu-submenu .ant-menu-item-selected::after {
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-}
-
-/* SubMenu Icons */
 .ant-menu-submenu .ant-menu-item .anticon {
-  font-size: 16px !important;
+  font-size: 14px !important;
   margin-right: 8px !important;
 }
 
-/* Collapsed State */
-.ant-layout-sider-collapsed .ant-layout-sider-children > div:first-child {
-  margin: 20px 12px;
-  padding: 16px;
+/* ========================================
+   Collapsed State
+   ======================================== */
+
+.ant-layout-sider-collapsed .sidebar-brand-text,
+.ant-layout-sider-collapsed .sidebar-profile-inner > div:nth-child(2),
+.ant-layout-sider-collapsed .sidebar-profile-inner > div[style*="overflow"] {
+  display: none !important;
+}
+
+.ant-layout-sider-collapsed .sidebar-profile-inner {
+  justify-content: center !important;
+  padding: 0 !important;
 }
 
 .ant-layout-sider-collapsed .ant-menu {
-  padding: 0 12px 20px 12px;
+  padding: 0 8px 20px 8px;
 }
 
-.ant-layout-sider-collapsed .ant-menu-item {
-  margin: 4px 0 !important;
-  padding: 0 8px !important;
-}
-
+.ant-layout-sider-collapsed .ant-menu-item,
 .ant-layout-sider-collapsed .ant-menu-submenu-title {
+  margin: 6px 0 !important;
   padding: 0 8px !important;
+  justify-content: center !important;
+}
+
+.ant-layout-sider-collapsed .ant-menu-item .anticon,
+.ant-layout-sider-collapsed .ant-menu-submenu-title .anticon {
+  margin-right: 0 !important;
 }
 
 .ant-layout-sider-collapsed .ant-menu-submenu .ant-menu-item {
-  padding-left: 24px !important;
+  padding-left: 20px !important;
   padding-right: 8px !important;
 }
 
-/* Scrollbar Styling */
-.ant-layout-sider::-webkit-scrollbar {
+/* ========================================
+   Scrollbar
+   ======================================== */
+
+.menu-scroll::-webkit-scrollbar {
   width: 6px;
 }
 
-.ant-layout-sider::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
+.menu-scroll::-webkit-scrollbar-track {
+  background: transparent;
   border-radius: 3px;
 }
 
-.ant-layout-sider::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
+.menu-scroll::-webkit-scrollbar-thumb {
+  background: rgba(145, 85, 253, 0.15);
+  border-radius: 10px;
   transition: all 0.3s ease;
 }
 
-.ant-layout-sider::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.4);
+.menu-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(145, 85, 253, 0.3);
 }
 
-/* Animation for menu items */
-@keyframes slideInFromLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+/* ========================================
+   Footer — Logout Button
+   ======================================== */
+
+.sidebar-footer {
+  padding: 20px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }
 
-.ant-menu-item {
-  animation: slideInFromLeft 0.4s ease forwards;
+.sidebar-logout-btn {
+  border-radius: 12px !important;
+  background: rgba(255, 77, 79, 0.06) !important;
+  transition: all 0.3s ease !important;
+  color: #ff4d4f !important;
+  font-weight: 600 !important;
+  border: 1px solid rgba(255, 77, 79, 0.15) !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.ant-menu-item:nth-child(1) { animation-delay: 0.1s; }
-.ant-menu-item:nth-child(2) { animation-delay: 0.2s; }
-.ant-menu-item:nth-child(3) { animation-delay: 0.3s; }
-.ant-menu-item:nth-child(4) { animation-delay: 0.4s; }
-.ant-menu-item:nth-child(5) { animation-delay: 0.5s; }
-.ant-menu-item:nth-child(6) { animation-delay: 0.6s; }
-
-/* Hover glow effect */
-.ant-menu-item:hover {
-  box-shadow: 0 0 20px rgba(102, 126, 234, 0.3) !important;
+.sidebar-logout-btn:hover {
+  background: rgba(255, 77, 79, 0.12) !important;
+  border-color: rgba(255, 77, 79, 0.25) !important;
+  box-shadow: 0 6px 16px rgba(255, 77, 79, 0.15) !important;
 }
 
-.ant-menu-item-selected {
-  box-shadow: 0 0 25px rgba(102, 126, 234, 0.4) !important;
+.sidebar-logout-btn .anticon {
+  color: #ff4d4f !important;
+  font-size: 16px !important;
 }
 
-/* Modern Mobile Layout Styles */
-@media (max-width: 768px) {
-  /* Hide desktop sidebar on mobile */
-  .ant-layout-sider {
-    display: none !important;
-  }
-  
-  /* Modern Mobile Header */
-  .mobile-header {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    z-index: 100 !important;
-    height: 70px !important;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%) !important;
-    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3) !important;
-    display: flex !important;
-    align-items: center !important;
-    padding: 0 20px !important;
-    backdrop-filter: blur(20px) !important;
-    border-bottom: 1px solid rgba(255,255,255,0.2) !important;
-  }
-  
-  /* Animated Avatar Border */
-  @keyframes rotate {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  
-  /* Mobile Profile Avatar */
-  .mobile-avatar {
-    position: relative !important;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    border: 3px solid rgba(255,255,255,0.9) !important;
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4) !important;
-    width: 48px !important;
-    height: 48px !important;
-  }
-  
-  .mobile-avatar::before {
-    content: '' !important;
-    position: absolute !important;
-    top: -2px !important;
-    left: -2px !important;
-    right: -2px !important;
-    bottom: -2px !important;
-    background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4) !important;
-    border-radius: 50% !important;
-    z-index: -1 !important;
-    animation: rotate 3s linear infinite !important;
-  }
-  
-  /* Mobile Action Buttons */
-  .mobile-button {
-    color: white !important;
-    background: rgba(255,255,255,0.1) !important;
-    border: 1px solid rgba(255,255,255,0.3) !important;
-    border-radius: 12px !important;
-    height: 44px !important;
-    width: 44px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    backdrop-filter: blur(10px) !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
-    transition: all 0.3s ease !important;
-  }
-  
-  .mobile-button:hover {
-    background: rgba(255,255,255,0.2) !important;
-    border-color: rgba(255,255,255,0.5) !important;
-    transform: scale(1.05) !important;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15) !important;
-  }
-  
-  .mobile-button.active {
-    background: rgba(255,255,255,0.2) !important;
-    border-color: rgba(255,255,255,0.4) !important;
-  }
-  
-  /* Logout Button Special Styling */
-  .mobile-logout-button {
-    background: rgba(255,107,107,0.2) !important;
-    border: 1px solid rgba(255,107,107,0.4) !important;
-    box-shadow: 0 4px 15px rgba(255,107,107,0.2) !important;
-  }
-  
-  .mobile-logout-button:hover {
-    background: rgba(255,107,107,0.3) !important;
-    border-color: rgba(255,107,107,0.6) !important;
-    box-shadow: 0 6px 20px rgba(255,107,107,0.3) !important;
-  }
-  
-  /* Mobile profile section */
-  .mobile-profile {
-    display: flex !important;
-    align-items: center !important;
-    gap: 12px !important;
-    flex: 1 !important;
-    min-width: 0 !important;
-  }
-  
-  /* Mobile avatar */
-  .mobile-avatar {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    border: 2px solid rgba(255,255,255,0.3) !important;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3) !important;
-  }
-  
-  /* Mobile text */
-  .mobile-text {
-    color: white !important;
-    font-size: 12px !important;
-    font-weight: 500 !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-  }
-  
-  .mobile-subtext {
-    color: rgba(255,255,255,0.8) !important;
-    font-size: 10px !important;
-    display: block !important;
-  }
-  
-  /* Mobile buttons */
-  .mobile-button {
-    color: white !important;
-    border: 1px solid rgba(255,255,255,0.3) !important;
-    border-radius: 8px !important;
-    height: 36px !important;
-    width: 36px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    transition: all 0.3s ease !important;
-  }
-  
-  .mobile-button:hover {
-    background: rgba(255,255,255,0.1) !important;
-    border-color: rgba(255,255,255,0.5) !important;
-    transform: scale(1.05) !important;
-  }
-  
-  /* Mobile content spacing */
-  .mobile-content {
-    margin-top: 70px !important;
-    min-height: calc(100vh - 70px) !important;
-  }
-  
-  /* Modern Mobile Menu Dropdown */
-  .mobile-menu-dropdown {
-    position: fixed !important;
-    top: 70px !important;
-    left: 0 !important;
-    right: 0 !important;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 50%, rgba(240, 147, 251, 0.95) 100%) !important;
-    backdrop-filter: blur(20px) !important;
-    box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3) !important;
-    z-index: 99 !important;
-    max-height: calc(100vh - 70px) !important;
-    overflow: auto !important;
-    border-top: 1px solid rgba(255,255,255,0.2) !important;
-    animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  }
-  
-  /* Modern Mobile Menu Items */
-  .mobile-menu-dropdown .ant-menu {
-    background: transparent !important;
-    border: none !important;
-    padding: 24px 20px !important;
-    position: relative !important;
-    z-index: 2 !important;
-  }
-  
-  .mobile-menu-dropdown .ant-menu-item {
-    background: rgba(255, 255, 255, 0.08) !important;
-    border-radius: 16px !important;
-    margin: 8px 0 !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    color: white !important;
-    height: 56px !important;
-    line-height: 56px !important;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    backdrop-filter: blur(10px) !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
-    position: relative !important;
-    overflow: hidden !important;
-  }
-  
-  .mobile-menu-dropdown .ant-menu-item::before {
-    content: '' !important;
-    position: absolute !important;
-    top: 0 !important;
-    left: -100% !important;
-    width: 100% !important;
-    height: 100% !important;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent) !important;
-    transition: left 0.6s ease !important;
-  }
-  
-  .mobile-menu-dropdown .ant-menu-item:hover {
-    background: rgba(255, 255, 255, 0.15) !important;
-    border-color: rgba(255, 255, 255, 0.3) !important;
-    transform: translateX(12px) scale(1.02) !important;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
-  }
-  
-  .mobile-menu-dropdown .ant-menu-item:hover::before {
-    left: 100% !important;
-  }
-  
-  .mobile-menu-dropdown .ant-menu-item-selected {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%) !important;
-    border-color: rgba(255, 255, 255, 0.4) !important;
-    color: white !important;
-    box-shadow: 0 8px 30px rgba(255, 255, 255, 0.2) !important;
-    transform: translateX(8px) !important;
-  }
-  
-  .mobile-menu-dropdown .ant-menu-item .anticon {
-    color: rgba(255, 255, 255, 0.9) !important;
-    font-size: 18px !important;
-    margin-right: 16px !important;
-    transition: all 0.3s ease !important;
-  }
-  
-  .mobile-menu-dropdown .ant-menu-item:hover .anticon {
-    color: white !important;
-    transform: scale(1.1) !important;
-  }
-  
-  .mobile-menu-dropdown .ant-menu-item-selected .anticon {
-    color: white !important;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
-  }
-  
-  /* Mobile submenu */
-  .mobile-menu-dropdown .ant-menu-submenu {
-    background: transparent !important;
-    border: none !important;
-    margin: 4px 0 !important;
-  }
-  
-  .mobile-menu-dropdown .ant-menu-submenu-title {
-    color: white !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-    border-radius: 8px !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    height: 48px !important;
-    line-height: 48px !important;
-    margin: 4px 0 !important;
-    transition: all 0.3s ease !important;
-  }
-  
-  .mobile-menu-dropdown .ant-menu-submenu-title:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border-color: rgba(255, 255, 255, 0.2) !important;
-  }
-  
-  .mobile-menu-dropdown .ant-menu-submenu .ant-menu-item {
-    background: transparent !important;
-    margin: 2px 0 !important;
-    padding-left: 32px !important;
-    border: none !important;
-    height: 40px !important;
-    line-height: 40px !important;
-  }
-  
-  .mobile-menu-dropdown .ant-menu-submenu .ant-menu-item:hover {
-    background: rgba(255, 255, 255, 0.05) !important;
-    transform: translateX(8px) !important;
-  }
-  
-  /* Animation for mobile menu */
-  @keyframes slideDown {
-    from {
-      opacity: 0;
-      transform: translateY(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-}
+/* ========================================
+   Accessibility
+   ======================================== */
 
-/* Desktop responsive adjustments */
-@media (min-width: 769px) {
-  .mobile-sidebar {
-    display: none !important;
-  }
-}
-
-/* Dark mode enhancements */
-@media (prefers-color-scheme: dark) {
-  .ant-layout-sider {
-    background: linear-gradient(180deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%) !important;
-  }
-}
-
-/* Focus states for accessibility */
-.ant-menu-item:focus {
-  outline: 2px solid rgba(102, 126, 234, 0.5);
+.ant-menu-item:focus,
+.ant-menu-submenu-title:focus {
+  outline: 2px solid rgba(145, 85, 253, 0.5);
   outline-offset: 2px;
 }
 
-/* Loading state animation */
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+/* ========================================
+   Mobile — Header (sticky top bar)
+   ======================================== */
+
+.mobile-sidebar-header {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 1000 !important;
+  box-sizing: border-box !important;
 }
 
-.ant-menu-item-loading {
-  animation: pulse 1.5s ease-in-out infinite;
+.mobile-header-btn {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(8px) !important;
+  transition: all 0.3s ease !important;
 }
 
-/* Modern gradient text effect สีเมนูที่เลือก*/
-.ant-menu-item-selected {
-  background: linear-gradient(135deg, rgba(147, 135, 141, 0.8) 0%, rgba(118, 75, 162, 0.2) 100%) !important;
+.mobile-header-btn:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  transform: scale(1.05) !important;
 }
 
-/* Enhanced shadow effects */
-.ant-layout-sider {
-  box-shadow: 
-    4px 0 20px rgba(0, 0, 0, 0.15),
-    0 0 0 1px rgba(255, 255, 255, 0.05);
+.mobile-logout-btn:hover {
+  background: rgba(255, 77, 79, 0.15) !important;
+  transform: scale(1.05) !important;
 }
 
-/* Smooth transitions for all interactive elements */
-/* แนะนำ: ระบุ property เฉพาะที่ต้องการ transition */
-.ant-menu-item,
-.ant-menu-submenu-title,
-.ant-avatar,
-.mobile-button {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* ========================================
+   Mobile — Drawer
+   ======================================== */
+
+.mobile-sidebar-drawer {
+  position: fixed !important;
+  top: 0 !important;
+  height: auto !important;
+}
+
+.mobile-sidebar-drawer .ant-drawer-content-wrapper {
+  height: calc(100vh - 64px) !important;
+  margin-top: 64px !important;
+  border-top: 1px solid var(--sidebar-border);
+}
+
+.mobile-sidebar-drawer .ant-drawer-content {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 !important;
+}
+
+.mobile-sidebar-drawer .ant-drawer-body {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 !important;
+}
+
+/* Mobile Menu — reuse desktop dark theme */
+.mobile-sidebar-drawer .ant-menu {
+  padding: 0 8px 20px;
+}
+
+.mobile-sidebar-drawer .ant-menu-item,
+.mobile-sidebar-drawer .ant-menu-submenu-title {
+  color: var(--sidebar-text) !important;
+  height: 46px !important;
+  line-height: 46px !important;
+  border-radius: 10px !important;
+  margin: 4px 8px !important;
+}
+
+.mobile-sidebar-drawer .ant-menu-item .anticon,
+.mobile-sidebar-drawer .ant-menu-submenu-title .anticon {
+  font-size: 16px !important;
+  margin-right: 10px !important;
+}
+
+.mobile-sidebar-drawer .ant-menu-item-selected {
+  background: rgba(145, 85, 253, 0.12) !important;
+  border-color: rgba(145, 85, 253, 0.3) !important;
+  color: #fff !important;
+}
+
+.mobile-sidebar-drawer .ant-menu-item-selected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 22px;
+  border-radius: 0 4px 4px 0;
+  background: var(--sidebar-accent-gradient);
+  box-shadow: 0 0 10px rgba(145, 85, 253, 0.5);
+  z-index: 1;
+}
+
+.mobile-sidebar-drawer .ant-menu-item-group-title {
+  color: rgba(145, 85, 253, 0.55) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 16px 16px 8px !important;
+}
+
+.mobile-sidebar-drawer .ant-menu-submenu .ant-menu-item {
+  padding-left: 44px !important;
+  height: 40px !important;
+  line-height: 40px !important;
+}
+
+.mobile-sidebar-drawer .ant-menu-submenu .ant-menu-item-selected {
+  background: rgba(145, 85, 253, 0.1) !important;
+  color: #fff !important;
+}
+
+.mobile-sidebar-drawer .ant-menu-submenu .ant-menu-item-selected::before {
+  left: 22px !important;
+  width: 6px !important;
+  height: 18px !important;
+}
+
+/* Mobile Scrollbar */
+.mobile-sidebar-drawer .menu-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.mobile-sidebar-drawer .menu-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mobile-sidebar-drawer .menu-scroll::-webkit-scrollbar-thumb {
+  background: rgba(145, 85, 253, 0.15);
+  border-radius: 10px;
+}
+
+.mobile-sidebar-drawer .mobile-logout-btn {
+  margin-top: 12px;
+}
+
+/* ========================================
+   Animations
+   ======================================== */
+
+@keyframes slideInFromLeft {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes itemFadeIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes rotateRing {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 rgba(145, 85, 253, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(145, 85, 253, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(145, 85, 253, 0); }
 }

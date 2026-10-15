@@ -1,660 +1,348 @@
-// import { LogoutOutlined, MenuOutlined, UserOutlined } from '@ant-design/icons';
-// import { Box, Toolbar } from '@mui/material';
-// import { Avatar, Button, Layout, Menu, Space, Typography } from 'antd';
-// import React from 'react';
-// import { useNavigate } from 'react-router-dom'; // ใช้ useNavigate เพื่อทำการนำทาง
-// import { useMobile } from '../../../../../contexts/MobileContext';
-// import './AppSidebar.css';
-// const { Sider } = Layout;
-// const { Title, Text } = Typography;
-// const { SubMenu } = Menu;
-// const AppSidebar = ({ collapsed, handleMenuClick, menuItems, onOpenChange, openKeys }) => {
-//   const { isMobile, mobileMenuOpen, setMobileMenuOpen } = useMobile();
-//
-//   const navigate = useNavigate();  // ใช้ useNavigate
-//
-//   const store = JSON.parse(localStorage.getItem('auth-storage'))
-//
-//   let username = store ? store.state.user.userPayLoad.user.username : ""
-//   let role = store ? store.state.user.userPayLoad.user.role : ""
-//
-//   // Handle logout button click
-//   const handleLogoutClick = () => {
-//     handleMenuClick({ key: 'logout' });
-//   };
-//
-//
-//   if (isMobile) {
-//     return (
-//       <>
-//         {/* Modern Mobile Header */}
-//         <Box sx={{
-//           display: 'flex',
-//           alignItems: 'center',
-//           height: '70px',
-//           padding: '0 20px',
-//           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
-//           boxShadow: '0 8px 32px rgba(102, 126, 234, 0.3)',
-//           position: 'relative',
-//           overflow: 'hidden'
-//         }}>
-//           {/* Background Pattern */}
-//           <Box sx={{
-//             position: 'absolute',
-//             top: 0,
-//             left: 0,
-//             right: 0,
-//             bottom: 0,
-//             background: `
-//               radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
-//               radial-gradient(circle at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 50%),
-//               radial-gradient(circle at 40% 80%, rgba(255,255,255,0.08) 0%, transparent 50%)
-//             `,
-//             pointerEvents: 'none'
-//           }} />
-//
-//           {/* Mobile Profile Section */}
-//           <Box sx={{
-//             display: 'flex',
-//             alignItems: 'center',
-//             gap: '16px',
-//             flex: 1,
-//             zIndex: 2
-//           }}>
-//             <Box sx={{
-//               position: 'relative',
-//               '&::before': {
-//                 content: '""',
-//                 position: 'absolute',
-//                 top: -2,
-//                 left: -2,
-//                 right: -2,
-//                 bottom: -2,
-//                 background: 'linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4)',
-//                 borderRadius: '50%',
-//                 zIndex: -1,
-//                 animation: 'rotate 3s linear infinite'
-//               }
-//             }}>
-//               <Avatar
-//                 size="large"
-//                 icon={<UserOutlined />}
-//                 style={{
-//                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-//                   border: '3px solid rgba(255,255,255,0.9)',
-//                   boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)',
-//                   width: '48px',
-//                   height: '48px'
-//                 }}
-//               />
-//             </Box>
-//
-//             <Box sx={{ color: 'white', minWidth: 0 }}>
-//               <Typography.Text
-//                 style={{
-//                   color: 'white',
-//                   fontSize: '16px',
-//                   fontWeight: 600,
-//                   display: 'block',
-//                   overflow: 'hidden',
-//                   textOverflow: 'ellipsis',
-//                   whiteSpace: 'nowrap',
-//                   textShadow: '0 2px 4px rgba(0,0,0,0.3)'
-//                 }}
-//               >
-//                 {username.split('@')[0]}
-//               </Typography.Text>
-//               <Typography.Text
-//                 style={{
-//                   color: 'rgba(255,255,255,0.9)',
-//                   fontSize: '12px',
-//                   display: 'block',
-//                   fontWeight: 500,
-//                   textShadow: '0 1px 2px rgba(0,0,0,0.3)'
-//                 }}
-//               >
-//                 {role}
-//               </Typography.Text>
-//             </Box>
-//           </Box>
-//
-//           {/* Mobile Action Buttons */}
-//           <Box sx={{ display: 'flex', gap: '12px', zIndex: 2 }}>
-//             {/* Menu Toggle Button */}
-//             <Button
-//               type="text"
-//               icon={<MenuOutlined />}
-//               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-//               style={{
-//                 color: 'white',
-//                 background: mobileMenuOpen ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
-//                 border: '1px solid rgba(255,255,255,0.3)',
-//                 borderRadius: '12px',
-//                 height: '44px',
-//                 width: '44px',
-//                 display: 'flex',
-//                 alignItems: 'center',
-//                 justifyContent: 'center',
-//                 backdropFilter: 'blur(10px)',
-//                 boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-//                 transition: 'all 0.3s ease'
-//               }}
-//             />
-//
-//             {/* Logout Button */}
-//             <Button
-//               type="text"
-//               icon={<LogoutOutlined />}
-//               onClick={handleLogoutClick}
-//               style={{
-//                 color: 'white',
-//                 background: 'rgba(255,107,107,0.2)',
-//                 border: '1px solid rgba(255,107,107,0.4)',
-//                 borderRadius: '12px',
-//                 height: '44px',
-//                 width: '44px',
-//                 display: 'flex',
-//                 alignItems: 'center',
-//                 justifyContent: 'center',
-//                 backdropFilter: 'blur(10px)',
-//                 boxShadow: '0 4px 15px rgba(255,107,107,0.2)',
-//                 transition: 'all 0.3s ease'
-//               }}
-//             />
-//           </Box>
-//         </Box>
-//
-//         {/* Modern Mobile Menu Dropdown */}
-//         {mobileMenuOpen && (
-//           <Box
-//             className="mobile-menu-dropdown"
-//             sx={{
-//               position: 'fixed',
-//               top: '70px',
-//               left: 0,
-//               right: 0,
-//               background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 50%, rgba(240, 147, 251, 0.95) 100%)',
-//               backdropFilter: 'blur(20px)',
-//               boxShadow: '0 20px 40px rgba(102, 126, 234, 0.3)',
-//               zIndex: 999,
-//               maxHeight: 'calc(100vh - 70px)',
-//               overflow: 'auto',
-//               borderTop: '1px solid rgba(255,255,255,0.2)',
-//               animation: 'slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
-//             }}
-//           >
-//             {/* Background Pattern */}
-//             <Box sx={{
-//               position: 'absolute',
-//               top: 0,
-//               left: 0,
-//               right: 0,
-//               bottom: 0,
-//               background: `
-//                 radial-gradient(circle at 30% 20%, rgba(255,255,255,0.1) 0%, transparent 50%),
-//                 radial-gradient(circle at 70% 80%, rgba(255,255,255,0.05) 0%, transparent 50%),
-//                 radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08) 0%, transparent 50%)
-//               `,
-//               pointerEvents: 'none'
-//             }} />
-//
-//             <Menu
-//               theme="dark"
-//               mode="inline"
-//               onClick={handleMenuClick}
-//               items={menuItems}
-//               onOpenChange={onOpenChange}
-//               openKeys={openKeys}
-//               style={{
-//                 background: 'transparent',
-//                 border: 'none',
-//                 padding: '24px 20px',
-//                 position: 'relative',
-//                 zIndex: 2
-//               }}
-//             />
-//           </Box>
-//         )}
-//       </>
-//     );
-//   }
-//
-//   return (
-//     <Sider trigger={null} collapsible collapsed={collapsed}  style={{ display: 'flex', flexDirection: 'column' }}>
-//       <Toolbar
-//         style={{ padding: '3px', height: '80px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-//       >
-//         <Space direction="horizontal" size={16} align="center" className='profile'
-//         >
-//           <Avatar
-//             className='profileAvatar'
-//             shape="square"
-//             size="large"
-//
-//             icon={<UserOutlined />}
-//           />
-//           {!collapsed && (
-//             <Space direction="vertical" size={4} style={{ textAlign: 'left' }}>
-//               <Text style={{ fontSize: '12px' }}>ชื่อ: {username.split('@')[0]}</Text>
-//               <Text style={{ fontSize: '12px' }}>ระดับ: {role}</Text>
-//             </Space>
-//           )}
-//         </Space>
-//       </Toolbar>
-//
-//       <div style={{ flex: 1, overflow: 'auto' }}>
-//         <Menu
-//           theme="dark"
-//           mode="inline"
-//           defaultSelectedKeys={['1']}
-//           onClick={handleMenuClick}
-//           items={menuItems}
-//           onOpenChange={onOpenChange}
-//           openKeys={openKeys}
-//
-//         />
-//       </div>
-//
-//       {/* Logout Button */}
-//       <div style={{ padding: '16px', marginTop: 'auto' }}>
-//         <Button
-//           type="primary"
-//           danger
-//           icon={<LogoutOutlined />}
-//           onClick={handleLogoutClick}
-//           block
-//           className="logout-button"
-//           style={{
-//             height: '48px',
-//             borderRadius: '12px',
-//             fontWeight: 500,
-//             fontSize: '14px',
-//             display: 'flex',
-//             alignItems: 'center',
-//             justifyContent: 'center',
-//             gap: '8px'
-//           }}
-//         >
-//           {!collapsed && 'ออกจากระบบ'}
-//         </Button>
-//       </div>
-//     </Sider>
-//   );
-// };
-//
-// export default AppSidebar;
-
-
 import {LogoutOutlined, MenuOutlined, UserOutlined} from '@ant-design/icons';
-import {Box} from '@mui/material';
-import {Avatar, Button, Layout, Menu, Space, Typography} from 'antd';
-import React from 'react';
-import {useNavigate} from 'react-router-dom';
+import {Avatar, Button, ConfigProvider, Drawer, Layout, Menu, Typography} from 'antd';
+import React, {startTransition, useEffect, useState} from 'react';
 import {useMobile} from '../../../../../contexts/MobileContext';
 
 const {Sider} = Layout;
 const {Text} = Typography;
 
-const AppSidebar = ({collapsed, handleMenuClick, menuItems, onOpenChange, openKeys}) => {
+const SIDEBAR_WIDTH = 260;
+const SIDEBAR_COLLAPSED_WIDTH = 80;
+const MOBILE_HEADER_HEIGHT = 64;
+
+/* ------------------------------------------------------------------ */
+/* Design tokens (ชุดเดียวกับหน้า ListRoom / BillingForm)              */
+/* ------------------------------------------------------------------ */
+const C = {
+    ink: '#0F172A',
+    raised: '#1E2A4A',
+    line: '#1E2A4A',
+    text: '#FFFFFF',
+    muted: '#A5B0C6',
+    primary: '#4F46E5',
+    primaryTint: '#C7D2FE',
+    danger: '#FB7185',
+};
+
+const FONT = "'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif";
+
+// ธีมเมนูเฉพาะใน sidebar — ไม่กระทบเมนูส่วนอื่นของแอป
+const menuTheme = {
+    token: {fontFamily: FONT, colorPrimary: C.primary},
+    components: {
+        Menu: {
+            darkItemBg: 'transparent',
+            darkSubMenuItemBg: 'transparent',
+            darkPopupBg: C.ink,
+            darkItemColor: C.muted,
+            darkItemHoverBg: 'rgba(255,255,255,0.06)',
+            darkItemHoverColor: C.text,
+            darkItemSelectedBg: C.raised,
+            darkItemSelectedColor: C.text,
+            itemBorderRadius: 12,
+            itemHeight: 44,
+            itemMarginInline: 12,
+            itemMarginBlock: 2,
+            iconSize: 18,
+            collapsedIconSize: 20,
+            groupTitleColor: '#7C879D',
+        },
+    },
+};
+
+const css = `
+.as-scroll { scrollbar-width: thin; scrollbar-color: ${C.raised} transparent; }
+.as-scroll::-webkit-scrollbar { width: 6px; }
+.as-scroll::-webkit-scrollbar-thumb { background: ${C.raised}; border-radius: 3px; }
+.as-logout { transition: background .15s ease, border-color .15s ease; }
+.as-logout:hover { background: rgba(251,113,133,0.12) !important; border-color: rgba(251,113,133,0.45) !important; color: ${C.danger} !important; }
+.as-icon-btn { transition: background .15s ease; }
+.as-icon-btn:hover { background: rgba(255,255,255,0.08) !important; color: #fff !important; }
+.as-sider button:focus-visible, .as-mobile-bar button:focus-visible { outline: 2px solid #818CF8; outline-offset: 2px; }
+`;
+
+/* ------------------------------------------------------------------ */
+/* Helpers                                                             */
+/* ------------------------------------------------------------------ */
+const resolveUserData = (user) => {
+    if (user?.userPayLoad?.user) {
+        return {
+            username: user.userPayLoad.user.username,
+            role: user.userPayLoad.user.role,
+        };
+    }
+    try {
+        const store = JSON.parse(localStorage.getItem('auth-storage'));
+        if (store?.state?.user?.userPayLoad?.user) {
+            return {
+                username: store.state.user.userPayLoad.user.username,
+                role: store.state.user.userPayLoad.user.role,
+            };
+        }
+    } catch {
+        return {username: '', role: ''};
+    }
+    return {username: '', role: ''};
+};
+
+/* ------------------------------------------------------------------ */
+/* Small pieces                                                        */
+/* ------------------------------------------------------------------ */
+const BrandMark = ({size = 40}) => (
+    <span
+        aria-hidden="true"
+        style={{
+            flex: '0 0 auto', width: size, height: size, borderRadius: size * 0.3, background: C.primary,
+            color: '#fff', fontSize: size * 0.5, fontWeight: 800, lineHeight: 1,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+    >
+        G
+    </span>
+);
+
+const RolePill = ({role}) =>
+    role ? (
+        <span
+            style={{
+                display: 'inline-block', marginTop: 2, padding: '1px 8px', borderRadius: 999,
+                background: 'rgba(99,102,241,0.2)', color: C.primaryTint, fontSize: 11, fontWeight: 600, lineHeight: '18px',
+            }}
+        >
+            {role}
+        </span>
+    ) : null;
+
+const UserBlock = ({name, role, username, compact}) => (
+    <div style={{display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, justifyContent: compact ? 'center' : 'flex-start'}}>
+        <Avatar
+            size={compact ? 36 : 40}
+            icon={<UserOutlined/>}
+            style={{flex: '0 0 auto', background: C.raised, color: '#A5B4FC'}}
+        />
+        {!compact && (
+            <div style={{minWidth: 0, flex: 1}}>
+                <Text
+                    title={username}
+                    style={{
+                        color: C.text, fontSize: 14, fontWeight: 600, display: 'block', lineHeight: 1.3,
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}
+                >
+                    {name}
+                </Text>
+                <RolePill role={role}/>
+            </div>
+        )}
+    </div>
+);
+
+const LogoutButton = ({onClick, collapsed}) => (
+    <Button
+        type="text"
+        icon={<LogoutOutlined/>}
+        onClick={onClick}
+        block
+        aria-label="ออกจากระบบ"
+        className="as-logout"
+        style={{
+            height: 48, borderRadius: 12, color: C.danger, fontWeight: 600,
+            display: 'flex', alignItems: 'center', gap: 8,
+            justifyContent: collapsed ? 'center' : 'flex-start',
+            paddingInline: collapsed ? 0 : 16,
+            border: '1px solid rgba(251,113,133,0.25)',
+        }}
+    >
+        {!collapsed && <span>ออกจากระบบ</span>}
+    </Button>
+);
+
+/* ------------------------------------------------------------------ */
+/* Main                                                                */
+/* ------------------------------------------------------------------ */
+const AppSidebar = ({collapsed, handleMenuClick, menuItems, onOpenChange, openKeys, user}) => {
     const {isMobile, mobileMenuOpen, setMobileMenuOpen} = useMobile();
-    const navigate = useNavigate();
+    const [userData, setUserData] = useState({username: '', role: ''});
 
-    const store = JSON.parse(localStorage.getItem('auth-storage'))
-    let username = store ? store.state.user.userPayLoad.user.username : ""
-    let role = store ? store.state.user.userPayLoad.user.role : ""
+    useEffect(() => {
+        setUserData(resolveUserData(user));
+    }, [user]);
 
-    const handleLogoutClick = () => {
-        handleMenuClick({key: 'logout'});
-    };
+    const handleLogoutClick = () => handleMenuClick({key: 'logout'});
 
-    const injectStyles = `
-    .ant-layout-sider {
-        background: #FFFFFF !important;
-        box-shadow: 4px 0 10px rgba(0,0,0,0.02) !important;
-    }
+    // ถ้าหน้าปลายทางเป็น lazy route (โหลดไฟล์ครั้งแรก) ให้ React คงหน้าเดิมไว้จนกว่าจะพร้อม
+    // แทนที่จะโชว์ Suspense fallback แวบหนึ่ง
+    const handleItemClick = (e) => startTransition(() => handleMenuClick(e));
+    const displayName = (userData.username || '').split('@')[0];
 
-    /* หัวข้อหมวดหมู่ */
-    .ant-menu-item-group-title {
-        display: flex !important;
-        align-items: center !important;
-        color: #9155FD !important;
-        font-size: 11px !important;
-        font-weight: 700 !important;
-        letter-spacing: 0.8px;
-        padding: 28px 20px 10px 20px !important;
-    }
-    .ant-menu-item-group-title::after {
-        content: "";
-        flex: 1;
-        height: 2px;
-        background: linear-gradient(90deg, rgba(145, 85, 253, 0.3) 0%, transparent 100%);
-        margin-left: 12px;
-    }
+    const menu = (onClick) => (
+        <Menu
+            mode="inline"
+            theme="dark"
+            onClick={onClick}
+            items={menuItems}
+            onOpenChange={onOpenChange}
+            openKeys={openKeys}
+            style={{border: 'none', background: 'transparent'}}
+        />
+    );
 
-    /* รายการเมนู */
-    .ant-menu-item, .ant-menu-submenu-title {
-        margin: 4px 12px !important;
-        width: calc(100% - 24px) !important;
-        border-radius: 12px !important;
-        height: 44px !important;
-        line-height: 44px !important;
-        color: #5d596c !important;
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-    }
-
-    .ant-menu-item:hover, .ant-menu-submenu-title:hover {
-        background: rgba(145, 85, 253, 0.08) !important;
-        color: #9155FD !important;
-        transform: translateX(4px);
-    }
-
-    /* Active State */
-    .ant-menu-item-selected {
-        background: linear-gradient(108deg, #9155FD 0%, #D333FF 100%) !important;
-        box-shadow: 0px 4px 12px rgba(145, 85, 253, 0.4) !important;
-        color: #fff !important;
-    }
-    .ant-menu-item-selected .anticon { color: #fff !important; }
-
-    .menu-scroll::-webkit-scrollbar { width: 4px; }
-    .menu-scroll::-webkit-scrollbar-thumb { background: rgba(145, 85, 253, 0.2); border-radius: 10px; }
-    
-    @keyframes rotateRing {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-    /* ===== submenu child only ===== */
-.ant-menu-submenu .ant-menu-item {
-    position: relative;
-    padding-left: 44px !important;
-}
-
-/* วงกลมโปร่ง */
-.ant-menu-submenu .ant-menu-item::before {
-    content: '';
-    position: absolute;
-    left: 22px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    border: 2px solid rgba(145, 85, 253, 0.45);
-    background: transparent;
-    transition: all 0.25s ease;
-}
-
-/* hover */
-.ant-menu-submenu .ant-menu-item:hover::before {
-    border-color: #9155FD;
-}
-
-/* active / selected */
-.ant-menu-submenu .ant-menu-item-selected::before {
-    background: linear-gradient(135deg, #9155FD, #D333FF);
-    border-color: #9155FD;
-}
-
-  `;
-
-    // --- Mobile Version ---
+    /* ============================ Mobile ============================ */
     if (isMobile) {
         return (
-            <>
-                <style>{`
-                    ${injectStyles}
-                    @keyframes slideIn {
-                        from { opacity: 0; transform: translateY(-10px); }
-                        to { opacity: 1; transform: translateY(0); }
-                    }
-                    @keyframes pulseGlow {
-                        0% { box-shadow: 0 0 0 0 rgba(145, 85, 253, 0.4); }
-                        70% { box-shadow: 0 0 0 10px rgba(145, 85, 253, 0); }
-                        100% { box-shadow: 0 0 0 0 rgba(145, 85, 253, 0); }
-                    }
-                    .mobile-nav-active {
-                        background: #fff !important;
-                        color: #9155FD !important;
-                        box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
-                    }
-                `}</style>
+            <ConfigProvider theme={menuTheme}>
+                <style>{css}</style>
 
-                <Box sx={{
-                    position: 'sticky',
-                    top: 0,
-                    zIndex: 1100,
-                    padding: '12px 16px',
-                    background: 'linear-gradient(135deg, #6226ef 0%, #9155FD 50%, #d333ff 100%)',
-                    boxShadow: '0 4px 25px rgba(98, 38, 239, 0.35)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    borderBottomLeftRadius: '20px',
-                    borderBottomRightRadius: '20px',
-                }}>
-                    {/* ส่วนโปรไฟล์ฝั่งซ้าย */}
-                    <Box sx={{display: 'flex', alignItems: 'center', gap: '12px'}}>
-                        <div style={{
-                            padding: '2px',
-                            background: 'rgba(255,255,255,0.3)',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            animation: 'pulseGlow 2s infinite'
-                        }}>
-                            <Avatar
-                                size={45}
-                                icon={<UserOutlined/>}
+                <div
+                    className="as-mobile-bar"
+                    style={{
+                        position: 'fixed', top: 0, left: 0, right: 0, height: MOBILE_HEADER_HEIGHT, zIndex: 1000,
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+                        padding: '0 16px', background: C.ink, borderBottom: `1px solid ${C.line}`, fontFamily: FONT,
+                    }}
+                >
+                    <div style={{display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1}}>
+                        <BrandMark size={36}/>
+                        <div style={{minWidth: 0}}>
+                            <Text
+                                title={userData.username}
                                 style={{
-                                    background: '#fff',
-                                    color: '#9155FD',
-                                    fontWeight: 'bold'
+                                    color: C.text, fontSize: 14, fontWeight: 600, display: 'block', lineHeight: 1.3,
+                                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                                 }}
-                            />
+                            >
+                                {displayName}
+                            </Text>
+                            <Text style={{color: C.muted, fontSize: 12}}>{userData.role}</Text>
                         </div>
-                        <Box sx={{color: '#fff'}}>
-                            <Typography.Text strong style={{
-                                color: '#fff',
-                                fontSize: '16px',
-                                display: 'block',
-                                textShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                            }}>
-                                {username.split('@')[0]}
-                            </Typography.Text>
-                            <Typography.Text style={{
-                                color: 'rgba(255,255,255,0.8)',
-                                fontSize: '11px',
-                                textTransform: 'uppercase',
-                                letterSpacing: '1px'
-                            }}>
-                                {role}
-                            </Typography.Text>
-                        </Box>
-                    </Box>
+                    </div>
 
-                    {/* ปุ่ม Action ฝั่งขวา */}
-                    <Space size={8}>
+                    <div style={{display: 'flex', gap: 8}}>
                         <Button
-                            className={mobileMenuOpen ? "mobile-nav-active" : ""}
                             type="text"
+                            aria-label="เปิดเมนู"
                             icon={<MenuOutlined/>}
-                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                            style={{
-                                color: '#fff',
-                                fontSize: '20px',
-                                background: 'rgba(255,255,255,0.15)',
-                                borderRadius: '12px',
-                                width: '45px',
-                                height: '45px',
-                                border: '1px solid rgba(255,255,255,0.2)',
-                                backdropFilter: 'blur(10px)',
-                                transition: 'all 0.3s'
-                            }}
+                            onClick={() => setMobileMenuOpen(true)}
+                            className="as-icon-btn"
+                            style={{width: 44, height: 44, borderRadius: 12, color: C.muted, border: `1px solid ${C.raised}`}}
                         />
                         <Button
                             type="text"
+                            aria-label="ออกจากระบบ"
                             icon={<LogoutOutlined/>}
                             onClick={handleLogoutClick}
-                            style={{
-                                color: '#fff',
-                                fontSize: '18px',
-                                background: 'rgba(255,77,79,0.25)',
-                                borderRadius: '12px',
-                                width: '45px',
-                                height: '45px',
-                                border: '1px solid rgba(255,77,79,0.3)',
-                                backdropFilter: 'blur(10px)'
-                            }}
+                            className="as-logout"
+                            style={{width: 44, height: 44, borderRadius: 12, color: C.danger, border: '1px solid rgba(251,113,133,0.25)'}}
                         />
-                    </Space>
-                </Box>
+                    </div>
+                </div>
 
-                {/* Menu Dropdown แบบลอยตัว (Floating) */}
-                {mobileMenuOpen && (
-                    <Box sx={{
-                        position: 'fixed',
-                        top: '85px',
-                        left: '16px',
-                        right: '16px',
-                        maxHeight: '75vh',
-                        background: 'rgba(255, 255, 255, 0.95)',
-                        backdropFilter: 'blur(20px)',
-                        borderRadius: '24px',
-                        zIndex: 1099,
-                        overflowY: 'auto',
-                        boxShadow: '0 20px 50px rgba(0,0,0,0.15)',
-                        border: '1px solid rgba(255,255,255,0.5)',
-                        animation: 'slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                        padding: '10px'
-                    }}>
-                        <Menu
-                            mode="inline"
-                            onClick={(e) => {
-                                handleMenuClick(e);
-                                setMobileMenuOpen(false);
-                            }}
-                            items={menuItems}
-                            style={{
-                                border: 'none',
-                                background: 'transparent',
-                            }}
-                        />
-                    </Box>
-                )}
-                {/* Backdrop สีจางๆ เมื่อเปิดเมนู */}
-                {mobileMenuOpen && (
-                    <Box
-                        onClick={() => setMobileMenuOpen(false)}
-                        sx={{
-                            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                            background: 'rgba(0,0,0,0.1)', zIndex: 1098,
-                            backdropFilter: 'blur(4px)'
+                <Drawer
+                    open={mobileMenuOpen}
+                    onClose={() => setMobileMenuOpen(false)}
+                    placement="left"
+                    closeIcon={false}
+                    width={SIDEBAR_WIDTH}
+                    styles={{
+                        body: {padding: 0, background: C.ink},
+                        header: {display: 'none'},
+                        mask: {backgroundColor: 'rgba(15,23,42,0.5)'},
+                    }}
+                    style={{marginTop: MOBILE_HEADER_HEIGHT}}
+                >
+                    <div
+                        style={{
+                            height: `calc(100vh - ${MOBILE_HEADER_HEIGHT}px)`, display: 'flex', flexDirection: 'column',
+                            background: C.ink, fontFamily: FONT,
                         }}
-                    />
-                )}
-            </>
+                    >
+                        <div style={{padding: 16, flexShrink: 0}}>
+                            <div style={{padding: 12, borderRadius: 16, border: `1px solid ${C.line}`, background: 'rgba(255,255,255,0.03)'}}>
+                                <UserBlock name={displayName} role={userData.role} username={userData.username}/>
+                            </div>
+                        </div>
+
+                        <div className="as-scroll" style={{flex: 1, overflowY: 'auto', overflowX: 'hidden'}}>
+                            {menu((e) => {
+                                handleItemClick(e);
+                                setMobileMenuOpen(false);
+                            })}
+                        </div>
+
+                        <div style={{padding: 16, flexShrink: 0, borderTop: `1px solid ${C.line}`}}>
+                            <LogoutButton onClick={handleLogoutClick}/>
+                        </div>
+                    </div>
+                </Drawer>
+            </ConfigProvider>
         );
     }
 
-    // --- Desktop Version ---
+    /* ============================ Desktop =========================== */
     return (
-        <Sider
-            trigger={null}
-            collapsible
-            collapsed={collapsed}
-            width={260}
-            style={{
-                height: '100vh', position: 'sticky', top: 0, left: 0,
-                zIndex: 100, borderRight: '1px solid rgba(145, 85, 253, 0.1)'
-            }}
-        >
-            <style>{injectStyles}</style>
+        <ConfigProvider theme={menuTheme}>
+            <style>{css}</style>
 
-            {/* Brand Section */}
-            <div style={{padding: '30px 24px 20px 24px', display: 'flex', alignItems: 'center', gap: '12px'}}>
-                <div style={{
-                    width: '35px', height: '35px',
-                    background: 'linear-gradient(135deg, #9155FD 0%, #D333FF 100%)',
-                    borderRadius: '10px', display: 'flex', alignItems: 'center',
-                    justifyContent: 'center', color: 'white', fontWeight: 'bold',
-                    boxShadow: '0 4px 12px rgba(145, 85, 253, 0.4)', fontSize: '18px'
-                }}>G
-                </div>
-                {!collapsed && <Text style={{
-                    fontSize: '20px',
-                    fontWeight: 900,
-                    color: '#3A3541',
-                    letterSpacing: '0.5px'
-                }}>DASHBOARD</Text>}
-            </div>
-
-            {/* User Info Card */}
-            <div style={{padding: '10px 20px 25px 20px'}}>
-                <div style={{
-                    display: 'flex', alignItems: 'center', gap: '12px',
-                    background: 'linear-gradient(145deg, rgba(145, 85, 253, 0.05), rgba(211, 51, 255, 0.05))',
-                    padding: '16px', borderRadius: '16px',
-                    border: '1px solid rgba(145, 85, 253, 0.1)',
-                    justifyContent: collapsed ? 'center' : 'flex-start'
-                }}>
-                    <Avatar
-                        size={collapsed ? 36 : 42}
-                        icon={<UserOutlined/>}
+            <Sider
+                className="as-sider"
+                theme="dark"
+                trigger={null}
+                collapsible
+                collapsed={collapsed}
+                width={SIDEBAR_WIDTH}
+                collapsedWidth={SIDEBAR_COLLAPSED_WIDTH}
+                style={{
+                    height: '100vh', position: 'sticky', top: 0, left: 0,
+                    background: C.ink, borderRight: `1px solid ${C.line}`, fontFamily: FONT,
+                }}
+            >
+                <div style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
+                    {/* Brand */}
+                    <div
                         style={{
-                            background: 'linear-gradient(135deg, #9155FD, #6d32cb)',
-                            boxShadow: '0 4px 8px rgba(145, 85, 253, 0.3)'
+                            flexShrink: 0, height: 72, display: 'flex', alignItems: 'center', gap: 12,
+                            padding: collapsed ? 0 : '0 24px', justifyContent: collapsed ? 'center' : 'flex-start',
+                            borderBottom: `1px solid ${C.line}`,
                         }}
-                    />
-                    {!collapsed && (
-                        <div style={{overflow: 'hidden'}}>
-                            <Text strong style={{
-                                fontSize: '15px',
-                                color: '#3A3541',
-                                display: 'block'
-                            }}>{username.split('@')[0]}</Text>
-                            <Text style={{fontSize: '11px', color: '#9155FD', fontWeight: 600}}>{role}</Text>
+                    >
+                        <BrandMark/>
+                        {!collapsed && (
+                            <span style={{color: C.text, fontSize: 16, fontWeight: 700, letterSpacing: '0.02em'}}>
+                                DASHBOARD
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Profile */}
+                    <div style={{flexShrink: 0, padding: collapsed ? '16px 0' : 16}}>
+                        <div
+                            style={{
+                                padding: collapsed ? 0 : 12, borderRadius: 16,
+                                border: collapsed ? 'none' : `1px solid ${C.line}`,
+                                background: collapsed ? 'transparent' : 'rgba(255,255,255,0.03)',
+                            }}
+                        >
+                            <UserBlock
+                                name={displayName}
+                                role={userData.role}
+                                username={userData.username}
+                                compact={collapsed}
+                            />
                         </div>
-                    )}
+                    </div>
+
+                    {/* Menu */}
+                    <div className="as-scroll" style={{flex: 1, overflowY: 'auto', overflowX: 'hidden'}}>
+                        {menu(handleItemClick)}
+                    </div>
+
+                    {/* Footer */}
+                    <div style={{flexShrink: 0, padding: collapsed ? '16px 12px' : 16, borderTop: `1px solid ${C.line}`}}>
+                        <LogoutButton onClick={handleLogoutClick} collapsed={collapsed}/>
+                    </div>
                 </div>
-            </div>
-
-            {/* Menu Section */}
-            <div className="menu-scroll" style={{flex: 1, overflowY: 'auto', overflowX: 'hidden'}}>
-                <Menu
-                    mode="inline"
-                    onClick={handleMenuClick}
-                    items={menuItems}
-                    onOpenChange={onOpenChange}
-                    openKeys={openKeys}
-                    style={{border: 'none', background: 'transparent'}}
-                />
-            </div>
-
-            {/* Logout Footer */}
-            <div style={{padding: '20px'}}>
-                <Button
-                    type="text"
-                    icon={<LogoutOutlined/>}
-                    onClick={handleLogoutClick}
-                    block
-                    style={{
-                        height: '48px', borderRadius: '12px', color: '#ff4d4f', fontWeight: 700,
-                        display: 'flex', alignItems: 'center', background: 'rgba(255, 77, 79, 0.06)',
-                        justifyContent: collapsed ? 'center' : 'flex-start', paddingLeft: collapsed ? '0' : '20px',
-                        border: '1px solid rgba(255, 77, 79, 0.1)'
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(255, 77, 79, 0.12)';
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'rgba(255, 77, 79, 0.06)';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                    }}
-                >
-                    {!collapsed && <span style={{marginLeft: '12px'}}>Sign Out</span>}
-                </Button>
-            </div>
-        </Sider>
+            </Sider>
+        </ConfigProvider>
     );
 };
 

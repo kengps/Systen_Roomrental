@@ -86,21 +86,28 @@ exports.editTenant = async (valuesTenant) => {
 }
 
 
-exports.getTeanantInParent = async (owner) => {
+exports.getTeanantInParent = async (owner, page = 1, limit = 10) => {
+    const skip = (page - 1) * limit
 
+    const [result, total] = await Promise.all([
+        Tenant.find({ owner })
+            .populate({ path: 'room' })
+            .populate({ path: 'accountId' })
+            .skip(skip)
+            .limit(limit),
 
-    try {
-        const result = await Tenant.find({owner}).populate({path: 'room'}).populate({path: 'accountId'})
+        Tenant.countDocuments({ owner })
+    ])
 
-
-        return {
-            result
+    return {
+        result,
+        pagination: {
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit)
         }
-
-    } catch (error) {
-        throw error
     }
-
 }
 
 exports.updateTenancys = async (tenantId, tenancyStatus, moveOutDate) => {

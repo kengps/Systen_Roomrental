@@ -1,9 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Avatar, Button, Typography, Popover, notification as antdNotification } from 'antd';
+import { Avatar, ConfigProvider, Typography, Popover, notification as antdNotification } from 'antd';
 import {
     UserOutlined,
     EllipsisOutlined,
-    CheckOutlined
+    CheckOutlined,
+    BellOutlined,
+    LikeOutlined,
+    MessageOutlined,
+    ShareAltOutlined,
+    TeamOutlined,
+    GiftOutlined,
+    CalendarOutlined,
+    DollarOutlined,
+    HomeOutlined,
+    ToolOutlined,
+    SettingOutlined,
 } from '@ant-design/icons';
 
 
@@ -12,12 +23,122 @@ import notificationAPI from '../../../../service/webSocker/NotificationAPI';
 import persistMiddleware from '../../../../service/zustand/middleware/persistMiddleware';
 import { useNavigate } from 'react-router-dom';
 
+/* ───────── Design tokens ───────── */
+const C = {
+    ink: '#0F172A',
+    page: '#F4F5F9',
+    card: '#FFFFFF',
+    line: '#E6E8F0',
+    muted: '#5B6478',
+    sunken: '#F7F8FC',
+    primary: '#4F46E5',
+    primaryDeep: '#4338CA',
+    primarySoft: '#EEF0FF',
+    primarySoftLine: '#C7CCF5',
+    primarySoftText: '#3730A3',
+};
+
+const FONT = "'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif";
+
+const theme = {
+    token: { colorPrimary: C.primary, borderRadius: 12, fontFamily: FONT, controlHeight: 44 },
+};
+
+const css = `
+.notification-popover { font-family: ${FONT}; }
+.notification-popover .ant-popover-inner {
+  padding: 0;
+  border-radius: 16px;
+  border: 1px solid ${C.line};
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.10);
+  overflow: hidden;
+}
+.notification-popover .ant-popover-inner-content { padding: 0; }
+.notification-popover .ant-popover-arrow { display: none; }
+
+.np-panel {
+  width: 380px; max-width: calc(100vw - 32px);
+  max-height: 80vh; display: flex; flex-direction: column;
+  background: ${C.card}; font-family: ${FONT};
+}
+.np-head { padding: 16px 20px 14px; border-bottom: 1px solid ${C.line}; }
+.np-head-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.np-head-top h4.ant-typography { margin: 0 !important; font-size: 20px !important; font-weight: 700 !important; color: ${C.ink} !important; }
+
+.np-iconbtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; padding: 0; flex: none;
+  border-radius: 10px; border: 1px solid transparent; background: transparent;
+  color: ${C.muted}; font-size: 18px; cursor: pointer;
+  transition: background-color .15s ease, color .15s ease;
+}
+.np-iconbtn:hover { background: ${C.primarySoft}; color: ${C.primarySoftText}; }
+
+.np-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.np-tab {
+  height: 32px; padding: 0 14px; border-radius: 999px; cursor: pointer;
+  font-family: ${FONT}; font-size: 13px; font-weight: 600;
+  background: ${C.primarySoft}; border: 1px solid ${C.primarySoftLine}; color: ${C.primarySoftText};
+  transition: background-color .15s ease;
+}
+.np-tab:hover { background: #E2E6FF; }
+.np-tab[aria-pressed="true"] { background: ${C.primary}; border-color: ${C.primary}; color: #fff; }
+.np-tab[aria-pressed="true"]:hover { background: ${C.primaryDeep}; }
+
+.np-band {
+  padding: 8px 20px; background: ${C.primarySoft};
+  border-bottom: 1px solid ${C.primarySoftLine};
+  font-size: 13px; font-weight: 600; color: ${C.primarySoftText};
+}
+
+.np-list { max-height: 400px; overflow-y: auto; flex: 1; }
+.np-state { text-align: center; padding: 40px 20px; color: ${C.muted}; font-size: 14px; }
+
+.np-item { position: relative; border-bottom: 1px solid ${C.line}; background: ${C.card}; }
+.np-item:last-child { border-bottom: none; }
+.np-item--unread { background: ${C.primarySoft}; }
+.np-item:hover { background: ${C.sunken}; }
+.np-item--unread:hover { background: #E2E6FF; }
+
+.np-main {
+  display: flex; align-items: flex-start; gap: 12px; width: 100%;
+  padding: 12px 52px 12px 16px; text-align: left; cursor: pointer;
+  background: transparent; border: none; font-family: ${FONT}; color: inherit;
+}
+.np-main:focus-visible, .np-tab:focus-visible, .np-iconbtn:focus-visible, .np-markall:focus-visible {
+  outline: 3px solid ${C.primarySoftLine}; outline-offset: -3px;
+}
+.np-typebadge {
+  position: absolute; bottom: -2px; right: -2px;
+  width: 22px; height: 22px; border-radius: 999px;
+  background: ${C.primary}; color: #fff; font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid #fff;
+}
+.np-body { flex: 1; min-width: 0; }
+.np-title { font-size: 14px; line-height: 20px; color: ${C.ink}; font-weight: 600; margin-bottom: 2px; }
+.np-desc { font-size: 13px; line-height: 18px; color: ${C.muted}; margin-bottom: 4px; }
+.np-time { font-size: 12px; color: ${C.primarySoftText}; font-weight: 600; }
+.np-dot { width: 10px; height: 10px; border-radius: 999px; background: ${C.primary}; align-self: center; flex: none; }
+.np-item .np-menu { position: absolute; top: 8px; right: 8px; }
+
+.np-foot { padding: 12px 20px; border-top: 1px solid ${C.line}; background: ${C.card}; }
+.np-markall {
+  width: 100%; height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 12px; cursor: pointer; font-family: ${FONT}; font-size: 14px; font-weight: 600;
+  background: ${C.primarySoft}; border: 1px solid ${C.primarySoftLine}; color: ${C.primarySoftText};
+  transition: background-color .15s ease;
+}
+.np-markall:hover:not(:disabled) { background: #E2E6FF; }
+.np-markall:disabled { opacity: .5; cursor: not-allowed; }
+`;
+
 
 const NotificationPopover = ({
-    children,
-    onNotificationClick,
-    placement = "bottomRight"
-}) => {
+                                 children,
+                                 onNotificationClick,
+                                 placement = "bottomRight"
+                             }) => {
     const [notifications, setNotifications] = useState([]);
     console.log(`⩇⩇:⩇⩇🚨 ~ notifications :`, notifications);
 
@@ -205,19 +326,20 @@ const NotificationPopover = ({
         setPopoverVisible(false);
     };
 
+    // เดิมเป็น emoji → เปลี่ยนเป็นไอคอน antd (คีย์ type เดิมทั้งหมด)
     const getNotificationIcon = (type) => {
         const iconMap = {
-            'like': '👍',
-            'comment': '💬',
-            'share': '🔄',
-            'friend_request': '👥',
-            'birthday': '🎂',
-            'event': '📅',
-            'payment': '💰',
-            'rent': '🏠',
-            'maintenance': '🔧',
-            'system': '⚙️',
-            'default': '🔔'
+            'like': <LikeOutlined />,
+            'comment': <MessageOutlined />,
+            'share': <ShareAltOutlined />,
+            'friend_request': <TeamOutlined />,
+            'birthday': <GiftOutlined />,
+            'event': <CalendarOutlined />,
+            'payment': <DollarOutlined />,
+            'rent': <HomeOutlined />,
+            'maintenance': <ToolOutlined />,
+            'system': <SettingOutlined />,
+            'default': <BellOutlined />
         };
         return iconMap[type] || iconMap.default;
     };
@@ -255,254 +377,130 @@ const NotificationPopover = ({
 
     // Notification Popover Content
     const notificationContent = (
-        <div style={{ width: 360, maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
+        <div className="np-panel">
             {/* Header */}
-            <div style={{
-                padding: '16px 20px 12px 20px',
-                borderBottom: '1px solid #e4e6ea'
-            }}>
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '12px'
-                }}>
-                    <Typography.Title level={4} style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>
+            <div className="np-head">
+                <div className="np-head-top">
+                    <Typography.Title level={4}>
                         การแจ้งเตือน
                     </Typography.Title>
-                    <Button
-                        type="text"
-                        icon={<EllipsisOutlined style={{ fontSize: '20px' }} />}
-                        style={{ padding: '4px 8px' }}
-                    />
+                    <button
+                        type="button"
+                        className="np-iconbtn"
+                        aria-label="ตัวเลือกการแจ้งเตือน"
+                    >
+                        <EllipsisOutlined />
+                    </button>
                 </div>
 
                 {/* Tab-like buttons */}
-                <div style={{ display: 'flex', gap: '8px' }}>
-                    <Button
-                        type={activeTab === 'all' ? 'primary' : 'default'}
-                        size="small"
+                <div className="np-tabs">
+                    <button
+                        type="button"
+                        className="np-tab"
+                        aria-pressed={activeTab === 'all'}
                         onClick={() => setActiveTab('all')}
-                        style={{
-                            borderRadius: '16px',
-                            backgroundColor: activeTab === 'all' ? '#1877f2' : '#f0f2f5',
-                            border: 'none',
-                            color: activeTab === 'all' ? '#fff' : '#65676b',
-                            fontSize: '13px',
-                            fontWeight: '600'
-                        }}
                     >
                         ทั้งหมด
-                    </Button>
-                    <Button
-                        type={activeTab === 'unread' ? 'primary' : 'default'}
-                        size="small"
+                    </button>
+                    <button
+                        type="button"
+                        className="np-tab"
+                        aria-pressed={activeTab === 'unread'}
                         onClick={() => setActiveTab('unread')}
-                        style={{
-                            borderRadius: '16px',
-                            backgroundColor: activeTab === 'unread' ? '#1877f2' : '#f0f2f5',
-                            border: 'none',
-                            color: activeTab === 'unread' ? '#fff' : '#65676b',
-                            fontSize: '13px',
-                            fontWeight: '600'
-                        }}
                     >
                         ยังไม่ได้อ่าน ({unreadCount})
-                    </Button>
+                    </button>
                 </div>
             </div>
 
             {/* New notifications indicator */}
             {unreadCount > 0 && activeTab === 'all' && (
-                <div style={{
-                    padding: '8px 20px',
-                    backgroundColor: '#e3f2fd',
-                    borderBottom: '1px solid #e4e6ea',
-                    fontSize: '13px',
-                    fontWeight: '600',
-                    color: '#1565c0'
-                }}>
+                <div className="np-band">
                     ใหม่
                 </div>
             )}
 
             {/* Notifications List */}
-            <div style={{
-                maxHeight: '400px',
-                overflowY: 'auto',
-                flex: 1
-            }}>
+            <div className="np-list">
                 {loading ? (
-                    <div style={{
-                        textAlign: 'center',
-                        padding: '40px 20px',
-                        color: '#65676b'
-                    }}>
+                    <div className="np-state">
                         กำลังโหลด...
                     </div>
                 ) : filteredNotifications.length === 0 ? (
-                    <div style={{
-                        textAlign: 'center',
-                        padding: '40px 20px',
-                        color: '#65676b'
-                    }}>
+                    <div className="np-state">
                         {activeTab === 'unread' ? 'ไม่มีการแจ้งเตือนที่ยังไม่ได้อ่าน' : 'ไม่มีการแจ้งเตือน'}
                     </div>
                 ) : (
                     filteredNotifications.map((notification, index) => (
                         <div
                             key={notification._id || index}
-                            style={{
-                                display: 'flex',
-                                padding: '12px 16px',
-                                cursor: 'pointer',
-                                backgroundColor: notification.isRead ? '#ffffff' : '#e7f3ff',
-                                borderBottom: index < filteredNotifications.length - 1 ? '1px solid #f0f2f5' : 'none',
-                                position: 'relative',
-                                transition: 'background-color 0.2s ease'
-                            }}
-                            onClick={() => handleNotificationClick(notification)}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = notification.isRead ? '#f0f2f5' : '#d4edda';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = notification.isRead ? '#ffffff' : '#e7f3ff';
-                            }}
+                            className={`np-item${notification.isRead ? '' : ' np-item--unread'}`}
                         >
-                            {/* Avatar with icon overlay */}
-                            <div style={{ position: 'relative', marginRight: '12px' }}>
-                                <Avatar
-                                    size={56}
-                                    src={notification.senderAvatar}
-                                    style={{
-                                        backgroundColor: notification.senderAvatar ? 'transparent' : '#1877f2'
-                                    }}
-                                >
-                                    {!notification.senderAvatar && <UserOutlined />}
-                                </Avatar>
+                            <button
+                                type="button"
+                                className="np-main"
+                                onClick={() => handleNotificationClick(notification)}
+                            >
+                                {/* Avatar with icon overlay */}
+                                <div style={{ position: 'relative', flex: 'none' }}>
+                                    <Avatar
+                                        size={52}
+                                        src={notification.senderAvatar}
+                                        style={{
+                                            backgroundColor: notification.senderAvatar ? 'transparent' : C.primary
+                                        }}
+                                    >
+                                        {!notification.senderAvatar && <UserOutlined />}
+                                    </Avatar>
 
-                                {/* Notification type icon */}
-                                <div style={{
-                                    position: 'absolute',
-                                    bottom: '-2px',
-                                    right: '-2px',
-                                    width: '20px',
-                                    height: '20px',
-                                    backgroundColor: '#1877f2',
-                                    borderRadius: '50%',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: '10px',
-                                    border: '2px solid white'
-                                }}>
-                                    {getNotificationIcon(notification.type)}
-                                </div>
-                            </div>
-
-                            {/* Content */}
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{
-                                    fontSize: '14px',
-                                    lineHeight: '18px',
-                                    color: '#050505',
-                                    marginBottom: '2px',
-                                    fontWeight: notification.read ? 'normal' : '600'
-                                }}>
-                                    <span style={{ fontWeight: '600' }}>
-                                        {/* {notification.senderName || 'ระบบ'} */}
-                                        {notification.message.title}
-                                    </span>{' '}
-                                </div>
-
-                                {notification.message.body && (
-                                    <div style={{
-                                        fontSize: '13px',
-                                        color: '#65676b',
-                                        marginBottom: '4px',
-                                        lineHeight: '16px'
-                                    }}>
-                                        {notification.message.body}
+                                    {/* Notification type icon */}
+                                    <div className="np-typebadge" aria-hidden="true">
+                                        {getNotificationIcon(notification.type)}
                                     </div>
+                                </div>
+
+                                {/* Content */}
+                                <div className="np-body">
+                                    <div
+                                        className="np-title"
+                                        style={{ fontWeight: notification.read ? 'normal' : '600' }}
+                                    >
+                                        <span style={{ fontWeight: '600' }}>
+                                            {/* {notification.senderName || 'ระบบ'} */}
+                                            {notification.message.title}
+                                        </span>{' '}
+                                    </div>
+
+                                    {notification.message.body && (
+                                        <div className="np-desc">
+                                            {notification.message.body}
+                                        </div>
+                                    )}
+
+                                    <div className="np-time">
+                                        {getTimeAgo(notification.createdAt)}
+                                    </div>
+                                </div>
+
+                                {/* Unread indicator */}
+                                {!notification.isRead && (
+                                    <span className="np-dot" role="img" aria-label="ยังไม่ได้อ่าน" />
                                 )}
+                            </button>
 
-                                <div style={{
-                                    fontSize: '12px',
-                                    color: '#1877f2',
-                                    fontWeight: '600'
-                                }}>
-                                    {getTimeAgo(notification.createdAt)}
-                                </div>
-
-                                {/* Action buttons for some notifications */}
-                                {/* {notification.type === "bill_generated" && !notification.isRead && (
-                                    <div style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
-                                        <Button
-                                            size="small"
-                                            type="primary"
-                                            style={{
-                                                borderRadius: '6px',
-                                                fontSize: '13px',
-                                                fontWeight: '600',
-                                                height: '32px',
-                                                width: '100px',
-                                                backgroundColor: '#1877f2'
-                                            }}
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            ยืนยัน
-                                        </Button>
-                                        <Button
-                                            size="small"
-                                            style={{
-                                                borderRadius: '6px',
-                                                fontSize: '13px',
-                                                fontWeight: '600',
-                                                height: '32px',
-                                                backgroundColor: '#e4e6ea',
-                                                border: 'none',
-                                                color: '#050505',
-                                                width: '100px'
-                                            }}
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            ลบ
-                                        </Button>
-                                    </div>
-                                )} */}
-                            </div>
-
-                            {/* Unread indicator */}
-                            {!notification.isRead && (
-                                <div style={{
-                                    width: '12px',
-                                    height: '12px',
-                                    backgroundColor: '#1877f2',
-                                    borderRadius: '50%',
-                                    marginLeft: '8px',
-                                    alignSelf: 'center'
-                                }} />
-                            )}
-
-                            {/* Menu button */}
-                            <Button
-                                type="text"
-                                icon={<EllipsisOutlined />}
-                                size="small"
-                                style={{
-                                    position: 'absolute',
-                                    top: '8px',
-                                    right: '8px',
-                                    width: '32px',
-                                    height: '32px',
-                                    borderRadius: '50%',
-                                    opacity: 0.7
-                                }}
+                            {/* Menu button (อยู่นอกปุ่มหลัก เพื่อไม่ให้ปุ่มซ้อนปุ่ม) */}
+                            <button
+                                type="button"
+                                className="np-iconbtn np-menu"
+                                aria-label="ตัวเลือกเพิ่มเติม"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     // Handle menu action
                                 }}
-                            />
+                            >
+                                <EllipsisOutlined />
+                            </button>
                         </div>
                     ))
                 )}
@@ -510,51 +508,27 @@ const NotificationPopover = ({
 
             {/* Footer */}
             {notifications.length > 0 && unreadCount > 0 && (
-                <div style={{
-                    padding: '12px 20px',
-                    borderTop: '1px solid #e4e6ea',
-                    backgroundColor: '#ffffff'
-                }}>
-                    <Button
-                        type="text"
+                <div className="np-foot">
+                    <button
+                        type="button"
+                        className="np-markall"
                         onClick={(e) => {
                             e.stopPropagation();
                             markAllAsRead();
                         }}
-                        style={{
-                            width: '100%',
-                            color: '#1877f2',
-                            fontWeight: '600',
-                            fontSize: '14px'
-                        }}
                         disabled={unreadCount === 0}
                     >
-                        <CheckOutlined style={{ marginRight: '8px' }} />
+                        <CheckOutlined />
                         ทำเครื่องหมายทั้งหมดว่าอ่านแล้ว
-                    </Button>
+                    </button>
                 </div>
             )}
         </div>
     );
 
     return (
-        <>
-            <style>
-                {`
-          .notification-popover .ant-popover-inner {
-            padding: 0;
-            border-radius: 8px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-            border: 1px solid #e4e6ea;
-          }
-          .notification-popover .ant-popover-inner-content {
-            padding: 0;
-          }
-          .notification-popover .ant-popover-arrow {
-            display: none;
-          }
-        `}
-            </style>
+        <ConfigProvider theme={theme}>
+            <style>{css}</style>
             <Popover
                 content={notificationContent}
                 title={null}
@@ -569,7 +543,7 @@ const NotificationPopover = ({
             >
                 {children}
             </Popover>
-        </>
+        </ConfigProvider>
     );
 };
 

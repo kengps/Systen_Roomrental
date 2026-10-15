@@ -1,31 +1,105 @@
 import Icon, {
     CalculatorOutlined,
+    FileTextOutlined,
     SaveOutlined,
+    SettingOutlined,
     ThunderboltOutlined,
 } from '@ant-design/icons';
 import {useQuery} from '@tanstack/react-query';
 import {
     Button,
-    Card,
-    Col,
-    Divider,
+    ConfigProvider,
     Form,
     message,
-    Row,
     Segmented,
-    Space,
     Spin,
-    Typography,
 } from 'antd';
 import {useState, useEffect} from 'react';
-import {Controller, useForm, useWatch} from 'react-hook-form';
+import {Controller, useForm} from 'react-hook-form';
 import {addMeters, getMeters} from '../../../service/api/apartment';
 import persistMiddleware from '../../../service/zustand/middleware/persistMiddleware';
 import NumericInputControllerPage from '../components/ui/NumericInputControllerPage';
-import PageHeader from '../../../components/common/PageHeader';
 
-const {Title, Text, Paragraph} = Typography;
+/* ---------- Design tokens ---------- */
+const C = {
+    ink: '#0F172A',
+    raised: '#1E2A4A',
+    page: '#F4F5F9',
+    card: '#FFFFFF',
+    line: '#E6E8F0',
+    muted: '#5B6478',
+    sunken: '#F7F8FC',
+    primary: '#4F46E5',
+    primaryDeep: '#4338CA',
+    primarySoft: '#EEF0FF',
+    primarySoftLine: '#C7CCF5',
+    primarySoftText: '#3730A3',
+    okBg: '#DCFCE7',
+    okFg: '#166534',
+    okNum: '#15803D',
+    badBg: '#FFE4E9',
+    badFg: '#9F1239',
+    badNum: '#BE123C',
+    water: '#2563EB',
+    waterSoft: '#E6EEFF',
+    electric: '#B45309',
+    electricSoft: '#FEF1DC',
+    onInkMuted: '#A5B0C6',
+    onInkIcon: '#A5B4FC',
+    onInkBadge: '#C7D2FE',
+};
 
+const FONT = "'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif";
+
+const theme = {
+    token: {colorPrimary: C.primary, borderRadius: 12, fontFamily: FONT, controlHeight: 44},
+};
+
+const css = `
+.mp-root { background: ${C.page}; min-height: 100vh; padding: 24px 16px 48px; font-family: ${FONT}; color: ${C.ink}; }
+.mp-wrap { max-width: 960px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.mp-banner { background: ${C.ink}; border-radius: 20px; padding: 24px 28px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.mp-banner-icon { width: 52px; height: 52px; border-radius: 10px; background: ${C.raised}; color: ${C.onInkIcon}; display: flex; align-items: center; justify-content: center; font-size: 24px; flex: none; }
+.mp-banner-text { flex: 1 1 240px; min-width: 0; }
+.mp-banner-title { margin: 0; font-size: 26px; font-weight: 700; color: #fff; line-height: 1.3; }
+.mp-banner-sub { margin: 4px 0 0; font-size: 14px; color: ${C.onInkMuted}; }
+.mp-badge-ink { background: ${C.raised}; color: ${C.onInkBadge}; border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+.mp-tabs { max-width: 420px; width: 100%; margin: 0 auto; }
+.mp-section { background: ${C.card}; border: 1px solid ${C.line}; border-radius: 20px; padding: 24px; }
+.mp-section-head { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.mp-section-icon { width: 36px; height: 36px; border-radius: 10px; background: ${C.primarySoft}; color: ${C.primary}; display: flex; align-items: center; justify-content: center; font-size: 18px; flex: none; }
+.mp-section-title { margin: 0; font-size: 16px; font-weight: 700; }
+.mp-label { font-size: 14px; font-weight: 600; color: ${C.ink}; }
+.mp-center { text-align: center; padding: 48px 0; }
+.mp-empty { background: ${C.badBg}; color: ${C.badFg}; border: 1px solid ${C.badFg}33; border-radius: 16px; padding: 14px 16px; font-size: 14px; font-weight: 600; }
+.mp-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.mp-fact { background: ${C.sunken}; border: 1px solid ${C.line}; border-radius: 16px; padding: 14px 16px; }
+.mp-fact-k { font-size: 13px; color: ${C.muted}; margin-bottom: 4px; }
+.mp-fact-v { font-size: 16px; font-weight: 700; color: ${C.ink}; }
+.mp-example-title { margin: 0 0 16px; font-size: 15px; font-weight: 700; text-align: center; }
+.mp-grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.mp-room { background: ${C.card}; border: 1px solid ${C.line}; border-radius: 16px; padding: 16px; text-align: center; }
+.mp-room-icon { width: 36px; height: 36px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 8px; }
+.mp-room-line { font-size: 14px; color: ${C.muted}; }
+.mp-room-money { font-size: 14px; font-weight: 600; margin-top: 4px; }
+.mp-room-money b { font-size: 18px; color: ${C.primary}; }
+.mp-note { margin: 16px 0 0; text-align: center; font-size: 14px; font-weight: 600; color: ${C.primarySoftText}; background: ${C.primarySoft}; border: 1px solid ${C.primarySoftLine}; border-radius: 12px; padding: 10px 12px; }
+.mp-calc { background: ${C.card}; border: 1px solid ${C.line}; border-radius: 16px; padding: 16px; max-width: 460px; margin: 0 auto; font-size: 14px; line-height: 1.9; }
+.mp-calc hr { border: 0; border-top: 1px solid ${C.line}; margin: 8px 0; }
+.mp-calc-total { font-size: 17px; font-weight: 700; }
+.mp-save { display: flex; justify-content: center; }
+.mp-save .ant-btn-primary { max-width: 320px; width: 100%; font-weight: 600; color: #fff; background: ${C.primary}; }
+.mp-save .ant-btn-primary:hover { background: ${C.primaryDeep} !important; }
+.mp-root .ant-segmented .ant-segmented-item-label { display: flex; align-items: center; justify-content: center; min-height: 36px; }
+.mp-root button:focus-visible, .mp-root input:focus-visible, .mp-root .ant-segmented-item-input:focus-visible + .ant-segmented-item-label { outline: 3px solid ${C.primarySoftLine}; outline-offset: 2px; }
+@media (max-width: 600px) {
+  .mp-banner { padding: 20px; }
+  .mp-banner-title { font-size: 22px; }
+  .mp-section { padding: 18px; }
+}
+`;
+
+/* ---------- Icons ---------- */
 const WaterDropSvg = () => (
     <svg viewBox="0 0 1024 1024" fill="currentColor" width="1em" height="1em">
         <path
@@ -34,159 +108,71 @@ const WaterDropSvg = () => (
 );
 const WaterDropIcon = props => <Icon component={WaterDropSvg} {...props} />;
 
+/* ---------- Reusable pieces ---------- */
+const Section = ({icon, title, children}) => (
+    <section className="mp-section">
+        <div className="mp-section-head">
+            <span className="mp-section-icon" aria-hidden="true">{icon}</span>
+            <h2 className="mp-section-title">{title}</h2>
+        </div>
+        {children}
+    </section>
+);
+
 const CalculationExample = ({utilityType, billingType, rate, flatRate}) => {
     const isElectric = utilityType === 'electric';
-    const icon = isElectric ? <ThunderboltOutlined style={{color: '#fadb14'}}/> :
-        <WaterDropIcon style={{color: '#1890ff'}}/>;
+    const tone = isElectric
+        ? {fg: C.electric, bg: C.electricSoft}
+        : {fg: C.water, bg: C.waterSoft};
+    const icon = isElectric ? <ThunderboltOutlined/> : <WaterDropIcon/>;
     const unitName = isElectric ? 'หน่วย' : 'ยูนิต';
     const utilityName = isElectric ? 'ค่าไฟ' : 'ค่าน้ำ';
 
+    const RoomBox = ({room, used}) => (
+        <div className="mp-room">
+            <span className="mp-room-icon" style={{background: tone.bg, color: tone.fg}} aria-hidden="true">
+                {icon}
+            </span>
+            <div className="mp-room-line">ห้อง {room} ใช้ไป {used} {unitName}</div>
+            <div className="mp-room-money">
+                คิดเป็น{utilityName}ที่ต้องจ่าย <b>฿{flatRate || 0}</b>
+            </div>
+        </div>
+    );
+
     if (billingType === 'flatRate') {
         return (
-            <Card style={{
-                backgroundColor: '#f5f5f5',
-                marginTop: '16px',
-                borderRadius: '8px',
-                border: '1px solid #e8e8e8'
-            }}>
-                <Title
-                    level={5}
-                    style={{
-                        textAlign: 'center',
-                        marginBottom: '16px',
-                        fontSize: 'clamp(14px, 2.5vw, 18px)'
-                    }}
-                >
-                    ตัวอย่าง: การคิดค่าบริการแบบเหมาจ่าย
-                </Title>
-                <Row gutter={[8, 16]} justify="center">
-                    <Col xs={24} sm={12} md={12}>
-                        <div style={{
-                            textAlign: 'center',
-                            padding: 'clamp(8px, 2vw, 16px)',
-                            backgroundColor: 'white',
-                            borderRadius: '6px',
-                            border: '1px solid #f0f0f0'
-                        }}>
-                            <div style={{
-                                fontSize: 'clamp(1.5rem, 4vw, 2rem)',
-                                marginBottom: '0.5rem'
-                            }}>
-                                {icon}
-                            </div>
-                            <Text style={{fontSize: 'clamp(12px, 2.5vw, 14px)'}}>
-                                ห้อง 101 ใช้ไป 5 {unitName}
-                            </Text><br/>
-                            <Text strong style={{fontSize: 'clamp(12px, 2.5vw, 14px)'}}>
-                                คิดเป็น{utilityName}ที่ต้องจ่าย{' '}
-                                <span style={{
-                                    fontSize: 'clamp(14px, 3vw, 18px)',
-                                    color: '#1890ff'
-                                }}>
-                                    ฿{flatRate || 0}
-                                </span>
-                            </Text>
-                        </div>
-                    </Col>
-                    <Col xs={24} sm={12} md={12}>
-                        <div style={{
-                            textAlign: 'center',
-                            padding: 'clamp(8px, 2vw, 16px)',
-                            backgroundColor: 'white',
-                            borderRadius: '6px',
-                            border: '1px solid #f0f0f0'
-                        }}>
-                            <div style={{
-                                fontSize: 'clamp(1.5rem, 4vw, 2rem)',
-                                marginBottom: '0.5rem'
-                            }}>
-                                {icon}
-                            </div>
-                            <Text style={{fontSize: 'clamp(12px, 2.5vw, 14px)'}}>
-                                ห้อง 202 ใช้ไป 20 {unitName}
-                            </Text><br/>
-                            <Text strong style={{fontSize: 'clamp(12px, 2.5vw, 14px)'}}>
-                                คิดเป็น{utilityName}ที่ต้องจ่าย{' '}
-                                <span style={{
-                                    fontSize: 'clamp(14px, 3vw, 18px)',
-                                    color: '#1890ff'
-                                }}>
-                                    ฿{flatRate || 0}
-                                </span>
-                            </Text>
-                        </div>
-                    </Col>
-                </Row>
-                <Divider style={{margin: '12px 0'}}/>
-                <Paragraph
-                    strong
-                    style={{
-                        textAlign: 'center',
-                        color: '#fa8c16',
-                        marginBottom: 0,
-                        fontSize: 'clamp(12px, 2.5vw, 14px)',
-                        padding: '0 8px'
-                    }}
-                >
-                    ** ไม่ว่าจะใช้น้อยหรือใช้มาก ก็จะคิดค่าบริการในราคาเดียว **
-                </Paragraph>
-            </Card>
+            <div style={{background: C.sunken, border: `1px solid ${C.line}`, borderRadius: 16, padding: 16}}>
+                <h3 className="mp-example-title">ตัวอย่าง: การคิดค่าบริการแบบเหมาจ่าย</h3>
+                <div className="mp-grid-2">
+                    <RoomBox room="101" used={5}/>
+                    <RoomBox room="202" used={20}/>
+                </div>
+                <p className="mp-note">** ไม่ว่าจะใช้น้อยหรือใช้มาก ก็จะคิดค่าบริการในราคาเดียว **</p>
+            </div>
         );
     }
 
     return (
-        <Card style={{
-            backgroundColor: '#f5f5f5',
-            marginTop: '16px',
-            borderRadius: '8px',
-            border: '1px solid #e8e8e8'
-        }}>
-            <Title
-                level={5}
-                style={{
-                    textAlign: 'center',
-                    marginBottom: '16px',
-                    fontSize: 'clamp(14px, 2.5vw, 18px)'
-                }}
-            >
-                ตัวอย่าง: การคิดค่าบริการตามการใช้งานจริง
-            </Title>
-            <div style={{textAlign: 'center', padding: '0 8px'}}>
-                <div style={{
-                    fontSize: 'clamp(1.5rem, 4vw, 2rem)',
-                    marginBottom: '0.5rem'
-                }}>
-                    {icon}
-                </div>
-                <Paragraph style={{fontSize: 'clamp(12px, 2.5vw, 14px)'}}>
-                    สมมติว่าห้อง 101 มีมิเตอร์ก่อนหน้า <b style={{color: '#1890ff'}}>1000</b> และมิเตอร์ล่าสุด <b
-                    style={{color: '#1890ff'}}>1025</b>
-                </Paragraph>
-                <Paragraph style={{
-                    fontSize: 'clamp(12px, 2.2vw, 16px)',
-                    backgroundColor: 'white',
-                    padding: 'clamp(8px, 2vw, 12px)',
-                    borderRadius: '6px',
-                    width: '100%',
-                    maxWidth: '450px',
-                    margin: '0 auto',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                    textAlign: 'left',
-                    border: '1px solid #f0f0f0'
-                }}>
-                    จำนวนที่ใช้: 1025 - 1000 = <b style={{color: '#52c41a'}}>25 {unitName}</b><br/>
-                    อัตราค่าบริการ: <b style={{color: '#722ed1'}}>฿{rate || 0} / {unitName}</b><br/>
-                    <Divider style={{margin: '8px 0'}}/>
-                    <span style={{
-                        fontWeight: 'bold',
-                        fontSize: 'clamp(14px, 2.8vw, 20px)'
-                    }}>
-                        รวมค่าบริการ: 25 * {rate || 0} = <span
-                        style={{color: '#f5222d'}}>฿{(25 * (rate || 0)).toLocaleString()}</span>
-                    </span>
-                </Paragraph>
+        <div style={{background: C.sunken, border: `1px solid ${C.line}`, borderRadius: 16, padding: 16, textAlign: 'center'}}>
+            <h3 className="mp-example-title">ตัวอย่าง: การคิดค่าบริการตามการใช้งานจริง</h3>
+            <span className="mp-room-icon" style={{background: tone.bg, color: tone.fg}} aria-hidden="true">
+                {icon}
+            </span>
+            <p style={{margin: '0 0 12px', fontSize: 14, color: C.muted}}>
+                สมมติว่าห้อง 101 มีมิเตอร์ก่อนหน้า <b style={{color: C.primary}}>1000</b> และมิเตอร์ล่าสุด{' '}
+                <b style={{color: C.primary}}>1025</b>
+            </p>
+            <div className="mp-calc" style={{textAlign: 'left'}}>
+                จำนวนที่ใช้: 1025 - 1000 = <b style={{color: C.okNum}}>25 {unitName}</b><br/>
+                อัตราค่าบริการ: <b style={{color: C.primarySoftText}}>฿{rate || 0} / {unitName}</b>
+                <hr/>
+                <span className="mp-calc-total">
+                    รวมค่าบริการ: 25 * {rate || 0} ={' '}
+                    <span style={{color: C.badNum}}>฿{(25 * (rate || 0)).toLocaleString()}</span>
+                </span>
             </div>
-        </Card>
+        </div>
     );
 };
 
@@ -275,290 +261,169 @@ export default function MetersPages() {
     const utilityConfig = {
         electric: {
             label: 'ค่าไฟฟ้า',
-            icon: <ThunderboltOutlined style={{color: '#FFC107'}}/>,
-            titleStyle: {color: '#d48806', fontWeight: 'bold'},
-            headerStyle: {borderLeft: '5px solid #FFC107', backgroundColor: '#fdebd0'},
+            icon: <ThunderboltOutlined style={{color: C.electric}}/>,
         },
         water: {
             label: 'ค่าน้ำ',
-            icon: <WaterDropIcon style={{color: '#2196F3'}}/>,
-            titleStyle: {color: '#1890ff', fontWeight: 'bold'},
-            headerStyle: {borderLeft: '5px solid #3498db', backgroundColor: '#ebf5fb'},
+            icon: <WaterDropIcon style={{color: C.water}}/>,
         },
     };
 
-    return (
-        <div style={{
-            padding: 'clamp(16px, 3vw, 24px) clamp(8px, 2vw, 16px)',
-            backgroundColor: '#f0f2f5',
-            minHeight: '100vh'
-        }}>
-            <div style={{
-                maxWidth: '960px',
-                margin: '0 auto',
-                width: '100%'
-            }}>
-                <PageHeader
-                    title="ตั้งค่าการคิดค่าน้ำ-ค่าไฟ"
-                    subtitle="กำหนดอัตราคำนวณค่าน้ำและค่าไฟสำหรับอพาร์ทเมนท์"
-                    icon="⚡"
-                />
-
-                <div style={{
-                    textAlign: 'center',
-                    marginBottom: 'clamp(1rem, 3vw, 1.5rem)',
-                    padding: '0 16px'
-                }}>
-                    <Segmented
-                        size="large"
-                        block
-                        style={{
-                            maxWidth: '400px',
-                            margin: '0 auto'
-                        }}
-                        options={[
-                            {
-                                label: (
-                                    <div style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '8px',
-                                        fontSize: 'clamp(12px, 2.5vw, 14px)'
-                                    }}>
-                                        {utilityConfig.electric.icon}
-                                        <span>ค่าไฟฟ้า</span>
-                                    </div>
-                                ),
-                                value: 'electric'
-                            },
-                            {
-                                label: (
-                                    <div style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '8px',
-                                        fontSize: 'clamp(12px, 2.5vw, 14px)'
-                                    }}>
-                                        {utilityConfig.water.icon}
-                                        <span>ค่าน้ำ</span>
-                                    </div>
-                                ),
-                                value: 'water'
-                            },
-                        ]}
-                        value={activeUtility}
-                        onChange={setActiveUtility}
-                    />
-                </div>
-
-                {isLoading ? (
-                    <div style={{textAlign: 'center', padding: '48px 0'}}>
-                        <Spin size="large"/>
-                    </div>
-                ) : !metersData?.length ? (
-                    <Card
-                        title={
-                            <span style={{fontSize: 'clamp(14px, 2.5vw, 16px)'}}>
-                                ({activeUtility === 'electric' ? 'ค่าไฟฟ้า' : 'ค่าน้ำ'}) ปัจจุบันที่กำหนดไว้
-                            </span>
-                        }
-                        style={{
-                            marginBottom: 'clamp(16px, 3vw, 24px)',
-                            backgroundColor: '#fff1f0',
-                            border: '1px solid #ffa39e'
-                        }}
-                    >
-                        <Text strong type="danger" style={{fontSize: 'clamp(12px, 2.5vw, 14px)'}}>
-                            ❌ ยังไม่ได้กำหนดค่าใดๆ
-                        </Text>
-                    </Card>
-                ) : (
-                    <Card
-                        title={
-                            <span style={{fontSize: 'clamp(14px, 2.5vw, 16px)'}}>
-                                📄 ค่าบริการที่ตั้งไว้ปัจจุบัน ({utilityConfig[activeUtility].label})
-                            </span>
-                        }
-                        style={{
-                            marginBottom: 'clamp(16px, 3vw, 24px)',
-                            backgroundColor: '#fafafa',
-                            border: '1px solid #f0f0f0'
-                        }}
-                    >
-                        {currentUtility ? (
-                            <div style={{fontSize: 'clamp(12px, 2.5vw, 14px)'}}>
-                                <Text>วิธีคำนวณ: <Text
-                                    strong>{currentUtility.billingType === 'perUnit' ? 'คิดตามหน่วยที่ใช้' : 'เหมาจ่ายรายเดือน'}</Text></Text><br/>
-                                <Text>
-                                    อัตรา: <Text strong>
-                                    {currentUtility.billingType === 'perUnit'
-                                        ? `${currentUtility.rate} บาท / หน่วย`
-                                        : `${currentUtility.flatRate} บาท / เดือน`}
-                                </Text>
-                                </Text>
-                            </div>
-                        ) : (
-                            <Text strong type="danger" style={{fontSize: 'clamp(12px, 2.5vw, 14px)'}}>
-                                ❌ ยังไม่ได้กำหนดค่านี้
-                            </Text>
-                        )}
-                    </Card>
-                )}
-
-                <Form onFinish={handleSubmit(onFinish)} layout="vertical">
-                    <Card
-                        title={
-                            <Space size="small">
-                                {utilityConfig[activeUtility].icon}
-                                <span style={{
-                                    ...utilityConfig[activeUtility].titleStyle,
-                                    fontSize: 'clamp(14px, 2.8vw, 18px)'
-                                }}>
-                                    ตั้งค่า{utilityConfig[activeUtility].label}
-                                </span>
-                            </Space>
-                        }
-                        style={{
-                            boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                            marginBottom: 'clamp(16px, 3vw, 24px)'
-                        }}
-                        headStyle={{
-                            ...utilityConfig[activeUtility].headerStyle,
-                            padding: 'clamp(12px, 2.5vw, 16px) clamp(16px, 3vw, 24px)'
-                        }}
-                        bodyStyle={{
-                            padding: 'clamp(16px, 3vw, 24px)'
-                        }}
-                    >
-                        <Form.Item
-                            label={
-                                <Title
-                                    level={5}
-                                    style={{
-                                        marginBottom: 0,
-                                        fontSize: 'clamp(14px, 2.8vw, 16px)'
-                                    }}
-                                >
-                                    เลือกวิธีการคำนวณ
-                                </Title>
-                            }
-                            style={{marginBottom: 'clamp(16px, 3vw, 24px)'}}
-                        >
-                            <Controller
-                                name="billingType"
-                                control={control}
-                                render={({field}) => (
-                                    <Segmented
-                                        {...field}
-                                        block
-                                        size="large"
-                                        options={[
-                                            {
-                                                label: (
-                                                    <span style={{fontSize: 'clamp(12px, 2.5vw, 14px)'}}>
-                                                        คิดตามหน่วยที่ใช้
-                                                    </span>
-                                                ),
-                                                value: 'perUnit'
-                                            },
-                                            {
-                                                label: (
-                                                    <span style={{fontSize: 'clamp(12px, 2.5vw, 14px)'}}>
-                                                        เหมาจ่ายรายเดือน
-                                                    </span>
-                                                ),
-                                                value: 'flatRate'
-                                            },
-                                        ]}
-                                    />
-                                )}
-                            />
-                        </Form.Item>
-
-                        {selectedBillingType === 'perUnit' && (
-                            <Form.Item
-                                label={
-                                    <span style={{fontSize: 'clamp(14px, 2.5vw, 16px)'}}>
-                                        อัตราค่าบริการต่อหน่วย
-                                    </span>
-                                }
-                                style={{marginBottom: 'clamp(16px, 3vw, 24px)'}}
-                            >
-                                <NumericInputControllerPage
-                                    type="number"
-                                    controllerName="rate"
-                                    control={control}
-                                    size="large"
-                                    addonAfter="บาท / หน่วย"
-                                    prefix="฿"
-                                    style={{fontSize: 'clamp(14px, 2.5vw, 16px)'}}
-                                />
-                            </Form.Item>
-                        )}
-
-                        {selectedBillingType === 'flatRate' && (
-                            <Form.Item
-                                label={
-                                    <span style={{fontSize: 'clamp(14px, 2.5vw, 16px)'}}>
-                                        ค่าบริการเหมาจ่าย
-                                    </span>
-                                }
-                                style={{marginBottom: 'clamp(16px, 3vw, 24px)'}}
-                            >
-                                <NumericInputControllerPage
-                                    type="number"
-                                    controllerName="flatRate"
-                                    control={control}
-                                    size="large"
-                                    addonAfter="บาท / เดือน"
-                                    prefix="฿"
-                                    style={{fontSize: 'clamp(14px, 2.5vw, 16px)'}}
-                                />
-                            </Form.Item>
-                        )}
-
-                        <Divider style={{margin: 'clamp(16px, 3vw, 24px) 0'}}>
-                            <Space>
-                                <CalculatorOutlined/>
-                                <span style={{fontSize: 'clamp(12px, 2.5vw, 14px)'}}>
-                                    วิธีการคำนวณ
-                                </span>
-                            </Space>
-                        </Divider>
-
-                        <CalculationExample
-                            utilityType={activeUtility}
-                            billingType={selectedBillingType}
-                            rate={currentRate}
-                            flatRate={currentFlatRate}
-                        />
-                    </Card>
-
-                    <div style={{
-                        textAlign: 'center',
-                        marginTop: 'clamp(24px, 4vw, 32px)',
-                        padding: '0 16px'
-                    }}>
-                        <Button
-                            type="primary"
-                            htmlType="submit"
-                            size="large"
-                            icon={<SaveOutlined/>}
-                            style={{
-                                maxWidth: '320px',
-                                width: '100%',
-                                height: 'clamp(40px, 6vw, 48px)',
-                                fontSize: 'clamp(14px, 2.5vw, 16px)',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                            }}
-                        >
-                            บันทึกการตั้งค่า{utilityConfig[activeUtility].label}
-                        </Button>
-                    </div>
-                </Form>
-            </div>
+    const tabLabel = (key) => (
+        <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8}}>
+            {utilityConfig[key].icon}
+            <span>{utilityConfig[key].label}</span>
         </div>
+    );
+
+    return (
+        <ConfigProvider theme={theme}>
+            <style>{css}</style>
+            <div className="mp-root">
+                <div className="mp-wrap">
+                    {/* PageHeader */}
+                    <header className="mp-banner">
+                        <div className="mp-banner-icon" aria-hidden="true"><ThunderboltOutlined/></div>
+                        <div className="mp-banner-text">
+                            <h1 className="mp-banner-title">ตั้งค่าการคิดค่าน้ำ-ค่าไฟ</h1>
+                            <p className="mp-banner-sub">กำหนดอัตราคำนวณค่าน้ำและค่าไฟสำหรับอพาร์ทเมนท์</p>
+                        </div>
+                        <span className="mp-badge-ink">
+                            กำลังตั้งค่า: {utilityConfig[activeUtility].label}
+                        </span>
+                    </header>
+
+                    <div className="mp-tabs">
+                        <Segmented
+                            block
+                            options={[
+                                {label: tabLabel('electric'), value: 'electric'},
+                                {label: tabLabel('water'), value: 'water'},
+                            ]}
+                            value={activeUtility}
+                            onChange={setActiveUtility}
+                        />
+                    </div>
+
+                    {isLoading ? (
+                        <div className="mp-center">
+                            <Spin size="large"/>
+                        </div>
+                    ) : !metersData?.length ? (
+                        <Section
+                            icon={<FileTextOutlined/>}
+                            title={`(${activeUtility === 'electric' ? 'ค่าไฟฟ้า' : 'ค่าน้ำ'}) ปัจจุบันที่กำหนดไว้`}
+                        >
+                            <div className="mp-empty" role="status">ยังไม่ได้กำหนดค่าใดๆ</div>
+                        </Section>
+                    ) : (
+                        <Section
+                            icon={<FileTextOutlined/>}
+                            title={`ค่าบริการที่ตั้งไว้ปัจจุบัน (${utilityConfig[activeUtility].label})`}
+                        >
+                            {currentUtility ? (
+                                <div className="mp-facts">
+                                    <div className="mp-fact">
+                                        <div className="mp-fact-k">วิธีคำนวณ</div>
+                                        <div className="mp-fact-v">
+                                            {currentUtility.billingType === 'perUnit' ? 'คิดตามหน่วยที่ใช้' : 'เหมาจ่ายรายเดือน'}
+                                        </div>
+                                    </div>
+                                    <div className="mp-fact">
+                                        <div className="mp-fact-k">อัตรา</div>
+                                        <div className="mp-fact-v">
+                                            {currentUtility.billingType === 'perUnit'
+                                                ? `${currentUtility.rate} บาท / หน่วย`
+                                                : `${currentUtility.flatRate} บาท / เดือน`}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="mp-empty" role="status">ยังไม่ได้กำหนดค่านี้</div>
+                            )}
+                        </Section>
+                    )}
+
+                    <Form onFinish={handleSubmit(onFinish)} layout="vertical">
+                        <Section
+                            icon={<SettingOutlined/>}
+                            title={`ตั้งค่า${utilityConfig[activeUtility].label}`}
+                        >
+                            <Form.Item
+                                label={<span className="mp-label">เลือกวิธีการคำนวณ</span>}
+                                style={{marginBottom: 20}}
+                            >
+                                <Controller
+                                    name="billingType"
+                                    control={control}
+                                    render={({field}) => (
+                                        <Segmented
+                                            {...field}
+                                            block
+                                            options={[
+                                                {label: 'คิดตามหน่วยที่ใช้', value: 'perUnit'},
+                                                {label: 'เหมาจ่ายรายเดือน', value: 'flatRate'},
+                                            ]}
+                                        />
+                                    )}
+                                />
+                            </Form.Item>
+
+                            {selectedBillingType === 'perUnit' && (
+                                <Form.Item
+                                    label={<span className="mp-label">อัตราค่าบริการต่อหน่วย</span>}
+                                    style={{marginBottom: 20}}
+                                >
+                                    <NumericInputControllerPage
+                                        type="number"
+                                        controllerName="rate"
+                                        control={control}
+                                        addonAfter="บาท / หน่วย"
+                                        prefix="฿"
+                                    />
+                                </Form.Item>
+                            )}
+
+                            {selectedBillingType === 'flatRate' && (
+                                <Form.Item
+                                    label={<span className="mp-label">ค่าบริการเหมาจ่าย</span>}
+                                    style={{marginBottom: 20}}
+                                >
+                                    <NumericInputControllerPage
+                                        type="number"
+                                        controllerName="flatRate"
+                                        control={control}
+                                        addonAfter="บาท / เดือน"
+                                        prefix="฿"
+                                    />
+                                </Form.Item>
+                            )}
+
+                            <div className="mp-section-head" style={{margin: '8px 0 16px'}}>
+                                <span className="mp-section-icon" aria-hidden="true"><CalculatorOutlined/></span>
+                                <h3 className="mp-section-title">วิธีการคำนวณ</h3>
+                            </div>
+
+                            <CalculationExample
+                                utilityType={activeUtility}
+                                billingType={selectedBillingType}
+                                rate={currentRate}
+                                flatRate={currentFlatRate}
+                            />
+                        </Section>
+
+                        <div className="mp-save" style={{marginTop: 24}}>
+                            <Button
+                                type="primary"
+                                htmlType="submit"
+                                icon={<SaveOutlined/>}
+                            >
+                                บันทึกการตั้งค่า{utilityConfig[activeUtility].label}
+                            </Button>
+                        </div>
+                    </Form>
+                </div>
+            </div>
+        </ConfigProvider>
     );
 }

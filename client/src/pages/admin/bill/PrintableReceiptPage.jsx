@@ -4,8 +4,6 @@ import React from "react";
 const { Title } = Typography;
 
 const PrintableReceiptPage = ({ bill, apartmentData, copyTitle }) => {
-    console.log(`⩇⩇:⩇⩇🚨 ~ bill :`, bill);
-
 
     const apartmentInfo = {
         name: apartmentData?.result?.apartmentName,

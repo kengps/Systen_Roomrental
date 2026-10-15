@@ -1,0 +1,362 @@
+/* ========================================
+   BillingForm — Modern Purple-Accent Theme
+   ======================================== */
+
+/* Page wrapper */
+.billing-page-wrapper {
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f0ff 100%);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  min-height: calc(100vh - 100px);
+}
+
+/* ===== Header Card ===== */
+.billing-header-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%) !important;
+  border: 1px solid rgba(145, 85, 253, 0.12) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 8px 28px rgba(145, 85, 253, 0.08) !important;
+  padding: 24px 28px !important;
+}
+
+.billing-header-title {
+  color: #1a1a2e !important;
+  font-weight: 800 !important;
+  font-size: 22px !important;
+  letter-spacing: 0.5px !important;
+  margin-bottom: 4px !important;
+}
+
+.billing-header-text {
+  color: rgba(82, 82, 93, 0.8) !important;
+  font-size: 14px !important;
+}
+
+/* Copy button */
+.billing-copy-btn {
+  background: #fff !important;
+  color: #9155FD !important;
+  border: 1px solid rgba(145, 85, 253, 0.2) !important;
+  border-radius: 12px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 14px rgba(145, 85, 253, 0.12) !important;
+  height: 44px !important;
+  transition: all 0.3s ease !important;
+}
+
+.billing-copy-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(145, 85, 253, 0.2) !important;
+  border-color: rgba(145, 85, 253, 0.4) !important;
+}
+
+/* ===== Section Cards ===== */
+.billing-section-card {
+  background: #fff !important;
+  border: 1px solid rgba(145, 85, 253, 0.08) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+  transition: all 0.3s ease !important;
+}
+
+.billing-section-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05) !important;
+  border-color: rgba(145, 85, 253, 0.12) !important;
+}
+
+.billing-card-header {
+  border-radius: 16px 16px 0 0 !important;
+  border: none !important;
+  padding: 16px 20px !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+/* Tenant Card — purple theme */
+.billing-tenant-card .billing-card-header,
+.billing-tenant-card .ant-card-head {
+  background: linear-gradient(135deg, rgba(145, 85, 253, 0.08) 0%, rgba(211, 51, 255, 0.06) 100%) !important;
+  border-bottom: 1px solid rgba(145, 85, 253, 0.1) !important;
+}
+
+.billing-tenant-card .billing-card-header::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 18px;
+  border-radius: 2px;
+  background: linear-gradient(135deg, #9155FD 0%, #D333FF 100%);
+  margin-right: 8px;
+}
+
+/* Billing Period Card */
+.billing-period-card .ant-card-head {
+  background: linear-gradient(135deg, rgba(145, 85, 253, 0.05) 0%, rgba(211, 51, 255, 0.04) 100%) !important;
+  border-bottom: 1px solid rgba(145, 85, 253, 0.08) !important;
+}
+
+/* Utility Cards */
+.billing-electric-card .ant-card-head {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.05) 100%) !important;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.12) !important;
+}
+
+.billing-water-card .ant-card-head {
+  background: linear-gradient(135deg, rgba(37, 99, 237, 0.08) 0%, rgba(37, 99, 237, 0.05) 100%) !important;
+  border-bottom: 1px solid rgba(37, 99, 237, 0.12) !important;
+}
+
+/* Additional charges card */
+.billing-additional-card .ant-card-head {
+  background: linear-gradient(135deg, rgba(186, 134, 207, 0.08) 0%, rgba(186, 134, 207, 0.05) 100%) !important;
+  border-bottom: 1px solid rgba(186, 134, 207, 0.12) !important;
+}
+
+/* Discount card */
+.billing-discount-card .ant-card-head {
+  background: linear-gradient(135deg, rgba(40, 167, 69, 0.08) 0%, rgba(40, 167, 69, 0.05) 100%) !important;
+  border-bottom: 1px solid rgba(40, 167, 69, 0.12) !important;
+}
+
+/* ===== Input styling ===== */
+.billing-input {
+  border-radius: 10px !important;
+  transition: all 0.3s ease !important;
+}
+
+.billing-input:focus-within {
+  border-color: #9155FD !important;
+  box-shadow: 0 0 0 2px rgba(145, 85, 253, 0.15) !important;
+}
+
+.billing-input-number {
+  border-radius: 10px !important;
+}
+
+/* ===== Buttons ===== */
+.billing-btn-primary {
+  background: linear-gradient(135deg, #9155FD 0%, #D333FF 100%) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 14px rgba(145, 85, 253, 0.35) !important;
+  height: 44px !important;
+  transition: all 0.3s ease !important;
+}
+
+.billing-btn-primary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(145, 85, 253, 0.45) !important;
+}
+
+.billing-btn-primary:disabled {
+  opacity: 0.5 !important;
+  transform: none !important;
+  box-shadow: 0 4px 14px rgba(145, 85, 253, 0.2) !important;
+}
+
+.billing-btn-outline {
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  height: 38px !important;
+  transition: all 0.2s ease !important;
+  border-width: 1px !important;
+}
+
+.billing-btn-outline-purple {
+  color: #9155FD !important;
+  border-color: rgba(145, 85, 253, 0.3) !important;
+}
+
+.billing-btn-outline-purple:hover {
+  background: rgba(145, 85, 253, 0.06) !important;
+  border-color: rgba(145, 85, 253, 0.5) !important;
+  color: #7935e2 !important;
+}
+
+.billing-btn-outline-danger {
+  color: #ff4d4f !important;
+  border-color: rgba(255, 77, 79, 0.3) !important;
+}
+
+.billing-btn-outline-danger:hover {
+  background: rgba(255, 77, 79, 0.06) !important;
+  border-color: rgba(255, 77, 79, 0.5) !important;
+}
+
+.billing-btn-outline-success {
+  color: #52c41a !important;
+  border-color: rgba(82, 196, 26, 0.4) !important;
+}
+
+.billing-btn-outline-success:hover {
+  background: rgba(82, 196, 26, 0.06) !important;
+  border-color: rgba(82, 196, 26, 0.6) !important;
+}
+
+/* ===== Total Card ===== */
+.billing-total-card {
+  background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%) !important;
+  border: 2px solid rgba(145, 85, 253, 0.1) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 8px 32px rgba(145, 85, 253, 0.08) !important;
+  padding: 24px !important;
+}
+
+.billing-total-inner {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 16px !important;
+  flex-wrap: wrap !important;
+}
+
+.billing-total-label {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.billing-total-label-title {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: #1a1a2e !important;
+  margin: 0 !important;
+}
+
+.billing-total-label-hint {
+  font-size: 12px !important;
+  color: rgba(82, 82, 93, 0.6) !important;
+  margin: 0 !important;
+}
+
+.billing-total-amount {
+  font-size: 28px !important;
+  font-weight: 800 !important;
+  margin: 0 !important;
+}
+
+.billing-total-positive {
+  color: #d46b08 !important;
+}
+
+.billing-total-negative {
+  color: #389e0d !important;
+}
+
+/* ===== Utility meter readouts ===== */
+.billing-meter-readout {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 4px !important;
+  padding: 6px 0 !important;
+}
+
+.billing-meter-readout .ant-text {
+  font-size: 13px !important;
+}
+
+.billing-meter-readout .ant-text strong {
+  font-size: 15px !important;
+  color: #1a1a2e !important;
+}
+
+.billing-meter-readout .ant-divider {
+  margin: 4px 0 !important;
+  border-color: rgba(145, 85, 253, 0.06) !important;
+}
+
+/* ===== Table styling ===== */
+.billing-table .ant-table {
+  background: transparent !important;
+}
+
+.billing-table .ant-table-container {
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+.billing-table .ant-table-thead > tr > th {
+  background: rgba(145, 85, 253, 0.04) !important;
+  border-bottom: 1px solid rgba(145, 85, 253, 0.08) !important;
+  font-weight: 600 !important;
+  color: #333842 !important;
+  font-size: 12px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.billing-table .ant-table-tbody > tr > td {
+  border-bottom: 1px solid rgba(145, 85, 253, 0.04) !important;
+  font-size: 13px !important;
+}
+
+.billing-table .ant-table-tbody > tr:hover {
+  background: rgba(145, 85, 253, 0.02) !important;
+}
+
+.billing-table .ant-input,
+.billing-table .ant-input-number {
+  border-radius: 8px !important;
+  border: 1px solid rgba(145, 85, 253, 0.08) !important;
+  transition: all 0.2s ease !important;
+}
+
+.billing-table .ant-input:focus,
+.billing-table .ant-input-number:focus {
+  border-color: #9155FD !important;
+  box-shadow: 0 0 0 2px rgba(145, 85, 253, 0.12) !important;
+}
+
+.billing-table .ant-btn-dangerous:hover {
+  color: #ff4d4f !important;
+  border-color: rgba(255, 77, 79, 0.4) !important;
+}
+
+/* ===== Tenant Info List ===== */
+.billing-tenant-info {
+  font-size: 14px !important;
+}
+
+.billing-tenant-info .ant-text {
+  font-size: 14px !important;
+}
+
+.billing-tenant-info-mobile {
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 576px) {
+  .billing-page-wrapper {
+    padding: 16px;
+  }
+
+  .billing-header-title {
+    font-size: 20px !important;
+  }
+
+  .billing-total-card {
+    padding: 20px !important;
+  }
+
+  .billing-total-inner {
+    flex-direction: column !important;
+    text-align: center !important;
+  }
+
+  .billing-total-amount {
+    font-size: 26px !important;
+  }
+
+  .billing-header-card {
+    padding: 20px !important;
+  }
+}

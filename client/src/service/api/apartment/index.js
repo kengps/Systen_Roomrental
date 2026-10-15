@@ -45,17 +45,12 @@ export const getDataApartment = async (profileId) => {
 
     return re
 }
-export const getTenants = async (accountId) => {
-
-
+export const getTenants = async (accountId, { page = 1, limit = 10, status } = {}) => {
     const re = await axios.get(`${import.meta.env.VITE_REACT_APP_API}/get-tenant`, {
-        params: {accountId}
-
-    })
-
-
-    return re.data
-}
+        params: { accountId, page, limit, status },
+    });
+    return re.data;
+};
 
 export const addMeters = async (value) => {
 

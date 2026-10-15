@@ -1,14 +1,120 @@
-import { CheckOutlined, CopyOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
+import {
+    BankOutlined,
+    CheckOutlined,
+    CopyOutlined,
+    DeleteOutlined,
+    EditOutlined,
+    PlusOutlined,
+} from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
-import { Avatar, Button, Card, Empty, List, message, Modal, Popconfirm, Space, Tooltip, Typography } from 'antd';
+import { Avatar, Button, ConfigProvider, message, Modal, Popconfirm } from 'antd';
 import { useEffect, useState } from 'react';
-import PageHeader from '../../../components/common/PageHeader';
-const { Title, Text } = Typography;
 
 import allThaiBanks from '../../../../bank.json';
 import { createBankAccount, deleteBankAccount, listBankAccount } from '../../../service/api/apartment';
 import persistMiddleware from '../../../service/zustand/middleware/persistMiddleware';
 import ManageBanksPage from './ManageBanksPage';
+
+/* ---------- Design tokens ---------- */
+const C = {
+    ink: '#0F172A',
+    raised: '#1E2A4A',
+    page: '#F4F5F9',
+    card: '#FFFFFF',
+    line: '#E6E8F0',
+    muted: '#5B6478',
+    sunken: '#F7F8FC',
+    primary: '#4F46E5',
+    primaryDeep: '#4338CA',
+    primarySoft: '#EEF0FF',
+    primarySoftLine: '#C7CCF5',
+    primarySoftText: '#3730A3',
+    okFg: '#15803D',
+    dangerBg: '#FFE4E9',
+    dangerFg: '#9F1239',
+    dangerNum: '#BE123C',
+    onDarkMuted: '#A5B0C6',
+    onDarkIcon: '#A5B4FC',
+};
+
+const FONT = "'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif";
+
+const theme = {
+    token: { colorPrimary: C.primary, borderRadius: 12, fontFamily: FONT, controlHeight: 44 },
+};
+
+const css = `
+.bk-page {
+    max-width: 800px; margin: 0 auto; padding: 24px; width: 100%;
+    box-sizing: border-box; font-family: ${FONT}; color: ${C.ink}; background: ${C.page};
+}
+.bk-stack { display: flex; flex-direction: column; gap: 20px; }
+
+.bk-banner {
+    background: ${C.ink}; border-radius: 20px; padding: 24px 28px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+}
+.bk-banner-icon {
+    width: 52px; height: 52px; border-radius: 14px; background: ${C.raised}; color: ${C.onDarkIcon};
+    display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;
+}
+.bk-banner-text { flex: 1 1 240px; min-width: 0; }
+.bk-banner h1 { margin: 0; font-size: 26px; font-weight: 700; color: #fff; line-height: 1.3; }
+.bk-banner p { margin: 4px 0 0; font-size: 14px; color: ${C.onDarkMuted}; }
+
+.bk-btn.ant-btn {
+    background: ${C.primary}; color: #fff; font-weight: 600; border: none;
+    border-radius: 12px; height: 44px; padding: 0 22px;
+}
+.bk-btn.ant-btn:hover { background: ${C.primaryDeep} !important; color: #fff !important; }
+
+.bk-section {
+    background: ${C.card}; border: 1px solid ${C.line}; border-radius: 20px; padding: 24px;
+}
+.bk-list { display: flex; flex-direction: column; gap: 10px; }
+.bk-row {
+    display: flex; align-items: center; gap: 14px;
+    background: ${C.sunken}; border: 1px solid ${C.line}; border-radius: 16px; padding: 12px 16px;
+}
+.bk-logo.ant-avatar { border-radius: 10px; background: ${C.card}; border: 1px solid ${C.line}; flex-shrink: 0; }
+.bk-info { flex: 1; min-width: 0; }
+.bk-bank { font-size: 16px; font-weight: 700; color: ${C.ink}; }
+.bk-meta { margin-top: 2px; font-size: 14px; color: ${C.muted}; word-break: break-word; }
+.bk-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+
+.bk-icon-btn {
+    width: 40px; height: 40px; border-radius: 10px; border: 0; background: transparent;
+    color: ${C.muted}; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    font-size: 16px; font-family: inherit;
+}
+.bk-icon-btn:hover { background: ${C.primarySoft}; color: ${C.primarySoftText}; }
+.bk-icon-btn.ok { color: ${C.okFg}; }
+.bk-icon-btn.danger { color: ${C.dangerNum}; }
+.bk-icon-btn.danger:hover { background: ${C.dangerBg}; color: ${C.dangerFg}; }
+
+.bk-empty { text-align: center; padding: 40px 16px; }
+.bk-empty-icon {
+    width: 64px; height: 64px; border-radius: 16px; margin: 0 auto 16px;
+    background: ${C.primarySoft}; color: ${C.primary};
+    display: flex; align-items: center; justify-content: center; font-size: 28px;
+}
+.bk-empty p { margin: 0; font-size: 14px; color: ${C.muted}; }
+
+.bk-modal-title { font-size: 16px; font-weight: 700; color: ${C.ink}; font-family: ${FONT}; }
+
+.bk-page button:focus-visible, .bk-page .ant-btn:focus-visible {
+    outline: 3px solid ${C.primary}; outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+    .bk-page { padding: 12px; }
+    .bk-banner { padding: 20px; border-radius: 16px; }
+    .bk-banner h1 { font-size: 22px; }
+    .bk-banner .bk-btn { width: 100%; }
+    .bk-section { padding: 16px; border-radius: 16px; }
+    .bk-row { padding: 10px 12px; gap: 10px; }
+}
+`;
 
 // ฟังก์ชันแปลงข้อมูลธนาคารให้หาได้ง่าย
 const banksMap = new Map(allThaiBanks.map(bank => [bank.key, bank]));
@@ -74,7 +180,7 @@ const BankAccountForm = () => {
 
     // ✨ CHANGE: ฟังก์ชันสำหรับบันทึกข้อมูล (รองรับทั้งเพิ่มและแก้ไข)
     const handleSaveBank = async (values) => {
-       
+
         if (editingBank) {
             // โหมดแก้ไข
             setUserBanks(userBanks.map(bank =>
@@ -135,73 +241,111 @@ const BankAccountForm = () => {
             message.error('ไม่สามารถคัดลอกได้');
         });
     };
+
+    const bankList = userBanks || [];
+
     return (
-        <div style={{ background: '#f5f5f5', padding: '40px 24px' }}>
-            <PageHeader
-                title="บัญชีธนาคารของฉัน"
-                subtitle="จัดการบัญชีธนาคารสำหรับรับชำระเงิน"
-                icon="🏦"
-            />
-            
-            <Card
-                extra={<Button type="primary" icon={<PlusOutlined />} onClick={handleShowAddModal}>เพิ่มบัญชีใหม่</Button>}
-                style={{ maxWidth: 800, margin: '0 auto', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}
-            >
-                <List
-                    itemLayout="horizontal"
-                    dataSource={userBanks}
-                    locale={{ emptyText: <Empty description="ยังไม่มีบัญชีธนาคาร" /> }}
-                    renderItem={(item) => {
-                        const bankInfo = banksMap.get(item.bankKey);
-                        return (
-                            <List.Item
-                                actions={[
-                                    // ✨ CHANGE: เพิ่มปุ่มแก้ไข
-                                    <Tooltip title="แก้ไข" key="edit">
-                                        <Button type="text" icon={<EditOutlined />} onClick={() => handleShowEditModal(item)} />
-                                    </Tooltip>,
-                                    <Tooltip title="ลบ" key="delete">
-                                        <Popconfirm
-                                            title="ยืนยันการลบบัญชี?"
-                                            onConfirm={() => handleDeleteBank(item._id)}
-                                            okText="ยืนยัน"
-                                            cancelText="ยกเลิก"
-                                        >
-                                            <Button type="text" danger icon={<DeleteOutlined />} />
-                                        </Popconfirm>
-                                    </Tooltip>
-                                ]}
-                            >
-                                <List.Item.Meta
-                                    avatar={<Avatar src={`/icons/banks/${bankInfo.key.toUpperCase()}.png`} size="large" />}
-                                    title={<Text strong>{bankInfo.thai_name}</Text>}
-                                    description={`${item.accountName} - ${item.accountNumber}`}
-                                />
-                            </List.Item>
-                        );
-                    }}
-                />
-            </Card>
+        <ConfigProvider theme={theme}>
+            <style>{css}</style>
+            <div className="bk-page">
+                <div className="bk-stack">
+                    <header className="bk-banner">
+                        <div className="bk-banner-icon" aria-hidden="true"><BankOutlined /></div>
+                        <div className="bk-banner-text">
+                            <h1>บัญชีธนาคารของฉัน</h1>
+                            <p>จัดการบัญชีธนาคารสำหรับรับชำระเงิน</p>
+                        </div>
+                        <Button type="primary" className="bk-btn" icon={<PlusOutlined />} onClick={handleShowAddModal}>
+                            เพิ่มบัญชีใหม่
+                        </Button>
+                    </header>
 
-            <Modal
-                // ✨ CHANGE: เปลี่ยน Title ของ Modal ตามโหมด
-                title={<Title level={5}>{isEditing ? 'แก้ไขบัญชีธนาคาร' : 'เพิ่มบัญชีธนาคารใหม่'}</Title>}
-                open={isModalVisible}
-                onCancel={handleCancelModal}
-                footer={null}
-                destroyOnHidden
-                centered
-            >
-                {/* ✨ CHANGE: ส่งข้อมูลเริ่มต้นและฟังก์ชัน onFinish ไปยังฟอร์ม */}
-                <ManageBanksPage
-                    onFinish={handleSaveBank}
-                    initialValues={editingBank?.formValues}
+                    <section className="bk-section">
+                        {bankList.length === 0 ? (
+                            <div className="bk-empty">
+                                <div className="bk-empty-icon" aria-hidden="true"><BankOutlined /></div>
+                                <p>ยังไม่มีบัญชีธนาคาร</p>
+                            </div>
+                        ) : (
+                            <div className="bk-list">
+                                {bankList.map((item, index) => {
+                                    const bankInfo = banksMap.get(item.bankKey);
+                                    const rowId = item._id ?? item.id ?? index;
+                                    const isCopied = copiedId === rowId;
+                                    const bankName = bankInfo?.thai_name ?? item.bankKey;
+                                    return (
+                                        <div className="bk-row" key={rowId}>
+                                            <Avatar
+                                                className="bk-logo"
+                                                size="large"
+                                                src={bankInfo ? `/icons/banks/${bankInfo.key.toUpperCase()}.png` : undefined}
+                                                icon={<BankOutlined />}
+                                            />
+                                            <div className="bk-info">
+                                                <div className="bk-bank">{bankName}</div>
+                                                <div className="bk-meta">{`${item.accountName} - ${item.accountNumber}`}</div>
+                                            </div>
+                                            <div className="bk-actions">
+                                                <button
+                                                    type="button"
+                                                    className={`bk-icon-btn${isCopied ? ' ok' : ''}`}
+                                                    aria-label={`คัดลอกเลขบัญชี ${bankName}`}
+                                                    onClick={() => handleCopy(item.accountNumber, rowId)}
+                                                >
+                                                    {isCopied ? <CheckOutlined /> : <CopyOutlined />}
+                                                </button>
+                                                {/* ✨ CHANGE: เพิ่มปุ่มแก้ไข */}
+                                                <button
+                                                    type="button"
+                                                    className="bk-icon-btn"
+                                                    aria-label={`แก้ไขบัญชี ${bankName}`}
+                                                    onClick={() => handleShowEditModal(item)}
+                                                >
+                                                    <EditOutlined />
+                                                </button>
+                                                <Popconfirm
+                                                    title="ยืนยันการลบบัญชี?"
+                                                    onConfirm={() => handleDeleteBank(item._id)}
+                                                    okText="ยืนยัน"
+                                                    cancelText="ยกเลิก"
+                                                >
+                                                    <button
+                                                        type="button"
+                                                        className="bk-icon-btn danger"
+                                                        aria-label={`ลบบัญชี ${bankName}`}
+                                                    >
+                                                        <DeleteOutlined />
+                                                    </button>
+                                                </Popconfirm>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </section>
+                </div>
+
+                <Modal
+                    // ✨ CHANGE: เปลี่ยน Title ของ Modal ตามโหมด
+                    title={<div className="bk-modal-title">{isEditing ? 'แก้ไขบัญชีธนาคาร' : 'เพิ่มบัญชีธนาคารใหม่'}</div>}
+                    open={isModalVisible}
+                    onCancel={handleCancelModal}
+                    footer={null}
+                    destroyOnHidden
+                    centered
+                    styles={{ content: { borderRadius: 20 } }}
+                >
+                    {/* ✨ CHANGE: ส่งข้อมูลเริ่มต้นและฟังก์ชัน onFinish ไปยังฟอร์ม */}
+                    <ManageBanksPage
+                        onFinish={handleSaveBank}
+                        initialValues={editingBank?.formValues}
 
 
-                />
-            </Modal>
-
-        </div>
+                    />
+                </Modal>
+            </div>
+        </ConfigProvider>
     );
 };
 

@@ -163,26 +163,31 @@ const editTenants = handleRequestError(async (c) => {
 
 
 const getTenantParent = handleRequestError(async (c) => {
-
-
-    const {accountId} = await c.req.query()
+    const {accountId, page = '1', limit = '10'} = c.req.query()
 
     let ownerId = await findOwner(accountId)
 
-
-    if (!ownerId || Array.isArray(ownerId) && ownerId.length === 0) {
-
+    if (
+        !ownerId ||
+        (Array.isArray(ownerId) && ownerId.length === 0)
+    ) {
         ownerId = accountId
     }
 
+    const currentPage = Math.max(1, parseInt(page, 10) || 1)
+    const pageLimit = Math.min(
+        100,
+        Math.max(1, parseInt(limit, 10) || 10)
+    )
 
-    const result = await getTeanantInParent(ownerId)
+    const result = await getTeanantInParent(
+        ownerId,
+        currentPage,
+        pageLimit
+    )
 
-    return sendResponseHono(c, 201, "data Tenant", result);
-
-
+    return sendResponseHono(c, 200, "data Tenant", result)
 })
-
 
 const updateTenancy = handleRequestError(async (c) => {
 

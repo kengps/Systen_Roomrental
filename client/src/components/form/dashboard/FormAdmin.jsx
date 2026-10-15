@@ -213,31 +213,21 @@ const FormAdmin = () => {
             {isMobile ? (
                 // Mobile Layout: Menu on top
                 <Box sx={{display: "flex", flexDirection: "column", flexGrow: 1}}>
-                    {/* Mobile Menu Bar */}
-                    <Box sx={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        zIndex: 1000,
-                        background: 'linear-gradient(135deg, #19478c 0%, #2a5a9c 100%)',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                    }}>
-                        <AppSidebar
-                            handleMenuClick={handleMenuClick}
-                            collapsed={false}
-                            menuItems={menuItems}
-                            onOpenChange={onOpenChange}
-                            openKeys={openKeys}
-                            user={user}
-                        />
-                    </Box>
+                    {/* Mobile Sidebar (renders its own sticky header + Drawer menu) */}
+                    <AppSidebar
+                        handleMenuClick={handleMenuClick}
+                        collapsed={false}
+                        menuItems={menuItems}
+                        onOpenChange={onOpenChange}
+                        openKeys={openKeys}
+                        user={user}
+                    />
 
-                    {/* Mobile Content */}
+                    {/* Mobile Content — offset below the sticky header */}
                     <Box sx={{
-                        marginTop: '70px', // Space for fixed menu
+                        marginTop: '64px',
                         flexGrow: 1,
-                        minHeight: 'calc(100vh - 70px)'
+                        minHeight: 'calc(100vh - 64px)'
                     }}>
                         <AppContent
                             colorBg={colorBgContainer}

@@ -1,14 +1,265 @@
 import React, { useState, useMemo, useEffect } from 'react'
-import { Spin, Alert, Segmented, Card, InputNumber, Button, Space, Typography, Row, Col, message, Input, Select, Divider } from 'antd'
-import { ThunderboltOutlined, DropboxOutlined, SaveOutlined, SearchOutlined, FilterOutlined } from '@ant-design/icons'
-import PageHeader from '../../../../components/common/PageHeader'
-import './ListRoomChangeUnitForm.css'
+import { Spin, Alert, Segmented, InputNumber, Button, Typography, message, Input, Select, ConfigProvider } from 'antd'
+import Icon, { ThunderboltOutlined, SaveOutlined, SearchOutlined, FilterOutlined, CheckOutlined, DownOutlined } from '@ant-design/icons'
 import persistMiddleware from '../../../../service/zustand/middleware/persistMiddleware'
 import { updateUnitMeter } from '../../../../service/api/rooms'
 import { addNotify } from '../../../../utilities/notify'
 import { getNumericInputProps } from '../../../../utilities/inputValidation'
 
-const { Title, Text } = Typography
+const { Text } = Typography
+
+/* ───────── Design tokens ───────── */
+const C = {
+    ink: '#0F172A',
+    raised: '#1E2A4A',
+    page: '#F4F5F9',
+    card: '#FFFFFF',
+    line: '#E6E8F0',
+    muted: '#5B6478',
+    sunken: '#F7F8FC',
+    primary: '#4F46E5',
+    primaryDeep: '#4338CA',
+    primarySoft: '#EEF0FF',
+    primaryTint: '#F3F4FF',
+    primarySoftLine: '#C7CCF5',
+    primarySoftText: '#3730A3',
+    water: '#2563EB',
+    waterSoft: '#E6EEFF',
+    electric: '#B45309',
+    electricSoft: '#FEF1DC',
+    mutedOnInk: '#A5B0C6',
+    iconOnInk: '#A5B4FC',
+}
+
+const FONT = "'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif"
+
+const theme = {
+    token: { colorPrimary: C.primary, borderRadius: 12, fontFamily: FONT, controlHeight: 44 },
+}
+
+// ไอคอนหยดน้ำ (antd ไม่มีไอคอนน้ำในชุดมาตรฐาน) ใช้ตัวเดียวกับหน้า BillingForm
+const WaterDropSvg = () => (
+    <svg viewBox="0 0 1024 1024" fill="currentColor" width="1em" height="1em" aria-hidden="true">
+        <path d="M512 960C335.3 960 192 816.7 192 640c0-170.7 176.7-347.3 320-515.7C655.3 292.7 832 469.3 832 640c0 176.7-143.3 320-320 320zM512 213.3c-106.7 124.3-234.7 262.2-234.7 426.7 0 129.4 105.3 234.7 234.7 234.7s234.7-105.3 234.7-234.7C746.7 475.5 618.7 337.6 512 213.3z" />
+    </svg>
+)
+const WaterDropIcon = (props) => <Icon component={WaterDropSvg} {...props} />
+
+const KIND = {
+    water: { fg: C.water, soft: C.waterSoft, label: 'ค่าน้ำ', Icon: WaterDropIcon },
+    electric: { fg: C.electric, soft: C.electricSoft, label: 'ค่าไฟ', Icon: ThunderboltOutlined },
+}
+
+const css = `
+.lu-root { font-family: ${FONT}; color: ${C.ink}; }
+
+/* PageHeader */
+.lu-banner {
+  background: ${C.ink}; border-radius: 20px; padding: 24px 28px;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+}
+.lu-banner-icon {
+  width: 52px; height: 52px; border-radius: 14px; flex: none;
+  background: ${C.raised}; color: ${C.iconOnInk}; font-size: 24px;
+  display: flex; align-items: center; justify-content: center;
+}
+.lu-banner h1 { margin: 0; font-size: 26px; font-weight: 700; color: #fff; line-height: 1.25; }
+.lu-banner p { margin: 4px 0 0; font-size: 14px; color: ${C.mutedOnInk}; }
+
+/* Section */
+.lu-section {
+  background: ${C.card}; border: 1px solid ${C.line}; border-radius: 20px;
+  padding: 24px; margin-top: 24px;
+}
+.lu-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.lu-row + .lu-row { margin-top: 16px; padding-top: 16px; border-top: 1px solid ${C.line}; }
+.lu-grow { flex: 1 1 220px; min-width: 0; }
+.lu-count { margin-left: auto; font-size: 14px; color: ${C.muted}; }
+.lu-count b { color: ${C.primarySoftText}; font-weight: 700; }
+
+.lu-seg .ant-segmented { padding: 4px; background: ${C.sunken}; border: 1px solid ${C.line}; }
+.lu-seg .ant-segmented-item-label { display: flex; align-items: center; gap: 8px; min-height: 36px; line-height: 36px; font-weight: 600; }
+
+/* Bulk bar */
+.lu-bulk {
+  background: ${C.sunken}; border: 1px solid ${C.line}; border-radius: 16px;
+  padding: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+}
+.lu-pill {
+  display: inline-flex; align-items: center; gap: 10px; min-height: 44px;
+  padding: 0 14px; border-radius: 12px; background: ${C.card}; border: 1px solid ${C.line};
+  font-size: 15px; font-weight: 600; color: ${C.ink};
+}
+.lu-pill--soft { background: ${C.primarySoft}; border-color: ${C.primarySoftLine}; color: ${C.primarySoftText}; }
+.lu-pill input[type="checkbox"] { width: 18px; height: 18px; accent-color: ${C.primary}; cursor: pointer; margin: 0; }
+.lu-pill label { cursor: pointer; display: inline-flex; align-items: center; gap: 10px; }
+.lu-pill:focus-within { outline: 3px solid ${C.primarySoftLine}; outline-offset: 2px; }
+
+/* Buttons */
+.lu-btn2 {
+  height: 36px; padding: 0 14px; border-radius: 12px; cursor: pointer; white-space: nowrap;
+  font-family: ${FONT}; font-size: 13px; font-weight: 600;
+  background: ${C.primarySoft}; border: 1px solid ${C.primarySoftLine}; color: ${C.primarySoftText};
+  transition: background-color .15s ease;
+}
+.lu-btn2:hover { background: #E2E6FF; }
+.lu-btn2:focus-visible, .lu-room-head:focus-visible { outline: 3px solid ${C.primarySoftLine}; outline-offset: 2px; }
+.lu-primary.ant-btn { font-weight: 600; color: #fff; }
+
+/* Floor accordion (เหมือน ListRoom) */
+.lu-floors { margin-top: 24px; display: flex; flex-direction: column; gap: 16px; }
+.lu-expandbar { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
+.lu-expandbar + .lu-floors { margin-top: 12px; }
+.lu-flat { margin-top: 24px; }
+.lu-floor { background: ${C.card}; border: 1px solid ${C.line}; border-radius: 20px; overflow: hidden; }
+.lu-floor-toggle {
+  width: 100%; box-sizing: border-box; min-height: 72px; padding: 16px 24px; border: none;
+  background: ${C.card}; display: flex; align-items: center; gap: 16px; text-align: left;
+  cursor: pointer; font-family: ${FONT}; color: ${C.ink}; transition: background-color .15s ease;
+}
+.lu-floor-toggle:hover { background: ${C.sunken}; }
+.lu-floor-toggle:focus-visible { outline: 3px solid ${C.primarySoftLine}; outline-offset: -3px; }
+.lu-floor-badge {
+  width: 40px; height: 40px; border-radius: 12px; flex: none; font-size: 18px; font-weight: 700;
+  background: ${C.primarySoft}; color: ${C.primaryDeep};
+  display: flex; align-items: center; justify-content: center;
+}
+.lu-floor-info { flex: 1; min-width: 0; }
+.lu-floor-title { display: block; font-size: 17px; font-weight: 700; color: ${C.ink}; }
+.lu-floor-meta { display: block; font-size: 14px; color: ${C.muted}; }
+.lu-tag { padding: 4px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.lu-tag--sel { background: ${C.primary}; color: #fff; }
+.lu-tag--fill { background: ${C.primarySoft}; color: ${C.primarySoftText}; }
+.lu-chev { flex: none; color: #64748B; transition: transform .2s ease; }
+.lu-chev--open { transform: rotate(180deg); }
+.lu-floor-body { padding: 0 24px 24px; display: flex; flex-direction: column; gap: 16px; }
+.lu-floor-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* Room cards (เหมือน RoomCard ใน ListRoom) */
+.lu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 12px; }
+.lu-room {
+  box-sizing: border-box; background: ${C.card}; border: 1.5px solid ${C.line}; border-radius: 16px; padding: 16px;
+  cursor: pointer; display: flex; flex-direction: column; gap: 14px;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+.lu-room:hover { border-color: ${C.primary}; }
+.lu-room--sel { border-color: ${C.primary}; background: ${C.primaryTint}; }
+.lu-room-head {
+  display: flex; flex-direction: column; gap: 14px; width: 100%;
+  background: transparent; border: none; padding: 0; cursor: pointer; text-align: left;
+  font-family: ${FONT}; color: ${C.ink};
+}
+.lu-room-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.lu-icon {
+  width: 36px; height: 36px; border-radius: 10px; flex: none; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+}
+.lu-check {
+  width: 22px; height: 22px; border-radius: 7px; flex: none; box-sizing: border-box; font-size: 12px;
+  border: 1.5px solid #C3C9D8; background: ${C.card}; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+}
+.lu-room--sel .lu-check { background: ${C.primary}; border-color: ${C.primary}; }
+.lu-room-floor { display: block; margin-bottom: 2px; font-size: 12px; font-weight: 500; color: #64748B; }
+.lu-room-no { display: block; font-size: 17px; font-weight: 700; line-height: 1.2; }
+.lu-reading { display: block; border-radius: 12px; padding: 10px 12px; }
+.lu-reading small { display: block; font-size: 12px; font-weight: 500; color: #475569; }
+.lu-reading strong { display: block; margin-top: 2px; font-size: 24px; font-weight: 700; line-height: 1.2; }
+
+.lu-empty {
+  text-align: center; padding: 56px 16px; margin-top: 24px; border-radius: 20px;
+  background: ${C.sunken}; border: 1px dashed ${C.primarySoftLine}; color: ${C.muted};
+}
+.lu-empty .anticon { font-size: 32px; color: ${C.primarySoftText}; margin-bottom: 12px; display: block; }
+
+.lu-save { margin-top: 24px; display: flex; justify-content: center; }
+
+@media (max-width: 767px) {
+  .lu-banner { padding: 18px; }
+  .lu-banner h1 { font-size: 22px; }
+  .lu-section { padding: 16px; }
+  .lu-seg .ant-segmented { width: 100%; }
+  .lu-count { margin-left: 0; width: 100%; text-align: center; }
+  .lu-bulk > * { flex: 1 1 100%; }
+  .lu-bulk .ant-input-number { width: 100% !important; }
+  .lu-floor-toggle { padding: 14px 16px; gap: 12px; flex-wrap: wrap; }
+  .lu-floor-info { flex: 1 1 120px; }
+  .lu-floor-body { padding: 0 16px 16px; }
+  .lu-floor-tools .lu-btn2 { flex: 1; }
+  .lu-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .lu-save .ant-btn { width: 100%; }
+}
+`
+
+/* ───────── ชิ้นส่วนที่ใช้ซ้ำ ───────── */
+const PageHeader = ({ title, subtitle }) => (
+    <div className="lu-banner">
+        <div className="lu-banner-icon" aria-hidden="true"><ThunderboltOutlined /></div>
+        <div style={{ minWidth: 0 }}>
+            <h1>{title}</h1>
+            {subtitle && <p>{subtitle}</p>}
+        </div>
+    </div>
+)
+
+const RoomCard = ({ room, showFloor, kind, selected, value, onToggle, onChange }) => {
+    const k = KIND[kind]
+    const KindIcon = k.Icon
+    return (
+        <div
+            className={`lu-room${selected ? ' lu-room--sel' : ''}`}
+            onClick={onToggle}
+        >
+            {/* ปุ่มนี้ไม่มี onClick ของตัวเอง: คลิก/Enter/Space จะลอยขึ้นไปที่การ์ดแล้ว toggle ครั้งเดียว */}
+            <button
+                type="button"
+                className="lu-room-head"
+                aria-pressed={selected}
+                aria-label={`${showFloor ? `ชั้น ${room.floor} ` : ''}ห้อง ${room.roomNumber} หน่วยปัจจุบัน ${room.unitMeter?.[kind] || 0}`}
+            >
+                <span className="lu-room-top">
+                    <span
+                        className="lu-icon"
+                        style={{
+                            background: selected ? '#E0E4FF' : k.soft,
+                            color: selected ? C.primaryDeep : k.fg,
+                        }}
+                        aria-hidden="true"
+                    >
+                        <KindIcon />
+                    </span>
+                    <span className="lu-check" aria-hidden="true">{selected && <CheckOutlined />}</span>
+                </span>
+
+                <span>
+                    {showFloor && <span className="lu-room-floor">ชั้น {room.floor}</span>}
+                    <span className="lu-room-no">ห้อง {room.roomNumber}</span>
+                </span>
+
+                {/* หน่วยมิเตอร์: แยกเป็นกล่องสีตามประเภท ไม่ให้สับสนกับเลขห้อง */}
+                <span className="lu-reading" style={{ background: k.soft }}>
+                    <small>หน่วยปัจจุบัน</small>
+                    <strong style={{ color: k.fg }}>{room.unitMeter?.[kind] || 0}</strong>
+                </span>
+            </button>
+
+            <div
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                onMouseUp={(e) => e.stopPropagation()}
+            >
+                <InputNumber
+                    placeholder="หน่วยใหม่"
+                    {...getNumericInputProps({ min: 0 })}
+                    style={{ width: '100%' }}
+                    value={value}
+                    onChange={onChange}
+                    aria-label={`หน่วยใหม่ ห้อง ${room.roomNumber}`}
+                />
+            </div>
+        </div>
+    )
+}
 
 const ListRoomChangeUnitForm = ({ data, isLoading, isError, refetch }) => {
     const [activeTab, setActiveTab] = useState('water')
@@ -17,6 +268,8 @@ const ListRoomChangeUnitForm = ({ data, isLoading, isError, refetch }) => {
     const [selectedFloor, setSelectedFloor] = useState(null)
     const [selectedRooms, setSelectedRooms] = useState(new Set())
     const [bulkUnitValue, setBulkUnitValue] = useState('')
+    // เก็บเฉพาะชั้นที่ผู้ใช้กดเปิด/ปิดเอง (ชั้นที่ไม่มีใน object ใช้ค่าเริ่มต้นตามจำนวนชั้น)
+    const [floorOpen, setFloorOpen] = useState({})
 
 
     const { user, } = persistMiddleware()
@@ -226,8 +479,7 @@ const ListRoomChangeUnitForm = ({ data, isLoading, isError, refetch }) => {
             value: 'water',
             label: (
                 <span>
-                    <DropboxOutlined style={{ color: '#1890ff' }} />
-                    ค่าน้ำ
+                    <WaterDropIcon style={{ color: C.water }} /> ค่าน้ำ
                 </span>
             )
         },
@@ -235,25 +487,31 @@ const ListRoomChangeUnitForm = ({ data, isLoading, isError, refetch }) => {
             value: 'electric',
             label: (
                 <span>
-                    <ThunderboltOutlined style={{ color: '#FFC107' }} />
-                    ค่าไฟ
+                    <ThunderboltOutlined style={{ color: C.electric }} /> ค่าไฟ
                 </span>
             )
         }
     ]
 
+    const renderCard = (room, showFloor) => (
+        <RoomCard
+            key={room._id}
+            room={room}
+            showFloor={showFloor}
+            kind={activeTab}
+            selected={selectedRooms.has(room._id)}
+            value={unitValues[room._id]?.[activeTab]}
+            onToggle={() => toggleRoomSelection(room._id)}
+            onChange={(value) => handleUnitChange(room._id, value)}
+        />
+    )
+
     const renderRoomCards = () => {
         if (filteredRooms.length === 0) {
             return (
-                <div style={{
-                    textAlign: 'center',
-                    padding: '60px 0',
-                    background: '#fafafa',
-                    borderRadius: '12px',
-                    border: '2px dashed #d9d9d9'
-                }}>
-                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
-                    <Text type="secondary" style={{ fontSize: '16px' }}>
+                <div className="lu-empty">
+                    <SearchOutlined aria-hidden="true" />
+                    <Text type="secondary" style={{ fontSize: 16 }}>
                         ไม่พบห้องที่ตรงกับเงื่อนไขการค้นหา
                     </Text>
                 </div>
@@ -272,970 +530,219 @@ const ListRoomChangeUnitForm = ({ data, isLoading, isError, refetch }) => {
 
             const sortedFloors = Object.keys(roomsByFloor).sort((a, b) => parseInt(a) - parseInt(b))
 
+            // ชั้นเยอะ (> 3) → เริ่มต้นเปิดเฉพาะชั้นแรก, ชั้นน้อย → เปิดทั้งหมด
+            // ระหว่างค้นหา เปิดทุกชั้นที่เจอผลลัพธ์เสมอ
+            const manyFloors = sortedFloors.length > 3
+            const searching = searchText.trim() !== ''
+            const isFloorOpen = (floor) => {
+                if (searching) return true
+                if (floorOpen[floor] !== undefined) return floorOpen[floor]
+                return !manyFloors || floor === sortedFloors[0]
+            }
+            const toggleFloor = (floor) => {
+                if (searching) return
+                const next = !isFloorOpen(floor)
+                setFloorOpen(prev => ({ ...prev, [floor]: next }))
+            }
+            const setAllFloors = (open) => {
+                const next = {}
+                sortedFloors.forEach(f => { next[f] = open })
+                setFloorOpen(next)
+            }
+            const hasValue = (v) => v !== undefined && v !== null && v !== ''
+
             return (
-                <div style={{ padding: '24px 0' }}>
-                    {sortedFloors.map(floor => (
-                        <div key={floor} style={{ marginBottom: '32px' }}>
-                            {/* Floor Header */}
-                            <div style={{
-                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                color: 'white',
-                                padding: '16px 24px',
-                                borderRadius: '12px',
-                                marginBottom: '20px',
-                                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
-                                display: 'flex',
-                                flexDirection: window.innerWidth < 768 ? 'column' : 'row',
-                                alignItems: window.innerWidth < 768 ? 'stretch' : 'center',
-                                justifyContent: window.innerWidth < 768 ? 'flex-start' : 'space-between',
-                                gap: window.innerWidth < 768 ? '12px' : '8px'
-                            }}>
-                                {/* Floor Info - Left */}
-                                <div style={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    gap: '12px',
-                                    flex: window.innerWidth < 768 ? '0 0 auto' : '0 0 auto'
-                                }}>
-                                    <div style={{
-                                        width: '8px',
-                                        height: '8px',
-                                        borderRadius: '50%',
-                                        backgroundColor: 'white',
-                                        boxShadow: '0 0 8px rgba(255,255,255,0.5)'
-                                    }} />
-                                    <Text style={{
-                                        fontSize: '18px',
-                                        fontWeight: '600',
-                                        color: 'white',
-                                        margin: 0
-                                    }}>
-                                        ชั้นที่ {floor} ({roomsByFloor[floor].length} ห้อง)
-                                    </Text>
-                                </div>
-
-                                {/* Desktop: Controls on the right */}
-                                {window.innerWidth >= 768 && (
-                                    <div style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '12px'
-                                    }}>
-                                        {/* Selected Count */}
-                                        <Text style={{ 
-                                            color: 'white', 
-                                            fontSize: '14px',
-                                            fontWeight: '600',
-                                            textAlign: 'right'
-                                        }}>
-                                            {roomsByFloor[floor].filter(room => selectedRooms.has(room._id)).length} ห้องที่เลือก
-                                        </Text>
-                                        
-                                        {/* Buttons */}
-                                        <Button
-                                            size="small"
-                                            onClick={() => selectFloorRooms(parseInt(floor))}
-                                            style={{
-                                                background: 'rgba(255,255,255,0.2)',
-                                                border: '1px solid rgba(255,255,255,0.3)',
-                                                color: 'white',
-                                                borderRadius: '6px',
-                                                fontSize: '12px',
-                                                height: '32px'
-                                            }}
-                                        >
-                                            เลือกทั้งชั้น
-                                        </Button>
-                                        <Button
-                                            size="small"
-                                            onClick={() => clearFloorSelection(parseInt(floor))}
-                                            style={{
-                                                background: 'rgba(255,255,255,0.1)',
-                                                border: '1px solid rgba(255,255,255,0.2)',
-                                                color: 'white',
-                                                borderRadius: '6px',
-                                                fontSize: '12px',
-                                                height: '32px'
-                                            }}
-                                        >
-                                            ล้างการเลือก
-                                        </Button>
-                                    </div>
-                                )}
-
-                                {/* Mobile: Controls below */}
-                                {window.innerWidth < 768 && (
-                                    <div style={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '8px',
-                                        width: '100%'
-                                    }}>
-                                        {/* Selected Count */}
-                                        <div style={{
-                                            display: 'flex',
-                                            justifyContent: 'center',
-                                            alignItems: 'center'
-                                        }}>
-                                            <Text style={{ 
-                                                color: 'white', 
-                                                fontSize: '14px',
-                                                fontWeight: '600',
-                                                textAlign: 'center'
-                                            }}>
-                                                {roomsByFloor[floor].filter(room => selectedRooms.has(room._id)).length} ห้องที่เลือก
-                                            </Text>
-                                        </div>
-                                        
-                                        {/* Buttons */}
-                                        <div style={{
-                                            display: 'flex',
-                                            gap: '8px',
-                                            flexDirection: 'row',
-                                            width: '100%',
-                                            justifyContent: 'space-between'
-                                        }}>
-                                            <Button
-                                                size="small"
-                                                onClick={() => selectFloorRooms(parseInt(floor))}
-                                                style={{
-                                                    background: 'rgba(255,255,255,0.2)',
-                                                    border: '1px solid rgba(255,255,255,0.3)',
-                                                    color: 'white',
-                                                    borderRadius: '6px',
-                                                    flex: '1',
-                                                    fontSize: '11px',
-                                                    height: '32px',
-                                                    whiteSpace: 'nowrap',
-                                                    overflow: 'hidden',
-                                                    textOverflow: 'ellipsis'
-                                                }}
-                                            >
-                                                เลือกทั้งชั้น
-                                            </Button>
-                                            <Button
-                                                size="small"
-                                                onClick={() => clearFloorSelection(parseInt(floor))}
-                                                style={{
-                                                    background: 'rgba(255,255,255,0.1)',
-                                                    border: '1px solid rgba(255,255,255,0.2)',
-                                                    color: 'white',
-                                                    borderRadius: '6px',
-                                                    flex: '1',
-                                                    fontSize: '11px',
-                                                    height: '32px',
-                                                    whiteSpace: 'nowrap',
-                                                    overflow: 'hidden',
-                                                    textOverflow: 'ellipsis'
-                                                }}
-                                            >
-                                                ล้าง
-                                            </Button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Rooms in this floor */}
-                            <Row gutter={[20, 20]}>
-                                {roomsByFloor[floor].map((room) => (
-                                    <Col xs={12} sm={12} md={8} lg={6} key={room._id}>
-                                        <Card
-                                            size="small"
-                                            className="room-card"
-                                            title={
-                                                <div style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'space-between',
-                                                    padding: '4px 0'
-                                                }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                                        <div style={{
-                                                            width: 12,
-                                                            height: 12,
-                                                            borderRadius: '50%',
-                                                            backgroundColor: activeTab === 'water' ? '#1890ff' : '#FFC107',
-                                                            boxShadow: `0 0 8px ${activeTab === 'water' ? '#1890ff' : '#FFC107'}40`,
-                                                            animation: 'pulse 2s infinite'
-                                                        }} />
-                                                        <span style={{
-                                                            fontWeight: '600',
-                                                            fontSize: '14px',
-                                                            color: '#262626'
-                                                        }}>
-                                                            ห้อง {room.roomNumber}
-                                                        </span>
-                                                    </div>
-                                                    <div style={{
-                                                        width: '20px',
-                                                        height: '20px',
-                                                        borderRadius: '4px',
-                                                        border: selectedRooms.has(room._id) ? '2px solid #1890ff' : '2px solid #d9d9d9',
-                                                        backgroundColor: selectedRooms.has(room._id) ? '#1890ff' : 'transparent',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        cursor: 'pointer',
-                                                        transition: 'all 0.3s ease'
-                                                    }}>
-                                                        {selectedRooms.has(room._id) && (
-                                                            <span style={{ color: 'white', fontSize: '12px', fontWeight: 'bold' }}>✓</span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            }
-                                            style={{
-                                                marginBottom: 0,
-                                                borderRadius: '16px',
-                                                boxShadow: selectedRooms.has(room._id)
-                                                    ? '0 8px 24px rgba(24, 144, 255, 0.3)'
-                                                    : '0 4px 12px rgba(0,0,0,0.08)',
-                                                border: selectedRooms.has(room._id)
-                                                    ? '2px solid #1890ff'
-                                                    : '1px solid #f0f0f0',
-                                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                                background: selectedRooms.has(room._id)
-                                                    ? 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)'
-                                                    : 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
-                                                overflow: 'hidden',
-                                                position: 'relative',
-                                                cursor: 'pointer'
-                                            }}
-                                            hoverable
-                                            onClick={() => toggleRoomSelection(room._id)}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.transform = 'translateY(-4px)'
-                                                e.currentTarget.style.boxShadow = selectedRooms.has(room._id)
-                                                    ? '0 12px 32px rgba(24, 144, 255, 0.4)'
-                                                    : '0 8px 24px rgba(0,0,0,0.12)'
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.transform = 'translateY(0)'
-                                                e.currentTarget.style.boxShadow = selectedRooms.has(room._id)
-                                                    ? '0 8px 24px rgba(24, 144, 255, 0.3)'
-                                                    : '0 4px 12px rgba(0,0,0,0.08)'
-                                            }}
-                                        >
-                                            {/* Decorative gradient overlay */}
-                                            <div style={{
-                                                position: 'absolute',
-                                                top: 0,
-                                                left: 0,
-                                                right: 0,
-                                                height: '3px',
-                                                background: activeTab === 'water'
-                                                    ? 'linear-gradient(90deg, #1890ff, #40a9ff)'
-                                                    : 'linear-gradient(90deg, #FFC107, #ffd666)',
-                                                borderRadius: '16px 16px 0 0'
-                                            }} />
-
-                                            <Space direction="vertical" style={{ width: '100%', marginTop: '8px' }}>
-                                                <div style={{
-                                                    background: activeTab === 'water'
-                                                        ? 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)'
-                                                        : 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
-                                                    padding: '16px',
-                                                    borderRadius: '12px',
-                                                    border: `1px solid ${activeTab === 'water' ? '#91d5ff' : '#ffd591'}`,
-                                                    position: 'relative',
-                                                    overflow: 'hidden'
-                                                }}>
-                                                    {/* Background pattern */}
-                                                    <div style={{
-                                                        position: 'absolute',
-                                                        top: '-10px',
-                                                        right: '-10px',
-                                                        width: '40px',
-                                                        height: '40px',
-                                                        background: activeTab === 'water' ? '#1890ff' : '#FFC107',
-                                                        borderRadius: '50%',
-                                                        opacity: 0.1
-                                                    }} />
-
-                                                    <Text type="secondary" style={{
-                                                        color: '#666',
-                                                        fontSize: '12px',
-                                                        fontWeight: '500',
-                                                        textTransform: 'uppercase',
-                                                        letterSpacing: '0.5px'
-                                                    }}>
-                                                        หน่วยปัจจุบัน
-                                                    </Text>
-                                                    <div style={{
-                                                        fontSize: '24px',
-                                                        fontWeight: 'bold',
-                                                        color: '#000',
-                                                        marginTop: '4px',
-                                                        textShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                                                    }}>
-                                                        {room.unitMeter?.[activeTab] || 0}
-                                                    </div>
-                                                </div>
-
-                                                <div
-                                                    onClick={(e) => e.stopPropagation()}
-                                                    onMouseDown={(e) => e.stopPropagation()}
-                                                    onMouseUp={(e) => e.stopPropagation()}
-                                                >
-                                                    <InputNumber
-                                                        placeholder="หน่วยใหม่"
-                                                        {...getNumericInputProps({ min: 0 })}
-                                                        style={{
-                                                            width: '100%',
-                                                            borderRadius: '12px',
-                                                            border: '2px solid #f0f0f0',
-                                                            fontSize: '16px',
-                                                            fontWeight: '500',
-                                                            transition: 'all 0.3s ease'
-                                                        }}
-                                                        value={unitValues[room._id]?.[activeTab]}
-                                                        onChange={(value) => handleUnitChange(room._id, value)}
-                                                        size="large"
-                                                        onFocus={(e) => {
-                                                            e.target.style.borderColor = activeTab === 'water' ? '#1890ff' : '#FFC107'
-                                                            e.target.style.boxShadow = `0 0 0 2px ${activeTab === 'water' ? '#1890ff' : '#FFC107'}20`
-                                                        }}
-                                                        onBlur={(e) => {
-                                                            e.target.style.borderColor = '#f0f0f0'
-                                                            e.target.style.boxShadow = 'none'
-                                                        }}
-                                                    />
-                                                </div>
-                                            </Space>
-                                        </Card>
-                                    </Col>
-                                ))}
-                            </Row>
+                <>
+                    {manyFloors && !searching && (
+                        <div className="lu-expandbar">
+                            <button type="button" className="lu-btn2" onClick={() => setAllFloors(true)}>
+                                ขยายทั้งหมด
+                            </button>
+                            <button type="button" className="lu-btn2" onClick={() => setAllFloors(false)}>
+                                ยุบทั้งหมด
+                            </button>
                         </div>
-                    ))}
-                </div>
+                    )}
+
+                    <div className="lu-floors">
+                        {sortedFloors.map(floor => {
+                            const list = roomsByFloor[floor]
+                            const selCount = list.filter(room => selectedRooms.has(room._id)).length
+                            const fillCount = list.filter(room => hasValue(unitValues[room._id]?.[activeTab])).length
+                            const open = isFloorOpen(floor)
+
+                            return (
+                                <section key={floor} className="lu-floor">
+                                    {/* Floor Header */}
+                                    <button
+                                        type="button"
+                                        className="lu-floor-toggle"
+                                        aria-expanded={open}
+                                        onClick={() => toggleFloor(floor)}
+                                    >
+                                        <span className="lu-floor-badge" aria-hidden="true">{floor}</span>
+                                        <span className="lu-floor-info">
+                                            <span className="lu-floor-title">ชั้นที่ {floor}</span>
+                                            <span className="lu-floor-meta">{list.length} ห้อง</span>
+                                        </span>
+                                        {fillCount > 0 && <span className="lu-tag lu-tag--fill">กรอกแล้ว {fillCount}</span>}
+                                        {selCount > 0 && <span className="lu-tag lu-tag--sel">เลือก {selCount}</span>}
+                                        <DownOutlined className={`lu-chev${open ? ' lu-chev--open' : ''}`} aria-hidden="true" />
+                                    </button>
+
+                                    {open && (
+                                        <div className="lu-floor-body">
+                                            <div className="lu-floor-tools">
+                                                <button
+                                                    type="button"
+                                                    className="lu-btn2"
+                                                    onClick={() => selectFloorRooms(parseInt(floor))}
+                                                >
+                                                    เลือกทั้งชั้น
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="lu-btn2"
+                                                    onClick={() => clearFloorSelection(parseInt(floor))}
+                                                >
+                                                    ล้างการเลือก
+                                                </button>
+                                            </div>
+
+                                            {/* Rooms in this floor */}
+                                            <div className="lu-grid">
+                                                {list.map((room) => renderCard(room, false))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </section>
+                            )
+                        })}
+                    </div>
+                </>
             )
         }
 
         // Show rooms normally when filtering by specific floor
         return (
-            <div style={{ padding: '24px 0' }}>
-                <Row gutter={[20, 20]}>
-                    {filteredRooms.map((room, index) => (
-                        <Col xs={12} sm={12} md={8} lg={6} key={room._id}>
-                            <Card
-                                size="small"
-                                className="room-card"
-                                title={
-                                    <div style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                        padding: '4px 0'
-                                    }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }} >
-                                            <div style={{
-                                                width: 12,
-                                                height: 12,
-                                                borderRadius: '50%',
-                                                backgroundColor: activeTab === 'water' ? '#1890ff' : '#FFC107',
-                                                boxShadow: `0 0 8px ${activeTab === 'water' ? '#1890ff' : '#FFC107'}40`,
-                                                animation: 'pulse 2s infinite'
-                                            }} />
-                                            <span style={{
-                                                fontWeight: '600',
-                                                fontSize: '14px',
-                                                color: '#262626'
-                                            }}>
-                                                {`ชั้น ${room.floor} ห้อง ${room.roomNumber}`}
-                                            </span>
-                                        </div>
-                                        <div style={{
-                                            width: '20px',
-                                            height: '20px',
-                                            borderRadius: '4px',
-                                            border: selectedRooms.has(room._id) ? '2px solid #1890ff' : '2px solid #d9d9d9',
-                                            backgroundColor: selectedRooms.has(room._id) ? '#1890ff' : 'transparent',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.3s ease'
-                                        }}>
-                                            {selectedRooms.has(room._id) && (
-                                                <span style={{ color: 'white', fontSize: '12px', fontWeight: 'bold' }}>✓</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                }
-                                style={{
-                                    marginBottom: 0,
-                                    borderRadius: '16px',
-                                    boxShadow: selectedRooms.has(room._id)
-                                        ? '0 8px 24px rgba(24, 144, 255, 0.3)'
-                                        : '0 4px 12px rgba(0,0,0,0.08)',
-                                    border: selectedRooms.has(room._id)
-                                        ? '2px solid #1890ff'
-                                        : '1px solid #f0f0f0',
-                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                    background: selectedRooms.has(room._id)
-                                        ? 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)'
-                                        : 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
-                                    overflow: 'hidden',
-                                    position: 'relative',
-                                    cursor: 'pointer'
-                                }}
-                                hoverable
-                                onClick={() => toggleRoomSelection(room._id)}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(-4px)'
-                                    e.currentTarget.style.boxShadow = selectedRooms.has(room._id)
-                                        ? '0 12px 32px rgba(24, 144, 255, 0.4)'
-                                        : '0 8px 24px rgba(0,0,0,0.12)'
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(0)'
-                                    e.currentTarget.style.boxShadow = selectedRooms.has(room._id)
-                                        ? '0 8px 24px rgba(24, 144, 255, 0.3)'
-                                        : '0 4px 12px rgba(0,0,0,0.08)'
-                                }}
-                            >
-                                {/* Decorative gradient overlay */}
-                                <div style={{
-                                    position: 'absolute',
-                                    top: 0,
-                                    left: 0,
-                                    right: 0,
-                                    height: '3px',
-                                    background: activeTab === 'water'
-                                        ? 'linear-gradient(90deg, #1890ff, #40a9ff)'
-                                        : 'linear-gradient(90deg, #FFC107, #ffd666)',
-                                    borderRadius: '16px 16px 0 0'
-                                }} />
-
-                                <Space direction="vertical" style={{ width: '100%', marginTop: '8px' }}>
-                                    <div style={{
-                                        background: activeTab === 'water'
-                                            ? 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)'
-                                            : 'linear-gradient(135deg, #fff7e6 0%, #ffd591 100%)',
-                                        padding: '16px',
-                                        borderRadius: '12px',
-                                        border: `1px solid ${activeTab === 'water' ? '#91d5ff' : '#ffd591'}`,
-                                        position: 'relative',
-                                        overflow: 'hidden'
-                                    }}>
-                                        {/* Background pattern */}
-                                        <div style={{
-                                            position: 'absolute',
-                                            top: '-10px',
-                                            right: '-10px',
-                                            width: '40px',
-                                            height: '40px',
-                                            background: activeTab === 'water' ? '#1890ff' : '#FFC107',
-                                            borderRadius: '50%',
-                                            opacity: 0.1
-                                        }} />
-
-                                        <Text type="secondary" style={{
-                                            color: '#666',
-                                            fontSize: '12px',
-                                            fontWeight: '500',
-                                            textTransform: 'uppercase',
-                                            letterSpacing: '0.5px'
-                                        }}>
-                                            หน่วยปัจจุบัน
-                                        </Text>
-                                        <div style={{
-                                            fontSize: '24px',
-                                            fontWeight: 'bold',
-                                            color: '#000',
-                                            marginTop: '4px',
-                                            textShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                                        }}>
-                                            {room.unitMeter?.[activeTab] || 0}
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        onClick={(e) => e.stopPropagation()}
-                                        onMouseDown={(e) => e.stopPropagation()}
-                                        onMouseUp={(e) => e.stopPropagation()}
-                                    >
-                                        <InputNumber
-                                            placeholder="หน่วยใหม่"
-                                            type='number'
-                                            style={{
-                                                width: '100%',
-                                                borderRadius: '12px',
-                                                border: '2px solid #f0f0f0',
-                                                fontSize: '16px',
-                                                fontWeight: '500',
-                                                transition: 'all 0.3s ease'
-                                            }}
-                                            value={unitValues[room._id]?.[activeTab]}
-                                            onChange={(value) => handleUnitChange(room._id, value)}
-                                            min={0}
-                                            size="large"
-                                            onFocus={(e) => {
-                                                e.target.style.borderColor = activeTab === 'water' ? '#1890ff' : '#FFC107'
-                                                e.target.style.boxShadow = `0 0 0 2px ${activeTab === 'water' ? '#1890ff' : '#FFC107'}20`
-                                            }}
-                                            onBlur={(e) => {
-                                                e.target.style.borderColor = '#f0f0f0'
-                                                e.target.style.boxShadow = 'none'
-                                            }}
-                                        />
-                                    </div>
-                                </Space>
-                            </Card>
-                        </Col>
-                    ))}
-                </Row>
+            <div className="lu-flat">
+                <div className="lu-grid">
+                    {filteredRooms.map((room) => renderCard(room, true))}
+                </div>
             </div>
         )
     }
 
+    const allSelected = selectedRooms.size === filteredRooms.length && filteredRooms.length > 0
+
     return (
-        <div>
-            <PageHeader
-                title="เปลี่ยนหน่วยมิเตอร์"
-                subtitle={`ข้อมูลห้องพัก: ${rooms.length} ห้อง`}
-                icon="⚡"
-            />
-
-            {/* Combined Filter and Bulk Update Section */}
-         
-
-            {/* Floor Statistics */}
-            {/* {floorStats && floorStats.length > 0 && (
-                <div style={{ 
-                    marginTop: 24,
-                    background: 'linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%)',
-                    padding: '20px',
-                    borderRadius: '16px',
-                    border: '1px solid #e1bee7',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
-                }}>
-                    <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '12px', 
-                        marginBottom: '16px' 
-                    }}>
-                        <div style={{ 
-                            width: '8px', 
-                            height: '8px', 
-                            borderRadius: '50%', 
-                            backgroundColor: '#667eea' 
-                        }} />
-                        <Text style={{ 
-                            fontSize: '16px', 
-                            fontWeight: '600', 
-                            color: '#333',
-                            margin: 0 
-                        }}>
-                            สถิติห้องพักตามชั้น
-                        </Text>
-                    </div>
-                    <Row gutter={[16, 8]}>
-                        {floorStats.map(({ floor, count }) => (
-                            <Col key={floor} xs={12} sm={8} md={6} lg={4}>
-                                <div style={{
-                                    background: '#fff',
-                                    padding: '12px 16px',
-                                    borderRadius: '12px',
-                                    border: '1px solid #e0e0e0',
-                                    textAlign: 'center',
-                                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                                    transition: 'all 0.3s ease'
-                                }}>
-                                    <div style={{ 
-                                        fontSize: '14px', 
-                                        color: '#666', 
-                                        marginBottom: '4px' 
-                                    }}>
-                                        ชั้น {floor}
-                                    </div>
-                                    <div style={{ 
-                                        fontSize: '20px', 
-                                        fontWeight: 'bold', 
-                                        color: '#667eea' 
-                                    }}>
-                                        {count} ห้อง
-                                    </div>
-                                </div>
-                            </Col>
-                        ))}
-                    </Row>
-                </div>
-            )} */}
-
-            {/* Segmented Control */}
-            <div style={{
-                marginTop: 24,
-                display: 'flex',
-                justifyContent: 'center',
-                background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
-                padding: '24px',
-                borderRadius: '16px',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-                border: '1px solid #e9ecef',
-                position: 'relative',
-                overflow: 'hidden'
-            }}>
-                {/* Decorative background elements */}
-                <div style={{
-                    position: 'absolute',
-                    top: '-20px',
-                    right: '-20px',
-                    width: '60px',
-                    height: '60px',
-                    background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                    borderRadius: '50%',
-                    opacity: 0.05
-                }} />
-                <div style={{
-                    position: 'absolute',
-                    bottom: '-30px',
-                    left: '-30px',
-                    width: '80px',
-                    height: '80px',
-                    background: 'linear-gradient(45deg, #f093fb, #f5576c)',
-                    borderRadius: '50%',
-                    opacity: 0.05
-                }} />
-
-                <Segmented
-                    options={segmentedOptions}
-                    value={activeTab}
-                    onChange={setActiveTab}
-                    size={window.innerWidth < 768 ? "default" : "large"}
-                    style={{
-                        background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-                        borderRadius: '12px',
-                        padding: window.innerWidth < 768 ? '4px' : '6px',
-                        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1)',
-                        border: '1px solid #dee2e6',
-                        width: window.innerWidth < 768 ? '100%' : 'auto',
-                        fontSize: window.innerWidth < 768 ? '12px' : '14px'
-                    }}
+        <ConfigProvider theme={theme}>
+            <style>{css}</style>
+            <div className="lu-root">
+                <PageHeader
+                    title="เปลี่ยนหน่วยมิเตอร์"
+                    subtitle={`ข้อมูลห้องพัก: ${rooms.length} ห้อง`}
                 />
-                
-            </div>
-            <div style={{
-                background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
-                padding: '24px',
-                borderRadius: '20px',
-                margin: '24px 0',
-                border: '1px solid #e9ecef',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
-                position: 'relative',
-                overflow: 'hidden'
-            }}>
-                {/* Decorative elements */}
-                <div style={{
-                    position: 'absolute',
-                    top: '-20px',
-                    left: '-20px',
-                    width: '60px',
-                    height: '60px',
-                    background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                    borderRadius: '50%',
-                    opacity: 0.05
-                }} />
-                <div style={{
-                    position: 'absolute',
-                    bottom: '-30px',
-                    right: '-30px',
-                    width: '80px',
-                    height: '80px',
-                    background: 'linear-gradient(45deg, #f093fb, #f5576c)',
-                    borderRadius: '50%',
-                    opacity: 0.05
-                }} />
 
-                <div style={{ position: 'relative', zIndex: 1 }}>
+                {/* Toolbar */}
+                <div className="lu-section">
+                    <div className="lu-row lu-seg">
+                        <Segmented
+                            options={segmentedOptions}
+                            value={activeTab}
+                            onChange={setActiveTab}
+                        />
+                    </div>
+
                     {/* Search and Filter Row */}
-                    <div style={{
-                        display: 'flex',
-                        flexDirection: window.innerWidth < 768 ? 'column' : 'row',
-                        gap: '16px',
-                        alignItems: window.innerWidth < 768 ? 'stretch' : 'center',
-                        flexWrap: 'wrap',
-                        marginBottom: '20px',
-                        paddingBottom: '20px',
-                        borderBottom: '1px solid #e9ecef'
-                    }}>
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '12px',
-                            background: '#fff',
-                            padding: '12px 16px',
-                            borderRadius: '12px',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                            border: '1px solid #e9ecef',
-                            flex: window.innerWidth < 768 ? '1' : '0 0 auto'
-                        }}>
-                            <SearchOutlined style={{ color: '#667eea', fontSize: '16px' }} />
+                    <div className="lu-row">
+                        <div className="lu-grow">
                             <Input
+                                prefix={<SearchOutlined style={{ color: C.muted }} />}
                                 placeholder="ค้นหาห้อง (เลขห้อง)"
                                 value={searchText}
                                 onChange={(e) => setSearchText(e.target.value)}
-                                style={{
-                                    width: window.innerWidth < 768 ? '100%' : 220,
-                                    border: 'none',
-                                    boxShadow: 'none',
-                                    background: 'transparent'
-                                }}
                                 allowClear
+                                aria-label="ค้นหาห้อง"
                             />
                         </div>
 
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '12px',
-                            background: '#fff',
-                            padding: '12px 16px',
-                            borderRadius: '12px',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                            border: '1px solid #e9ecef',
-                            flex: window.innerWidth < 768 ? '1' : '0 0 auto'
-                        }}>
-                            <FilterOutlined style={{ color: '#667eea', fontSize: '16px' }} />
+                        <div className="lu-grow" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <FilterOutlined style={{ color: C.muted }} aria-hidden="true" />
                             <Select
                                 placeholder="เลือกชั้น"
                                 value={selectedFloor === null ? undefined : selectedFloor}
                                 onChange={setSelectedFloor}
                                 options={uniqueFloors}
-                                style={{
-                                    width: window.innerWidth < 768 ? '100%' : 160,
-                                    border: 'none',
-                                    boxShadow: 'none'
-                                }}
+                                style={{ width: '100%' }}
+                                aria-label="เลือกชั้น"
                             />
                         </div>
 
-                        <div style={{
-                            marginLeft: window.innerWidth < 768 ? '0' : 'auto',
-                            background: '#fff',
-                            padding: '12px 20px',
-                            borderRadius: '12px',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                            border: '1px solid #e9ecef',
-                            flex: '0 0 auto',
-                            textAlign: window.innerWidth < 768 ? 'center' : 'left'
-                        }}>
-                            <Text type="secondary" style={{
-                                fontSize: window.innerWidth < 768 ? '12px' : '14px',
-                                fontWeight: '500',
-                                color: '#495057'
-                            }}>
-                                แสดง <span style={{ color: '#667eea', fontWeight: '600' }}>{filteredRooms.length}</span> จาก <span style={{ color: '#495057', fontWeight: '600' }}>{rooms.length}</span> ห้อง
-                            </Text>
+                        <div className="lu-count">
+                            แสดง <b>{filteredRooms.length}</b> จาก <b>{rooms.length}</b> ห้อง
                         </div>
                     </div>
 
                     {/* Bulk Update Row */}
                     {filteredRooms.length > 0 && (
-                        <div style={{
-                            background: 'linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%)',
-                            padding: '20px',
-                            borderRadius: '16px',
-                            border: '1px solid #f0c674',
-                            boxShadow: '0 4px 12px rgba(240, 198, 116, 0.2)',
-                            position: 'relative',
-                            overflow: 'hidden'
-                        }}>
-                            {/* Decorative elements for bulk section */}
-                            <div style={{
-                                position: 'absolute',
-                                top: '-10px',
-                                right: '-10px',
-                                width: '40px',
-                                height: '40px',
-                                background: 'linear-gradient(45deg, #fdcb6e, #e17055)',
-                                borderRadius: '50%',
-                                opacity: 0.1
-                            }} />
-
-                            <div style={{
-                                display: 'flex',
-                                flexDirection: window.innerWidth < 768 ? 'column' : 'row',
-                                gap: '16px',
-                                alignItems: window.innerWidth < 768 ? 'stretch' : 'center',
-                                flexWrap: 'wrap',
-                                position: 'relative',
-                                zIndex: 1
-                            }}>
-                                {/* Select All and Count Row */}
-                                <div style={{
-                                    display: 'flex',
-                                    flexDirection: window.innerWidth < 768 ? 'row' : 'row',
-                                    gap: window.innerWidth < 768 ? '8px' : '12px',
-                                    alignItems: 'center',
-                                    flex: window.innerWidth < 768 ? '1' : '0 0 auto',
-                                    width: '100%'
-                                }}>
-                                    {/* Select All Controls */}
-                                    <div style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: window.innerWidth < 768 ? '8px' : '12px',
-                                        background: '#fff',
-                                        padding: window.innerWidth < 768 ? '8px 12px' : '12px 16px',
-                                        borderRadius: '12px',
-                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                        border: '1px solid #e9ecef',
-                                        flex: window.innerWidth < 768 ? '1' : '0 0 auto',
-                                        minWidth: 0
-                                    }}>
+                        <div className="lu-row">
+                            <div className="lu-bulk" style={{ width: '100%' }}>
+                                <div className="lu-pill">
+                                    <label>
                                         <input
                                             type="checkbox"
-                                            checked={selectedRooms.size === filteredRooms.length && filteredRooms.length > 0}
+                                            checked={allSelected}
                                             onChange={selectedRooms.size === filteredRooms.length ? clearAllSelection : selectAllRooms}
-                                            style={{ 
-                                                transform: window.innerWidth < 768 ? 'scale(1.0)' : 'scale(1.2)',
-                                                flexShrink: 0
-                                            }}
                                         />
-                                        <Text style={{ 
-                                            fontWeight: '600', 
-                                            color: '#495057',
-                                            fontSize: window.innerWidth < 768 ? '12px' : '16px',
-                                            whiteSpace: 'nowrap',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis'
-                                        }}>
-                                            เลือกทั้งหมด
-                                        </Text>
-                                    </div>
-
-                                    {/* Selected Count */}
-                                    <div style={{
-                                        background: '#fff',
-                                        padding: window.innerWidth < 768 ? '8px 12px' : '12px 16px',
-                                        borderRadius: '12px',
-                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                        border: '1px solid #e9ecef',
-                                        flex: window.innerWidth < 768 ? '1' : '0 0 auto',
-                                        textAlign: window.innerWidth < 768 ? 'center' : 'left',
-                                        minWidth: 0
-                                    }}>
-                                        <Text style={{ 
-                                            fontWeight: '600', 
-                                            color: '#667eea',
-                                            fontSize: window.innerWidth < 768 ? '12px' : '16px',
-                                            whiteSpace: 'nowrap',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis'
-                                        }}>
-                                            {selectedRooms.size} ห้องที่เลือก
-                                        </Text>
-                                    </div>
+                                        เลือกทั้งหมด
+                                    </label>
                                 </div>
 
-                                {/* Bulk Unit Input */}
-                                <div style={{
-                                    display: 'flex',
-                                    flexDirection: window.innerWidth < 768 ? 'column' : 'row',
-                                    alignItems: window.innerWidth < 768 ? 'stretch' : 'center',
-                                    gap: '12px',
-                                    background: '#fff',
-                                    padding: '12px 16px',
-                                    borderRadius: '12px',
-                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                    border: '1px solid #e9ecef',
-                                    flex: '0 0 auto'
-                                }}>
-                                    <Text style={{ 
-                                        fontWeight: '600', 
-                                        color: '#495057',
-                                        fontSize: window.innerWidth < 768 ? '14px' : '16px',
-                                        textAlign: window.innerWidth < 768 ? 'center' : 'left'
-                                    }}>
-                                        หน่วยใหม่:
-                                    </Text>
+                                <div className="lu-pill lu-pill--soft">
+                                    {selectedRooms.size} ห้องที่เลือก
+                                </div>
+
+                                <div className="lu-pill">
+                                    <span>หน่วยใหม่:</span>
                                     <InputNumber
                                         placeholder="ใส่หน่วย"
                                         value={bulkUnitValue}
                                         onChange={setBulkUnitValue}
                                         {...getNumericInputProps({ min: 0 })}
-                                        style={{
-                                            width: window.innerWidth < 768 ? '100%' : 120,
-                                            borderRadius: '8px'
-                                        }}
+                                        style={{ width: 130 }}
+                                        aria-label="หน่วยใหม่สำหรับห้องที่เลือก"
                                     />
                                 </div>
 
-                                {/* Apply Button */}
                                 <Button
                                     type="primary"
+                                    className="lu-primary"
                                     onClick={applyBulkUnit}
                                     disabled={selectedRooms.size === 0 || !bulkUnitValue}
-                                    style={{
-                                        background: selectedRooms.size > 0 && bulkUnitValue
-                                            ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                                            : '#d9d9d9',
-                                        border: 'none',
-                                        borderRadius: '12px',
-                                        height: window.innerWidth < 768 ? '44px' : '40px',
-                                        padding: window.innerWidth < 768 ? '0 16px' : '0 20px',
-                                        fontWeight: '600',
-                                        fontSize: window.innerWidth < 768 ? '14px' : '16px',
-                                        boxShadow: selectedRooms.size > 0 && bulkUnitValue
-                                            ? '0 4px 12px rgba(102, 126, 234, 0.3)'
-                                            : 'none',
-                                        flex: '0 0 auto',
-                                        width: window.innerWidth < 768 ? '100%' : 'auto',
-                                        whiteSpace: window.innerWidth < 768 ? 'normal' : 'nowrap'
-                                    }}
                                 >
-                                    {window.innerWidth < 768 ? 'อัปเดตหน่วย' : 'อัปเดตหน่วยให้ห้องที่เลือก'}
+                                    อัปเดตหน่วยให้ห้องที่เลือก
                                 </Button>
                             </div>
                         </div>
                     )}
                 </div>
-            </div>
-            {renderRoomCards()}
 
+                {renderRoomCards()}
 
-            <div style={{
-                marginTop: 32,
-                textAlign: 'center',
-                background: '#fff',
-                padding: '24px',
-                borderRadius: '12px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                border: '1px solid #f0f0f0'
-            }}>
-                <Button
-                    type="primary"
-                    size="large"
-                    icon={<SaveOutlined />}
-                    onClick={handleSave}
-                    style={{
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        border: 'none',
-                        borderRadius: '12px',
-                        height: '52px',
-                        padding: '0 40px',
-                        fontSize: '16px',
-                        fontWeight: '600',
-                        boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
-                        transition: 'all 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                        e.target.style.transform = 'translateY(-2px)'
-                        e.target.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.4)'
-                    }}
-                    onMouseLeave={(e) => {
-                        e.target.style.transform = 'translateY(0)'
-                        e.target.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)'
-                    }}
-                >
-                    บันทึกข้อมูล
-                </Button>
+                <div className="lu-save">
+                    <Button
+                        type="primary"
+                        className="lu-primary"
+                        icon={<SaveOutlined />}
+                        onClick={handleSave}
+                        style={{ height: 48, padding: '0 40px', fontSize: 16 }}
+                    >
+                        บันทึกข้อมูล
+                    </Button>
+                </div>
             </div>
-        </div>
+        </ConfigProvider>
     )
 }
 
