@@ -68,10 +68,13 @@ const IndexForm = () => {
         fetchImageLogo()
     }, [domainName])
 
-    //0 check Status Login
+    //0 check Status Login (รันครั้งเดียวตอน mount เพื่อ redirect ถ้าล็อกอินค้างอยู่)
+    useEffect(() => {
+        checkStatusAuth();
+    }, [])
+
     useEffect(() => {
         if (user) {
-            checkStatusAuth();
             GetDataApartment(userId)
         }
     }, [user])

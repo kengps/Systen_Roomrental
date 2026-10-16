@@ -3,19 +3,13 @@ const { Hono } = require('hono')
 
 const appCors = new Hono()
 
-// ใช้ cors middleware จาก npm
-
-// appCors.use('*', cors({
-//   origin: '*', // หรือกำหนดโดเมนที่ต้องการ
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-// }))
-
-
 appCors.use('*', cors({
-  origin: ['http://localhost:8001'], // ✅ ระบุ origin ของ frontend
-  credentials: true,               // ✅ อนุญาตส่ง cookie
+  origin: ['http://localhost:8001', 'http://localhost:5173'],
+  credentials: true,
   allowHeaders: ['Content-Type', 'Authorization'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  maxAge: 86400,
+  exposeHeaders: ['Content-Type', 'Authorization'],
 }))
 
 
