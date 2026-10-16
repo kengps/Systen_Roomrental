@@ -227,43 +227,66 @@
 .receipt-actions {
     display: flex;
     justify-content: center;
-    gap: 15px;
-    padding: 20px;
+    gap: 12px;
+    padding: 24px 20px;
     background: #f8f9fa;
     border-top: 1px solid #ddd;
+    flex-wrap: wrap;
 }
 
-.btn-print, .btn-download {
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     padding: 12px 24px;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    transition: all 0.25s ease;
+    min-width: 150px;
+    justify-content: center;
+}
+
+.btn-action svg {
+    font-size: 16px;
+}
+
+.btn-action:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+.btn-action:active {
+    transform: translateY(0);
 }
 
 .btn-print {
-    background: #007bff;
+    background: #9155FD;
     color: white;
 }
 
 .btn-print:hover {
-    background: #0056b3;
-    transform: translateY(-2px);
+    background: #7A3CEB;
 }
 
 .btn-download {
-    background: #28a745;
+    background: #52c41a;
     color: white;
 }
 
 .btn-download:hover {
-    background: #1e7e34;
-    transform: translateY(-2px);
+    background: #389e0d;
+}
+
+.btn-copy {
+    background: #1890ff;
+    color: white;
+}
+
+.btn-copy:hover {
+    background: #096dd9;
 }
 
 /* Error State */

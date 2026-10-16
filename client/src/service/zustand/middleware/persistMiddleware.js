@@ -1,20 +1,3 @@
-// const persistMiddleware = (key, config) => (set, get, api) => {
-//     const savedData = localStorage.getItem(key);
-//     if (savedData) {
-//       set(JSON.parse(savedData));
-//     }
-
-//     return config(
-//       (args) => {
-//         set(args);
-//         localStorage.setItem(key, JSON.stringify(get()));
-//       },
-//       get,
-//       api
-//     );
-//   };
-
-//   export default persistMiddleware;
 
 
 import { create } from 'zustand';
@@ -50,7 +33,7 @@ const persistMiddleware = create(
                     get().Logout();
                 }, expiresIn);
 
-                console.log('Save data in persist success');
+
                 return response.data;
             },
             Logout: async (userId) => {

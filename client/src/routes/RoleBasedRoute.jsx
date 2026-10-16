@@ -1,12 +1,11 @@
-import { useNavigate, Outlet } from 'react-router-dom';
+import {Outlet, useNavigate} from 'react-router-dom';
 import persistMiddleware from '../service/zustand/middleware/persistMiddleware';
-import { useEffect, useState } from 'react';
-import LoadingSpinner from '../components/LoadingSpinner/LoadingSpinner';
-import { currentAdmin } from '../service/api/login_register';
+import {useEffect, useState} from 'react';
+import {currentAdmin} from '../service/api/login_register';
 import LoadingComponent from '../components/LoadingSpinner/LoadingComponent';
 
 const RoleBasedRoute = () => {
-    const { user } = persistMiddleware();
+    const {user} = persistMiddleware();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [ok, setOk] = useState(false);
@@ -16,18 +15,18 @@ const RoleBasedRoute = () => {
             if (user && user.token) {
                 try {
                     if (user.role === 'admin') {
-                        await currentAdmin(user.token);
+                        const res = await currentAdmin(user.token);
                     }
                     // ถ้าเป็น user จะมี logic ตรวจสิทธิ์ของ user เอง เช่น call currentUser()
                     setOk(true);
                 } catch (err) {
                     setOk(false);
-                    navigate('/login', { replace: true });
+                    navigate('/login', {replace: true});
                 } finally {
                     setLoading(false);
                 }
             } else {
-                navigate('/login', { replace: true });
+                navigate('/login', {replace: true});
             }
         };
 
@@ -39,7 +38,7 @@ const RoleBasedRoute = () => {
         variant="spinner"
         size="md"
     />;
-    return ok ? <Outlet /> : <LoadingComponent
+    return ok ? <Outlet/> : <LoadingComponent
         text="กำลังโหลด"
         variant="spinner"
         size="md"

@@ -1,5 +1,6 @@
 import React from 'react';
 import dayjs from 'dayjs';
+import { PrinterOutlined, DownloadOutlined, FileTextOutlined } from '@ant-design/icons';
 import './ReceiptComponent.css';
 
 const formatCurrency = (amount) => {
@@ -131,13 +132,21 @@ const ReceiptComponent = ({ bill, onPrint, onDownload }) => {
                 {/* Action Buttons */}
                 <div className="receipt-actions">
                     {onPrint && (
-                        <button className="btn-print" onClick={onPrint}>
-                            🖨️ พิมพ์
+                        <button className="btn-action btn-print" onClick={onPrint}>
+                            <PrinterOutlined />
+                            พิมพ์ใบเสร็จ
                         </button>
                     )}
                     {onDownload && (
-                        <button className="btn-download" onClick={onDownload}>
-                            💾 ดาวน์โหลด
+                        <button className="btn-action btn-download" onClick={onDownload}>
+                            <DownloadOutlined />
+                            ดาวน์โหลด
+                        </button>
+                    )}
+                    {onPrint && onDownload && (
+                        <button className="btn-action btn-copy" onClick={() => navigator.clipboard.writeText(window.location.href)}>
+                            <FileTextOutlined />
+                            คัดลอกลิงก์
                         </button>
                     )}
                 </div>

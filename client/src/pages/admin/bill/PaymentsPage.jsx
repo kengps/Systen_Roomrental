@@ -1,18 +1,29 @@
-import { AuditOutlined, CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, HourglassOutlined, PrinterOutlined, RedoOutlined, SendOutlined, UnorderedListOutlined } from '@ant-design/icons';
-import { useQuery } from '@tanstack/react-query';
-import { Button, ConfigProvider, DatePicker, Space, Table, Tag, Tooltip, Typography } from 'antd';
+import {
+    AuditOutlined, BellOutlined,
+    CalendarOutlined,
+    CheckCircleOutlined,
+    ClockCircleOutlined,
+    CloseCircleOutlined, EyeOutlined,
+    HourglassOutlined,
+    PrinterOutlined,
+    RedoOutlined,
+    SendOutlined,
+    UnorderedListOutlined
+} from '@ant-design/icons';
+import {useQuery} from '@tanstack/react-query';
+import {Button, ConfigProvider, DatePicker, Space, Table, Tooltip, Typography} from 'antd';
 import dayjs from 'dayjs';
 import 'dayjs/locale/th';
 import buddhistEra from 'dayjs/plugin/buddhistEra';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import ReactDOMServer from 'react-dom/server';
 import ReactDOM from "react-dom/client";
-import { matchPath, useLocation, useNavigate } from 'react-router-dom';
-import { canclePayment, confirmPayment, getListPayments } from '../../../service/api/bill';
+import {matchPath, useLocation, useNavigate} from 'react-router-dom';
+import {canclePayment, confirmPayment, getListPayments} from '../../../service/api/bill';
 import persistMiddleware from '../../../service/zustand/middleware/persistMiddleware';
 import PaymentDrawerAdmin from '../components/billing-payment/PaymentDrawerForm';
 
-import { checkSlip, listBankAccount, sendMessage } from '../../../service/api/apartment';
+import {checkSlip, listBankAccount, sendMessage} from '../../../service/api/apartment';
 import PrintableReceiptPage from './PrintableReceiptPage';
 import Swal from 'sweetalert2';
 
@@ -20,7 +31,7 @@ import Swal from 'sweetalert2';
 dayjs.extend(buddhistEra);
 dayjs.locale('th');
 
-const { Text } = Typography;
+const {Text} = Typography;
 
 /* ---------- Design tokens ---------- */
 const C = {
@@ -49,7 +60,7 @@ const C = {
 const FONT = "'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif";
 
 const theme = {
-    token: { colorPrimary: C.primary, borderRadius: 12, fontFamily: FONT, controlHeight: 44 },
+    token: {colorPrimary: C.primary, borderRadius: 12, fontFamily: FONT, controlHeight: 44},
 };
 
 const css = `
@@ -93,10 +104,10 @@ const css = `
 
 // สถานะการชำระ: ใช้ข้อความ + ไอคอนกำกับเสมอ ไม่พึ่งสีอย่างเดียว
 const statusPill = (tone) => ({
-    ok: { background: C.okBg, color: C.okFg },
-    bad: { background: C.badBg, color: C.badFg },
-    soft: { background: C.primarySoft, color: C.primarySoftText },
-    neutral: { background: C.sunken, color: C.muted, border: `1px solid ${C.line}` },
+    ok: {background: C.okBg, color: C.okFg},
+    bad: {background: C.badBg, color: C.badFg},
+    soft: {background: C.primarySoft, color: C.primarySoftText},
+    neutral: {background: C.sunken, color: C.muted, border: `1px solid ${C.line}`},
 }[tone]);
 
 // --- Updated API function ---
@@ -154,7 +165,7 @@ let slipResults = {
 }
 // --- Main component for the page ---
 export default function PaymentsPage() {
-    const { user, apartmentData } = persistMiddleware();
+    const {user, apartmentData} = persistMiddleware();
 
 
     const accountId = user?.userPayLoad?.user?.id;
@@ -163,15 +174,12 @@ export default function PaymentsPage() {
     const pathname = location.pathname;
 
 
-
     // --- State for pagination and filtering ---
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [filterMonth, setFilterMonth] = useState(dayjs());
     const [open, setOpen] = useState(false);
     const [paymentData, setPaymentData] = useState();
-
-
 
 
     const [paidBills, setPaidBills] = useState([]);
@@ -183,9 +191,6 @@ export default function PaymentsPage() {
     const [isNotifyAllLoading, setIsNotifyAllLoading] = useState(false);
 
 
-
-
-
     const match = matchPath("/apartment/payment/:paymentId", pathname);
     const paymentId = match?.params?.paymentId;
 
@@ -193,9 +198,8 @@ export default function PaymentsPage() {
     const previousPathRef = useRef(null)
 
 
-
     // --- Calculate date range for API call ---
-    const { fromDate, toDate } = useMemo(() => {
+    const {fromDate, toDate} = useMemo(() => {
         const startOfMonth = filterMonth.startOf('month').format('YYYY-MM-DD');
         const endOfMonth = filterMonth.endOf('month').format('YYYY-MM-DD');
         return {
@@ -206,7 +210,7 @@ export default function PaymentsPage() {
 
 
     // --- API call with pagination and date filtering ---
-    const { data: apiData, isLoading, error, refetch } = useQuery({
+    const {data: apiData, isLoading, error, refetch} = useQuery({
         queryKey: ['listpayment', accountId, currentPage, pageSize, fromDate, toDate],
         queryFn: () => getListPayments(accountId, currentPage, pageSize, fromDate, toDate),
         enabled: !!accountId,
@@ -214,16 +218,11 @@ export default function PaymentsPage() {
     });
 
 
-
-
-
-    const { data: dataBank } = useQuery({
+    const {data: dataBank} = useQuery({
         queryKey: ['listBankAccount'],
         queryFn: () => listBankAccount(accountId),
         enabled: !!accountId
     })
-
-
 
 
     // แก้ไข findBillById ให้ return เป็น transformed data เหมือน items
@@ -249,22 +248,28 @@ export default function PaymentsPage() {
         const lineItems = [];
 
         if (item?.firstPayment?.amount > 0) {
-            lineItems.push({ description: `ค่าบริการตามบิล`, amount: item?.firstPayment?.amount });
+            lineItems.push({description: `ค่าบริการตามบิล`, amount: item?.firstPayment?.amount});
         }
         if (item?.firstPayment?.penaltyAmount > 0) {
-            lineItems.push({ description: `ค่าปรับ`, amount: item?.firstPayment?.penaltyAmount });
+            lineItems.push({description: `ค่าปรับ`, amount: item?.firstPayment?.penaltyAmount});
         }
         if (item?.firstPayment?.totalAmount > 0) {
-            lineItems.push({ description: `ยอดรวมทั้งหมด`, amount: item?.firstPayment?.totalAmount });
+            lineItems.push({description: `ยอดรวมทั้งหมด`, amount: item?.firstPayment?.totalAmount});
         }
         if (item?.firstPayment?.bill.paidAmount > 0) {
-            lineItems.push({ description: `ยอดชำระแล้ว`, amount: item?.firstPayment?.bill?.paidAmount });
+            lineItems.push({description: `ยอดชำระแล้ว`, amount: item?.firstPayment?.bill?.paidAmount});
         }
         if (remainingAmount > 0) {
-            lineItems.push({ description: `ค้างชำระ`, amount: item?.firstPayment?.totalAmount - item?.firstPayment?.bill?.paidAmount });
+            lineItems.push({
+                description: `ค้างชำระ`,
+                amount: item?.firstPayment?.totalAmount - item?.firstPayment?.bill?.paidAmount
+            });
         }
         if (item?.firstPayment?.bill.paidAmount - (item?.firstPayment?.bill.totalAmount + item?.firstPayment?.penaltyAmount) > 0) {
-            lineItems.push({ description: `ชำระเกิน`, amount: item?.firstPayment?.bill.paidAmount - (item?.firstPayment?.bill.totalAmount + item?.firstPayment?.penaltyAmount) });
+            lineItems.push({
+                description: `ชำระเกิน`,
+                amount: item?.firstPayment?.bill.paidAmount - (item?.firstPayment?.bill.totalAmount + item?.firstPayment?.penaltyAmount)
+            });
         }
 
         const linePartialPayments = Array.isArray(item.partialPayments)
@@ -290,7 +295,10 @@ export default function PaymentsPage() {
                 year: yearChristian,
             },
             paidItems: item?.firstPayment?.paidItems,
-            lineItems: lineItems.length > 0 ? lineItems : [{ description: 'ยอดรวม', amount: item?.firstPayment?.totalAmount }],
+            lineItems: lineItems.length > 0 ? lineItems : [{
+                description: 'ยอดรวม',
+                amount: item?.firstPayment?.totalAmount
+            }],
             totalAmount: item?.firstPayment?.totalAmount,
             attachments: item?.firstPayment?.attachments,
             partialPayments: linePartialPayments
@@ -307,7 +315,7 @@ export default function PaymentsPage() {
                 setOpen(true);
             } else {
                 console.warn(`Bill with ID ${paymentId} not found`);
-                navigate(location.pathname, { replace: true });
+                navigate(location.pathname, {replace: true});
             }
         } else if (!paymentId) {
             setPaymentData(null);
@@ -322,14 +330,11 @@ export default function PaymentsPage() {
     }, []);
 
 
-
-
     // --- Transform data for UI ---
     const transformedData = useMemo(() => {
         if (!apiData?.data) {
             return [];
         }
-
 
 
         return apiData?.data?.listPayment.map(item => {
@@ -344,27 +349,29 @@ export default function PaymentsPage() {
             // Create line items
             const lineItems = [];
             if (item?.firstPayment?.amount > 0) {
-                lineItems.push({ description: `ค่าบริการตามบิล`, amount: item?.firstPayment?.amount });
+                lineItems.push({description: `ค่าบริการตามบิล`, amount: item?.firstPayment?.amount});
             }
             if (item?.firstPayment?.penaltyAmount > 0) {
-                lineItems.push({ description: `ค่าปรับ`, amount: item?.firstPayment?.penaltyAmount });
+                lineItems.push({description: `ค่าปรับ`, amount: item?.firstPayment?.penaltyAmount});
             }
             if (item?.firstPayment?.totalAmount > 0) {
-                lineItems.push({ description: `ยอดรวมทั้งหมด`, amount: item?.firstPayment?.totalAmount });
+                lineItems.push({description: `ยอดรวมทั้งหมด`, amount: item?.firstPayment?.totalAmount});
             }
             if (item?.firstPayment?.bill.paidAmount > 0) {
-                lineItems.push({ description: `ยอดชำระแล้ว`, amount: item?.firstPayment?.bill?.paidAmount });
+                lineItems.push({description: `ยอดชำระแล้ว`, amount: item?.firstPayment?.bill?.paidAmount});
             }
             if (remainingAmount > 0) {
-                lineItems.push({ description: `ค้างชำระ`, remainingAmount });
+                lineItems.push({description: `ค้างชำระ`, remainingAmount});
             }
             if (item?.firstPayment?.bill.paidAmount - (item?.firstPayment?.bill.totalAmount + item?.firstPayment?.penaltyAmount) > 0) {
-                lineItems.push({ description: `ชำระเกิน`, amount: item?.firstPayment?.bill.paidAmount - (item?.firstPayment?.bill.totalAmount + item?.firstPayment?.penaltyAmount) });
+                lineItems.push({
+                    description: `ชำระเกิน`,
+                    amount: item?.firstPayment?.bill.paidAmount - (item?.firstPayment?.bill.totalAmount + item?.firstPayment?.penaltyAmount)
+                });
             }
             const linePartialPayments = Array.isArray(item.partialPayments)
                 ? [...item.partialPayments]
                 : [];
-
 
 
             return {
@@ -387,7 +394,10 @@ export default function PaymentsPage() {
                     year: yearChristian,
                 },
                 paidItems: item?.firstPayment?.paidItems,
-                lineItems: lineItems.length > 0 ? lineItems : [{ description: 'ยอดรวม', amount: item?.firstPayment?.totalAmount }],
+                lineItems: lineItems.length > 0 ? lineItems : [{
+                    description: 'ยอดรวม',
+                    amount: item?.firstPayment?.totalAmount
+                }],
                 totalAmount: item?.firstPayment?.totalAmount,
                 attachments: item?.firstPayment?.attachments,
                 partialPayments: linePartialPayments
@@ -397,18 +407,10 @@ export default function PaymentsPage() {
     }, [apiData]);
 
 
-
-
-
-
-
-
     // --- Update paid bills when transformed data changes ---
     useEffect(() => {
         setPaidBills(transformedData);
     }, [transformedData]);
-
-
 
 
     useEffect(() => {
@@ -480,7 +482,7 @@ export default function PaymentsPage() {
             };
         }
 
-        const { currentPage, totalPages, totalItems, limit } = apiData.pagination;
+        const {currentPage, totalPages, totalItems, limit} = apiData.pagination;
 
         return {
             current: currentPage,
@@ -557,15 +559,15 @@ export default function PaymentsPage() {
     const handlePrintReceipt = (billData) => {
 
 
-
-
-        const customerCopy = <PrintableReceiptPage bill={billData} apartmentData={apartmentData} copyTitle="ฉบับสำหรับลูกค้า" />;
-        const officeCopy = <PrintableReceiptPage bill={billData} apartmentData={apartmentData} copyTitle="ฉบับสำหรับผู้ประกอบการ" />;
+        const customerCopy = <PrintableReceiptPage bill={billData} apartmentData={apartmentData}
+                                                   copyTitle="ฉบับสำหรับลูกค้า"/>;
+        const officeCopy = <PrintableReceiptPage bill={billData} apartmentData={apartmentData}
+                                                 copyTitle="ฉบับสำหรับผู้ประกอบการ"/>;
 
         const printContent = (
             <div className="page-layout">
                 <div className="receipt-half">{customerCopy}</div>
-                <hr className="cut-line" />
+                <hr className="cut-line"/>
                 <div className="receipt-half">{officeCopy}</div>
             </div>
         );
@@ -574,7 +576,7 @@ export default function PaymentsPage() {
 
         setPaidBills((currentBills) =>
             currentBills.map((b) =>
-                b.billId === billData.billId ? { ...b, status: "printed" } : b
+                b.billId === billData.billId ? {...b, status: "printed"} : b
             )
         );
     };
@@ -585,8 +587,12 @@ export default function PaymentsPage() {
 
         let allReceiptsHtml = '';
         billsToPrint.forEach((bill, index) => {
-            const customerCopy = ReactDOMServer.renderToString(<PrintableReceiptPage bill={bill} apartmentData={apartmentData} copyTitle="ฉบับสำหรับลูกค้า " />);
-            const officeCopy = ReactDOMServer.renderToString(<PrintableReceiptPage bill={bill} apartmentData={apartmentData} copyTitle="ฉบับสำหรับผู้ประกอบการ" />);
+            const customerCopy = ReactDOMServer.renderToString(<PrintableReceiptPage bill={bill}
+                                                                                     apartmentData={apartmentData}
+                                                                                     copyTitle="ฉบับสำหรับลูกค้า "/>);
+            const officeCopy = ReactDOMServer.renderToString(<PrintableReceiptPage bill={bill}
+                                                                                   apartmentData={apartmentData}
+                                                                                   copyTitle="ฉบับสำหรับผู้ประกอบการ"/>);
 
             allReceiptsHtml += `<div class="page-layout">
                 <div class="receipt-half">${customerCopy}</div>
@@ -602,9 +608,11 @@ export default function PaymentsPage() {
         openPrintWindow(allReceiptsHtml);
 
         const printedBillIds = billsToPrint.map(b => b.billId);
-        setPaidBills(currentBills => currentBills.map(b => printedBillIds.includes(b.billId) ? { ...b, status: 'printed' } : b));
+        setPaidBills(currentBills => currentBills.map(b => printedBillIds.includes(b.billId) ? {
+            ...b,
+            status: 'printed'
+        } : b));
     };
-
 
 
     const handleCheckSlip = async (data) => {
@@ -645,10 +653,7 @@ export default function PaymentsPage() {
         const newPaidAmount = slipPayment?.amount;
 
 
-
         const newRemainingAmount = (data?.billId?.totalAmount + data?.billId?.penaltyAmount - data?.billId?.paidAmount) - newPaidAmount;
-
-
 
 
         const isFullPayment = newRemainingAmount <= 0;
@@ -670,8 +675,6 @@ export default function PaymentsPage() {
         }
 
 
-
-
         const response = await confirmPayment(values)
 
 
@@ -688,11 +691,6 @@ export default function PaymentsPage() {
         const newPaidAmount = slipPayment?.amount;
 
         const newRemainingAmount = (data?.billId?.totalAmount + data?.billId?.penaltyAmount) - newPaidAmount;
-
-
-
-
-
 
 
         const isFullPayment = newRemainingAmount <= 0;
@@ -834,7 +832,8 @@ export default function PaymentsPage() {
             dataIndex: 'totalAmount',
             key: 'totalAmount',
             align: 'right',
-            render: (amount) => <span className="pp-amount">{amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+            render: (amount) => <span
+                className="pp-amount">{amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
         },
         {
             title: 'สถานะ',
@@ -842,15 +841,15 @@ export default function PaymentsPage() {
             render: (_, record) => {
                 const status = record.paymentStatus;
                 const statusMap = {
-                    pending: { tone: 'soft', label: 'รอดำเนินการ', icon: <ClockCircleOutlined /> },
-                    waiting: { tone: 'soft', label: 'รอการตรวจสอบ', icon: <HourglassOutlined /> },
-                    completed: { tone: 'ok', label: 'ชำระแล้ว', icon: <CheckCircleOutlined /> },
-                    failed: { tone: 'bad', label: 'ชำระไม่สำเร็จ', icon: <CloseCircleOutlined /> },
-                    refunded: { tone: 'neutral', label: 'คืนเงินแล้ว', icon: <RedoOutlined /> },
-                    outstanding: { tone: 'bad', label: 'ค้างชำระ', icon: <CloseCircleOutlined /> },
-                    rejected: { tone: 'bad', label: 'ปฏิเสธการชำระ', icon: <CloseCircleOutlined /> }
+                    pending: {tone: 'soft', label: 'รอดำเนินการ', icon: <ClockCircleOutlined/>},
+                    waiting: {tone: 'soft', label: 'รอการตรวจสอบ', icon: <HourglassOutlined/>},
+                    completed: {tone: 'ok', label: 'ชำระแล้ว', icon: <CheckCircleOutlined/>},
+                    failed: {tone: 'bad', label: 'ชำระไม่สำเร็จ', icon: <CloseCircleOutlined/>},
+                    refunded: {tone: 'neutral', label: 'คืนเงินแล้ว', icon: <RedoOutlined/>},
+                    outstanding: {tone: 'bad', label: 'ค้างชำระ', icon: <CloseCircleOutlined/>},
+                    rejected: {tone: 'bad', label: 'ปฏิเสธการชำระ', icon: <CloseCircleOutlined/>}
                 };
-                const statusInfo = statusMap[status] || { tone: 'neutral', label: 'ไม่ทราบสถานะ' };
+                const statusInfo = statusMap[status] || {tone: 'neutral', label: 'ไม่ทราบสถานะ'};
 
                 return (
                     <span className="pp-pill" style={statusPill(statusInfo.tone)}>
@@ -869,30 +868,37 @@ export default function PaymentsPage() {
 
                 return <>
 
-                    <Space wrap>
+                    <Space wrap size={8}>
+                        {/* ปุ่มพิมพ์ใบเสร็จ */}
                         <Tooltip title={record.status === 'printed' ? 'ใบเสร็จนี้ถูกพิมพ์แล้ว' : 'พิมพ์ใบเสร็จรับเงิน'}>
                             <Button
-                                className="pp-secondary-btn"
-                                icon={<PrinterOutlined />}
+                                className="pp-action-print"
+                                icon={<PrinterOutlined/>}
                                 onClick={() => handlePrintReceipt(record)}
-                                disabled={record.status === 'printed' || record.paymentStatus !== 'completed'}
+                                disabled={record.paymentStatus !== 'completed'}
                             >
-                                พิมพ์ใบเสร็จ
+                                พิมพ์
                             </Button>
                         </Tooltip>
+
+                        {/* ปุ่มดูรายละเอียด (ทำเป็นปุ่มหลัก Primary สีฟ้า/น้ำเงิน หรือเขียว) */}
                         <Button
-                            className="pp-primary-btn"
-                            type='primary'
-                            onClick={() => onclickNa(record)}>
+                            className="pp-action-detail"
+                            type="primary"
+                            icon={<EyeOutlined/>}
+                            onClick={() => onclickNa(record)}
+                        >
                             รายละเอียด
                         </Button>
+
+                        {/* ปุ่มแจ้งเตือนชำระ */}
                         <Button
-                            className="pp-secondary-btn"
-                            type="default"
+                            className="pp-action-notify"
+                            icon={<BellOutlined/>}
                             disabled={record.paymentStatus !== 'completed'}
                             onClick={() => handleNotifyPayment(record)}
                         >
-                            แจ้งเตือนชำระ
+                            แจ้งเตือน
                         </Button>
 
 
@@ -917,7 +923,9 @@ export default function PaymentsPage() {
 
                     {/* PageHeader */}
                     <header className="pp-banner">
-                        <div className="pp-banner-icon" aria-hidden="true"><AuditOutlined /></div>
+                        <div className="pp-banner-icon" aria-hidden="true">
+                            <AuditOutlined style={{fontSize: '24px', color: '#059669'}}/>
+                        </div>
                         <div className="pp-banner-text">
                             <h1 className="pp-banner-title">หน้าออกใบเสร็จรับเงิน</h1>
                             <p className="pp-banner-sub">สำหรับห้องที่ชำระบิลแล้ว</p>
@@ -928,29 +936,37 @@ export default function PaymentsPage() {
                     {/* Toolbar */}
                     <section className="pp-section">
                         <div className="pp-toolbar">
+
+                            {/* เลือกเดือน */}
                             <div className="pp-toolbar-month">
-                                <label htmlFor="pp-month">เลือกเดือน:</label>
+                                <label htmlFor="pp-month" className="pp-toolbar-label">
+                                    <CalendarOutlined style={{color: '#059669', marginRight: '6px'}}/>
+                                    เลือกเดือน:
+                                </label>
                                 <DatePicker
                                     id="pp-month"
                                     picker="month"
                                     value={filterMonth}
                                     onChange={handleMonthChange}
                                     format="MMMM BBBB"
+                                    className="pp-datepicker"
                                 />
                             </div>
+
+                            {/* ปุ่มการทำงาน */}
                             <div className="pp-toolbar-actions">
                                 <Button
-                                    className="pp-primary-btn"
+                                    className="pp-btn-print"
                                     type="primary"
-                                    icon={<PrinterOutlined />}
+                                    icon={<PrinterOutlined/>}
                                     onClick={handlePrintAll}
                                     disabled={unprintedCount === 0}
                                 >
                                     พิมพ์ที่ยังไม่พิมพ์ ({unprintedCount})
                                 </Button>
                                 <Button
-                                    className="pp-secondary-btn"
-                                    icon={<SendOutlined />}
+                                    className="pp-btn-notify"
+                                    icon={<SendOutlined/>}
                                     onClick={handleNotifyAllPayments}
                                     loading={isNotifyAllLoading}
                                     disabled={completedPaymentsCount === 0}
@@ -958,13 +974,16 @@ export default function PaymentsPage() {
                                     ส่งแจ้งเตือนทั้งหมด ({completedPaymentsCount})
                                 </Button>
                             </div>
+
                         </div>
                     </section>
 
                     {/* --- Data Table --- */}
                     <section className="pp-section">
                         <div className="pp-section-head">
-                            <span className="pp-section-icon" aria-hidden="true"><UnorderedListOutlined /></span>
+              <span className="pp-section-icon" aria-hidden="true">
+                <UnorderedListOutlined style={{fontSize: '20px', color: '#059669'}}/>
+              </span>
                             <h2 className="pp-section-title">รายการชำระเงิน</h2>
                         </div>
                         <div className="pp-table-scroll">
@@ -975,7 +994,7 @@ export default function PaymentsPage() {
                                 dataSource={filteredData}
                                 rowKey="paymentId"
                                 pagination={paginationInfo}
-                                scroll={{ x: 'max-content' }}
+                                scroll={{x: 'max-content'}}
                             />
                         </div>
                     </section>
@@ -995,10 +1014,8 @@ export default function PaymentsPage() {
                 handleConfirmSlip={handleConfirmSlip}
                 isSameAmount={isSameAmount}
                 accountId={accountId}
-                // handleConfirm={handleConfirm}
                 isSlipCheckEnabled={dataBank?.result?.apartment?.isSlipCheckEnabled}
                 handleCanceledSlip={handleCanceledSlip}
-
             />
         </ConfigProvider>
     );

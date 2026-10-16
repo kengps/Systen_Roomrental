@@ -1,5 +1,7 @@
 import {
-  DeleteOutlined
+  DeleteOutlined,
+  EditOutlined,
+  CopyOutlined
 } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -521,21 +523,69 @@ export default function BillingSystem() {
     {
       title: "ดำเนินการ",
       key: "action",
-      width: "100px",
+      width: "130px",
       align: "center",
       render: (_, record) => {
         // 👈 ถ้าเป็นบริการที่มีอยู่แล้ว (existing) ไม่ต้องแสดงปุ่มลบ
         if (record.type === 'existing') {
           return null; // หรือ <></>
         }
-        // รายการอื่นๆ ยังลบได้เหมือนเดิม
+        // รายการอื่นๆ แสดงปุ่มดำเนินการ 3 ปุ่ม (แก้ไข / ลบ / คัดลอก)
         return (
-          <Button
-            type="text"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => removeCharge(record.id)}
-          />
+          <div style={{ display: "flex", justifyContent: "center", gap: 6 }}>
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              onClick={() => {
+                // ตัวอย่าง: เตรียมแก้ไขแถวนี้ (สามารถต่อเติมฟอร์มแก้ไขได้ภายหลัง)
+                console.log("แก้ไขรายการ:", record);
+                message.info("เตรียมแก้ไขรายการ: " + record.description);
+              }}
+              style={{
+                color: "#1890ff",
+                borderColor: "#1890ff",
+                padding: "4px 10px",
+                borderRadius: "4px",
+                fontSize: "12px",
+              }}
+            >
+              แก้ไข
+            </Button>
+            <Button
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => removeCharge(record.id)}
+              style={{
+                color: "#f5222d",
+                borderColor: "#f5222d",
+                padding: "4px 10px",
+                borderRadius: "4px",
+                fontSize: "12px",
+              }}
+            >
+              ลบ
+            </Button>
+            <Button
+              type="text"
+              icon={<CopyOutlined />}
+              onClick={() => {
+                const text = `${record.description}: ${record.amount} บาท`;
+                navigator.clipboard.writeText(text).then(() => {
+                  message.success("คัดลอกรายการแล้ว");
+                });
+              }}
+              style={{
+                color: "#52c41a",
+                borderColor: "#52c41a",
+                padding: "4px 10px",
+                borderRadius: "4px",
+                fontSize: "12px",
+              }}
+            >
+              คัดลอก
+            </Button>
+          </div>
         );
       },
     },

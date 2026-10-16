@@ -1,4 +1,4 @@
-import {
+﻿import {
     CloseOutlined,
     FileTextOutlined,
     UnorderedListOutlined,
@@ -274,7 +274,7 @@ const PaymentDrawerAdmin = ({
                                 isSlipCheckEnabled = false,
                                 handleCanceledSlip,
                             }) => {
-    console.log(`⩇⩇:⩇⩇🚨 ~ paymentData :`, paymentData);
+
 
     const [modalVisible, setModalVisible] = useState(false);
     const [modalVisibleCancel, setModalVisibleCancel] = useState(false);

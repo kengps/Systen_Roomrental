@@ -1,9 +1,9 @@
-import {useEffect, useState, useRef} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {Outlet, useLocation, useNavigate} from 'react-router-dom';
 import LoadingComponent from '../components/LoadingSpinner/LoadingComponent';
 import {currentAdmin} from '../service/api/login_register';
 import persistMiddleware from '../service/zustand/middleware/persistMiddleware';
-import { notify } from '../utilities/notify';
+import {notify} from '../utilities/notify';
 
 
 const AdminRoutes = () => {
@@ -25,9 +25,18 @@ const AdminRoutes = () => {
                 lastTokenRef.current = user.token;
                 try {
                     let res = await currentAdmin(user.token);
-                    console.log("🚀 ~ checkAdmin ~ res: ", res);
+
+                    if (!localStorage.getItem('isLogin')) {
+                        if (res.status === 200) {
+                            notify.success("welcome!!");
+                            localStorage.setItem('isLogin', true);
+                        }
+                    }
+
+
                     setOk(true);
                 } catch (err) {
+
                     lastTokenRef.current = null;
                     const message = err?.response?.data?.message || 'การเข้าถึงถูกปฏิเสธ';
                     notify.error(message);
